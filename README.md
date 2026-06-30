@@ -163,6 +163,11 @@ jq '.[0]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs
 jq '.[1]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/eggbeater_circle_70cm.nec
 ```
 
+The generated plot pages render directly in a browser (GitHub Pages):
+
+- [circle pair](https://charlieh0tel.github.io/tamago/designs/eggbeater-circle-performance.html)
+- [squircle pair](https://charlieh0tel.github.io/tamago/designs/eggbeater-squircle-performance.html)
+
 `satellite_pair_squircle.input.json` is the same pair with squircle
 (rounded-corner square) loops, for building on a square frame; optimize it the
 same way to `satellite_pair_squircle.json`. It performs on par with the round
