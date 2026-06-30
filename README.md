@@ -1,5 +1,7 @@
 # awadateki
 
+[![CI](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml/badge.svg)](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml)
+
 Eggbeater antenna dimension generator with `nec2c` in the tuning loop.
 
 An eggbeater is two full-wave loops in perpendicular vertical planes, fed in
