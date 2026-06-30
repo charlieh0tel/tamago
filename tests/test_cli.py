@@ -5,9 +5,9 @@ from dataclasses import replace
 
 import pytest
 
-from beater.cli import main
-from beater.conductor import round_conductor
-from beater.design import (
+from awadateki.cli import main
+from awadateki.conductor import round_conductor
+from awadateki.design import (
     AR_TARGET_DB,
     PHASING_LINE,
     PHASING_SELF,
@@ -40,7 +40,7 @@ def test_deck_rejects_multi_design(tmp_path, capsys):
 
 @needs_nec2c
 def test_plot_artifact_structure():
-    from beater.plot import render_artifact
+    from awadateki.plot import render_artifact
 
     result = design(replace(_spec(PHASING_SELF), reflector="ground", label="2 m"))
     page = render_artifact([result])
@@ -98,7 +98,7 @@ def test_line_phasing_resonates():
 
 @needs_nec2c
 def test_coverage_gain_reported():
-    from beater.report import format_cut_sheet
+    from awadateki.report import format_cut_sheet
 
     result = design(replace(_spec(PHASING_SELF), reflector="ground"))
     assert math.isfinite(result.coverage_gain_db)
@@ -174,7 +174,7 @@ def test_optimize_reflector_returns_spec_with_provenance():
 
 @needs_nec2c
 def test_emit_spec_after_optimize_round_trips(tmp_path):
-    from beater.spec import specs_from_json
+    from awadateki.spec import specs_from_json
 
     src = tmp_path / "in.json"
     src.write_text(

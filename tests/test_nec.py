@@ -1,7 +1,7 @@
 import math
 
-from beater.geometry import make_eggbeater
-from beater.nec import RadiationGrid, Source, build_deck, parse_output
+from awadateki.geometry import make_eggbeater
+from awadateki.nec import RadiationGrid, Source, build_deck, parse_output
 
 # Trimmed nec2c output covering two sources and a few pattern directions,
 # including an exact-zenith row that omits the textual polarization sense.

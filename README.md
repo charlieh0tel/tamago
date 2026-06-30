@@ -1,4 +1,4 @@
-# beater
+# awadateki
 
 Eggbeater antenna dimension generator with `nec2c` in the tuning loop.
 
@@ -21,10 +21,10 @@ and `conductor` are required; every other field defaults. The pipeline is
 plots), so every artifact reflects exactly the spec it was handed.
 
 ```
-uv run beater designs/satellite_pair_circle.json --sweep
-echo '{"freq_mhz":145.9,"conductor":{"kind":"round","diameter_mm":5}}' | uv run beater -
+uv run awadateki designs/satellite_pair_circle.json --sweep
+echo '{"freq_mhz":145.9,"conductor":{"kind":"round","diameter_mm":5}}' | uv run awadateki -
 # optimize the reflector, then bake the optimized spec to reuse it later
-uv run beater my_design.json --optimize-reflector --emit-spec my_design.optimized.json
+uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optimized.json
 ```
 
 ### Spec (JSON)
@@ -143,22 +143,22 @@ carrying its provenance; the rest derive from it.
 
 ```
 # authored input -> optimized spec (provenance and notes carried through)
-uv run beater designs/satellite_pair_circle.input.json \
+uv run awadateki designs/satellite_pair_circle.input.json \
     --optimize-reflector --emit-spec designs/satellite_pair_circle.json
 
 # cut sheets and bandwidths for both bands
-uv run beater designs/satellite_pair_circle.json --sweep
+uv run awadateki designs/satellite_pair_circle.json --sweep
 
 # machine-readable cut list + performance (build, performance, bandwidth)
-uv run beater designs/satellite_pair_circle.json --sweep \
+uv run awadateki designs/satellite_pair_circle.json --sweep \
     --emit-result designs/satellite_pair_circle.result.json
 
 # performance-plot page (HTML)
-uv run beater designs/satellite_pair_circle.json --plot designs/eggbeater-circle-performance.html
+uv run awadateki designs/satellite_pair_circle.json --plot designs/eggbeater-circle-performance.html
 
 # tuned NEC decks, one design at a time (--deck is single-design only)
-jq '.[0]' designs/satellite_pair_circle.json | uv run beater - --deck designs/eggbeater_circle_2m.nec
-jq '.[1]' designs/satellite_pair_circle.json | uv run beater - --deck designs/eggbeater_circle_70cm.nec
+jq '.[0]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/eggbeater_circle_2m.nec
+jq '.[1]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/eggbeater_circle_70cm.nec
 ```
 
 `satellite_pair_squircle.input.json` is the same pair with squircle

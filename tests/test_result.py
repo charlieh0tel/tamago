@@ -1,8 +1,8 @@
 import json
 
-from beater.conductor import round_conductor
-from beater.design import DesignResult, DesignSpec
-from beater.result import result_to_dict, results_to_json
+from awadateki.conductor import round_conductor
+from awadateki.design import DesignResult, DesignSpec
+from awadateki.result import result_to_dict, results_to_json
 
 
 def _result(**spec_overrides) -> DesignResult:

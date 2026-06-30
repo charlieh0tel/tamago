@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from beater.geometry import (
+from awadateki.geometry import (
     LOOP_A_TAG_BASE,
     LOOP_B_TAG_BASE,
     RADIAL_TAG_BASE,

@@ -1,6 +1,6 @@
-from beater.conductor import bar_conductor, round_conductor
-from beater.design import DesignSpec, Optimization
-from beater.spec import (
+from awadateki.conductor import bar_conductor, round_conductor
+from awadateki.design import DesignSpec, Optimization
+from awadateki.spec import (
     spec_from_dict,
     spec_to_dict,
     specs_from_json,

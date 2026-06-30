@@ -322,7 +322,7 @@ def _colorbar(vmin, vmax, cmap, label):
 def _viewer_script() -> str:
     """The orbit-viewer JS (viewer.js) wrapped in a script tag, inlined once so
     the page stays self-contained."""
-    js = files("beater").joinpath("viewer.js").read_text(encoding="utf-8")
+    js = files("awadateki").joinpath("viewer.js").read_text(encoding="utf-8")
     return f"<script>\n{js}</script>"
 
 

@@ -1,5 +1,5 @@
 [project]
-name = "beater"
+name = "awadateki"
 version = "0.1.0"
 description = "Eggbeater antenna dimension generator with nec2c tuning"
 requires-python = ">=3.11"
@@ -10,7 +10,7 @@ classifiers = [
 ]
 
 [project.scripts]
-beater = "beater.cli:main"
+awadateki = "awadateki.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -26,4 +26,4 @@ select = ["E", "F", "I", "W", "UP", "B"]
 # The nec2c sample output is a fixed-column fixture and must not be reflowed.
 "tests/test_nec.py" = ["E501"]
 # plot.py embeds an HTML/CSS template whose lines should not be reflowed.
-"src/beater/plot.py" = ["E501"]
+"src/awadateki/plot.py" = ["E501"]

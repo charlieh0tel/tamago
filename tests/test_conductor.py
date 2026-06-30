@@ -1,6 +1,6 @@
 import math
 
-from beater.conductor import (
+from awadateki.conductor import (
     CIRCLE_GMD_FACTOR,
     RECT_GMD_FACTOR,
     STRIP_EQUIV_RADIUS_FACTOR,

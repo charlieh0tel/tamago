@@ -13,7 +13,7 @@ from .spec import specs_from_json, specs_to_json
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="beater",
+        prog="awadateki",
         description="Tune eggbeater antenna designs from a JSON spec.",
     )
     parser.add_argument(
