@@ -1,6 +1,8 @@
-"""Render eggbeater performance plots as a body-only HTML fragment (inline SVG).
+"""Render eggbeater performance plots as a self-contained HTML document.
 
-Driven by DesignResult objects; overlays multiple designs per chart.
+A complete page (doctype, head, body) with inline SVG and an inline canvas
+viewer, no external dependencies. Driven by DesignResult objects; overlays
+multiple designs per chart.
 """
 
 import html
@@ -559,7 +561,12 @@ def render_artifact(results: list[DesignResult]) -> str:
     )
 
 
-_TEMPLATE = """<title>Eggbeater Performance</title>
+_TEMPLATE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eggbeater Performance</title>
 <meta name="description" content="nec2c-modeled eggbeater antenna performance: VSWR, axial ratio, and elevation coverage.">
 <style>
   :root {{
@@ -624,6 +631,8 @@ _TEMPLATE = """<title>Eggbeater Performance</title>
   @media (max-width:860px) {{ .trio {{ grid-template-columns:1fr; }} }}
   @media (max-width:640px) {{ .grid, .cols {{ grid-template-columns:1fr; }} }}
 </style>
+</head>
+<body>
 <div class="wrap">
   <p class="eyebrow">nec2c modeled</p>
   <h1>Eggbeater Performance</h1>
@@ -680,4 +689,6 @@ _TEMPLATE = """<title>Eggbeater Performance</title>
   </footer>
 </div>
 {viewer}
+</body>
+</html>
 """
