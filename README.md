@@ -1,4 +1,4 @@
-# awadateki
+# Tamago awadateki (たまご泡立て器)
 
 [![CI](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml/badge.svg)](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml)
 
