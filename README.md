@@ -206,3 +206,7 @@ uv run pytest
 ```
 
 Tests that drive `nec2c` are skipped automatically when it is not installed.
+
+## License
+
+GNU General Public License v3.0 or later (GPLv3+); see `LICENSE`.
