@@ -4,3 +4,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 *.out
+
+# Python packaging artifacts
+build/
+dist/
+*.egg-info/
