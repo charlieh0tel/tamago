@@ -27,6 +27,7 @@ from .design import (
 from .geometry import LOOP_B_TAG_BASE, RADIAL_TAG_BASE
 from .nec import RadiationGrid
 from .report import cut_sheet_build
+from .schematic import render_feed_schematic
 from .spec import spec_to_dict
 
 # Data trace colors, cycled per design (teal, amber, violet, green, ...).
@@ -433,15 +434,23 @@ def _band_text(band):
     return "not met" if band is None else f"{band[0]:.1f}&ndash;{band[1]:.1f} MHz"
 
 
+_SCHEMATIC_NOTE = (
+    "The series element cancels the feedpoint reactance and the 1/4-wave "
+    "section transforms to the system impedance. The phasing-line connection "
+    "(normal or crossed) sets the polarization sense."
+)
+
+
 def _details(results: list[DesignResult]) -> str:
-    """Per-design input spec (JSON) and physical cut sheet, as <pre> blocks."""
+    """Per-design feed schematic, input spec (JSON), and physical cut sheet."""
     blocks = []
     for result in results:
         spec_json = html.escape(json.dumps(spec_to_dict(result.spec), indent=2))
         sheet = html.escape(cut_sheet_build(result))
         blocks.append(
             f'<section class="detail"><h2>{html.escape(_label(result))}</h2>'
-            '<div class="cols">'
+            + _figure("Feed and match", _SCHEMATIC_NOTE, render_feed_schematic(result))
+            + '<div class="cols" style="margin-top:18px">'
             f"<div><h3>Input spec</h3><pre>{spec_json}</pre></div>"
             f"<div><h3>Cut list</h3><pre>{sheet}</pre></div>"
             "</div></section>"
@@ -642,6 +651,11 @@ _TEMPLATE = """<!doctype html>
     border-radius:6px; padding:12px 14px; font-family:var(--mono); font-size:12px;
     line-height:1.5; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere;
     color:var(--ink); }}
+  .sch line, .sch path, .sch circle, .sch ellipse {{ stroke:var(--ink);
+    fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }}
+  .sch .dot {{ fill:var(--ink); stroke:none; }}
+  .sch text {{ font-family:var(--mono); font-size:11px; fill:var(--ink);
+    stroke:none; }}
   .tick {{ font-family:var(--mono); font-size:11px; fill:var(--muted); }}
   .axis {{ font-family:var(--mono); font-size:11px; fill:var(--muted); letter-spacing:.04em; }}
   .limit {{ font-family:var(--mono); font-size:11px; fill:{LIMIT}; font-weight:600; }}

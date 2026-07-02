@@ -42,8 +42,9 @@ def test_plot_artifact_structure():
 
     result = design(replace(_spec(), reflector="ground", label="2 m"))
     page = render_artifact([result])
-    # Four line charts plus the gain and axial-ratio az-el maps for one design.
-    assert page.count("<svg") == 6
+    # Four line charts, the gain and axial-ratio az-el maps, and the feed
+    # schematic for one design.
+    assert page.count("<svg") == 7
     assert page.count("<polyline") == 4  # one trace per line chart for one design
     # One interactive geometry canvas (id geom0) with its inline data script and
     # the orbit viewer inlined once.
