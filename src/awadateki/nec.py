@@ -31,6 +31,28 @@ class Source:
 
 
 @dataclass(frozen=True)
+class TransmissionLine:
+    """A TL card: an ideal transmission line joining two segments.
+
+    Fields:
+        tag1, segment1: first port (wire tag and 1-based segment).
+        tag2, segment2: second port.
+        z0_ohm: characteristic impedance; a negative value models a crossed
+            (polarity-reversed) connection, which flips the handedness.
+        length_m: line length. nec2c treats it as electrical length at the
+            free-space wavelength, so length = wavelength / 4 gives a 90 deg
+            line regardless of any real coax velocity factor.
+    """
+
+    tag1: int
+    segment1: int
+    tag2: int
+    segment2: int
+    z0_ohm: float
+    length_m: float
+
+
+@dataclass(frozen=True)
 class RadiationGrid:
     """RP-card sampling grid over the upper hemisphere.
 
@@ -62,6 +84,24 @@ class SourceResult:
 
 
 @dataclass(frozen=True)
+class SegmentCurrent:
+    """One segment's current, parsed from the CURRENTS AND LOCATION block."""
+
+    tag: int
+    segment: int
+    i_real: float
+    i_imag: float
+
+    @property
+    def magnitude(self) -> float:
+        return math.hypot(self.i_real, self.i_imag)
+
+    @property
+    def phase_deg(self) -> float:
+        return math.degrees(math.atan2(self.i_imag, self.i_real))
+
+
+@dataclass(frozen=True)
 class PatternPoint:
     """One direction parsed from RADIATION PATTERNS."""
 
@@ -77,6 +117,14 @@ class PatternPoint:
 class NecResult:
     sources: tuple[SourceResult, ...]
     pattern: tuple[PatternPoint, ...]
+    currents: tuple[SegmentCurrent, ...] = ()
+
+    def feed_current(self, tag: int) -> complex:
+        """Current on the (1-segment) feed wire with this tag, 0 if absent."""
+        for c in self.currents:
+            if c.tag == tag:
+                return complex(c.i_real, c.i_imag)
+        return 0j
 
 
 def build_deck(
@@ -86,6 +134,7 @@ def build_deck(
     ground: bool,
     freq_mhz: float,
     grid: RadiationGrid,
+    transmission_lines: tuple[TransmissionLine, ...] = (),
 ) -> str:
     """Render a complete NEC-2 deck as text."""
     lines = [f"CM {c}" for c in comment_lines]
@@ -103,6 +152,11 @@ def build_deck(
         # Perfect conducting ground plane approximates a solid metal reflector.
         lines.append("GN 1")
     lines.append("EK")
+    for t in transmission_lines:
+        lines.append(
+            f"TL {t.tag1} {t.segment1} {t.tag2} {t.segment2} "
+            f"{t.z0_ohm:.6f} {t.length_m:.6f}"
+        )
     for s in sources:
         lines.append(f"EX 0 {s.tag} {s.segment} 0 {s.v_real:.6f} {s.v_imag:.6f}")
     lines.append(f"FR 0 1 0 0 {freq_mhz:.6f} 0")
@@ -178,18 +232,51 @@ def _parse_pattern(lines: list[str], start: int) -> tuple[PatternPoint, ...]:
     return tuple(points)
 
 
+def _parse_currents(lines: list[str], start: int) -> tuple[SegmentCurrent, ...]:
+    """Parse the CURRENTS AND LOCATION data rows.
+
+    Columns: seg tag X Y Z length I_re I_im I_mag I_phase (10 fields).
+    """
+    results = []
+    seen_data = False
+    for line in lines[start:]:
+        tokens = line.split()
+        if (
+            len(tokens) >= 10
+            and _is_float(tokens[0])
+            and _is_float(tokens[6])
+            and _is_float(tokens[7])
+        ):
+            results.append(
+                SegmentCurrent(
+                    tag=int(tokens[1]),
+                    segment=int(tokens[0]),
+                    i_real=float(tokens[6]),
+                    i_imag=float(tokens[7]),
+                )
+            )
+            seen_data = True
+        elif seen_data:
+            break
+    return tuple(results)
+
+
 def parse_output(text: str) -> NecResult:
     """Parse nec2c output text into an NecResult."""
     lines = text.splitlines()
     sources: tuple[SourceResult, ...] = ()
     pattern: tuple[PatternPoint, ...] = ()
+    currents: tuple[SegmentCurrent, ...] = ()
     for idx, line in enumerate(lines):
         if "ANTENNA INPUT PARAMETERS" in line:
             sources = _parse_sources(lines, idx)
+        elif "CURRENTS AND LOCATION" in line:
+            # Data rows begin after the title and two-line column header.
+            currents = _parse_currents(lines, idx + 4)
         elif "RADIATION PATTERNS" in line:
             # Data rows begin after the three-line column header.
             pattern = _parse_pattern(lines, idx + 4)
-    return NecResult(sources=sources, pattern=pattern)
+    return NecResult(sources=sources, pattern=pattern, currents=currents)
 
 
 def run_nec(deck: str, nec2c: str = DEFAULT_NEC2C) -> NecResult:

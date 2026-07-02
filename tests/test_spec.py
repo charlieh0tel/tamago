@@ -1,3 +1,4 @@
+from awadateki.coax import RG_59, RG_62, Coax
 from awadateki.conductor import bar_conductor, round_conductor
 from awadateki.design import DesignSpec, Optimization
 from awadateki.spec import (
@@ -66,11 +67,27 @@ def test_spec_round_trip_with_optimization():
     assert restored.optimization.input == base
 
 
+def test_spec_round_trip_custom_coax():
+    spec = _spec(
+        phasing_coax=Coax("hardline", 93.0, 0.80),
+        match_coax=Coax("RG-6", 75.0, 0.85),
+    )
+    assert spec_from_dict(spec_to_dict(spec)) == spec
+
+
+def test_coax_accepts_catalog_name():
+    data = spec_to_dict(_spec())
+    data["phasing_coax"] = "RG-62"
+    data["match_coax"] = "RG-59"
+    spec = spec_from_dict(data)
+    assert spec.phasing_coax == RG_62
+    assert spec.match_coax == RG_59
+
+
 def test_minimal_dict_uses_defaults():
     spec = spec_from_dict(
         {"freq_mhz": 436.0, "conductor": {"kind": "round", "diameter_mm": 3.0}}
     )
-    assert spec.phasing == "self"
     assert spec.reflector == "none"
     assert spec.sense == "rhcp"
     assert spec.segments == DesignSpec(freq_mhz=1.0, conductor=spec.conductor).segments

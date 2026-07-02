@@ -1,9 +1,9 @@
 # TODO
 
 Optional work; nothing here blocks the current deliverable (JSON-driven
-tool, both phasing schemes, round/bar conductor, reflector optimizer with
-provenance, 4-chart HTML page, cut sheets, bandwidth sweeps, tuned NEC
-decks, design doc, tests passing).
+tool, quarter-wave line phasing via TL card, round/bar conductor, reflector
+optimizer with provenance, 4-chart HTML page, cut sheets, bandwidth sweeps,
+tuned NEC decks, design doc, tests passing).
 
 ## Optimizer
 
@@ -13,11 +13,32 @@ decks, design doc, tests passing).
       (gain ripple < 0.3 dB, AR < 3 dB within 20 deg of zenith; worst-case
       coverage gain matches the quadrant value to 0.1 dB). Only worth adding if a
       worst-case (not average) azimuth metric is wanted.
+- [ ] Experiment with larger reflector spacing. The spacing search caps at
+      0.40 lambda; a report suggested slightly more than 1/2 lambda (reflector
+      lower, farther below the loops) was beneficial. Try extending the spacing
+      bound past 0.5 lambda and see whether gain/AR/VSWR improve.
 
 ## Modeling fidelity
 
-- [ ] Line phasing via NEC TL card. Today line phasing injects a phase at
-      the source rather than modeling a real quarter-wave line; a TL-card
-      harness would capture line loss and dispersion.
+- [ ] Phasing-line loss and dispersion. The quarter-wave line is a NEC ideal
+      TL card (lossless, dispersionless); model real cable loss.
 - [ ] Conductor loss and real ground. NEC runs are perfect-conductor with
       perfect or simple ground.
+
+## Feed and matching
+
+- [ ] Balanced feed option: a coaxial 4:1 balun transformer plus a pair of
+      quarter-wave Q-sections, as an alternative to the current series-element
+      and single quarter-wave transformer. The 4:1 balun gives balanced drive
+      and a 4:1 impedance step; the two Q-sections match each loop. This is the
+      common practical eggbeater feed and would also let the model balance the
+      two loop currents (the bare phasing line over- or under-drives one loop
+      depending on Z0 vs the loop impedance).
+
+## Tooling and integrations
+
+- [ ] Investigate NECBOL -- a Python library for building NEC models; assess
+      whether to adopt it for deck generation / model building.
+- [ ] Investigate nec.opt -- external NEC optimization tooling; compare against
+      the built-in coordinate-descent reflector optimizer.
+- [ ] Integration with arcanum -- evaluate what integrating with it would mean.

@@ -41,7 +41,6 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
         f"Wavelength          : {build['wavelength_mm']:.1f} mm",
         f"Conductor           : {spec.conductor.description}",
         f"  equivalent radius : {spec.conductor.equivalent_radius_mm:.4g} mm",
-        f"Phasing             : {build['phasing']}",
         f"Loop shape          : {build['loop_shape']}",
         f"Reflector           : {build['reflector']}",
     ]
@@ -63,29 +62,24 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
 
 def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
     term = _WIDTH_TERM.get(build["loop_shape"], "width")
-    if "large_loop" in build:
-        large, small = build["large_loop"], build["small_loop"]
-        return [
-            f"Detune (delta)      : {build['detune_percent']:.2f} %",
-            f"Large loop          : {large['perimeter_mm']:.1f} mm perimeter, "
-            f"{large['width_mm']:.1f} mm {term}",
-            f"Small loop          : {small['perimeter_mm']:.1f} mm perimeter, "
-            f"{small['width_mm']:.1f} mm {term}",
-            "Feed                : loops paralleled at a common feedpoint",
-        ]
     loop = build["loop"]
+    line = build["phasing_line"]
     return [
         f"Both loops          : {loop['perimeter_mm']:.1f} mm perimeter, "
         f"{loop['width_mm']:.1f} mm {term}",
-        f"Phasing line        : {build['phasing_line_mm']:.1f} mm (1/4 wave, "
-        f"VF {result.spec.coax_vf:g})",
-        "Feed                : tee at junction; line in series with loop B",
+        f"Loop offset         : {build['loop_offset_mm']:g} mm (loop A below, "
+        "loop B above)",
+        f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
+        f"Phasing line        : {line['length_mm']:.1f} mm ({line['coax']['name']}, "
+        f"{line['coax']['z0_ohm']:g} ohm, 1/4 wave, VF {line['coax']['vf']:g})",
+        f"Feed                : radio at junction across loop A; "
+        f"{line['connection']} line to loop B",
     ]
 
 
 def _match_lines(result: DesignResult, build: dict) -> list[str]:
     match = build["match"]
-    lines = ["Match to 50 ohm:"]
+    lines = [f"Match to {match['system_z_ohm']:g} ohm:"]
     series = match["series_element"]
     if series is not None:
         sized = (
@@ -97,24 +91,25 @@ def _match_lines(result: DesignResult, build: dict) -> list[str]:
             f"  series {series['kind']:9}  : {sized} to cancel "
             f"{result.z_in.imag:+.0f}j ohms"
         )
+    coax = match["transformer_coax"]
     lines += [
         f"  1/4-wave Z0       : {match['transformer_z0_ohm']:.1f} ohms "
-        f"(nearest standard {match['transformer_standard_coax_ohm']:.0f} ohm)",
+        f"(use {coax['name']}, {coax['z0_ohm']:g} ohm)",
         f"  1/4-wave length   : {match['transformer_length_mm']:.1f} mm "
-        f"(VF {result.spec.match_vf:g})",
+        f"(VF {coax['vf']:g})",
     ]
     return lines
 
 
 def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
     z = perf["feed_z_ohm"]
-    z_label = "feedpoint Z" if perf["feed_z_kind"] == "feedpoint" else "per-loop Z"
     return [
         "Predicted performance:",
-        f"  {z_label:16}: {z['real']:.1f} {z['imag']:+.1f}j ohms",
-        f"  VSWR (unmatched): {perf['vswr_unmatched']:.2f}",
+        f"  feedpoint Z      : {z['real']:.1f} {z['imag']:+.1f}j ohms",
+        f"  VSWR (unmatched) : {perf['vswr_unmatched']:.2f}",
         f"  loop current phase: {perf['loop_current_phase_deg']:+.1f} deg "
         "(target +/-90)",
+        f"  loop balance     : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = circular)",
         f"  polarization sense: {_format_sense(result)}",
         f"  axial ratio (cone): {perf['axial_ratio_cone_db']:.2f} dB "
         f"(<= {int(BORESIGHT_THETA_DEG)} deg from zenith)",

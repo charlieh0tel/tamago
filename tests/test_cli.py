@@ -9,8 +9,6 @@ from awadateki.cli import main
 from awadateki.conductor import round_conductor
 from awadateki.design import (
     AR_TARGET_DB,
-    PHASING_LINE,
-    PHASING_SELF,
     VSWR_LIMIT,
     DesignSpec,
     bandwidth_within,
@@ -42,7 +40,7 @@ def test_deck_rejects_multi_design(tmp_path, capsys):
 def test_plot_artifact_structure():
     from awadateki.plot import render_artifact
 
-    result = design(replace(_spec(PHASING_SELF), reflector="ground", label="2 m"))
+    result = design(replace(_spec(), reflector="ground", label="2 m"))
     page = render_artifact([result])
     # Four line charts plus the gain and axial-ratio az-el maps for one design.
     assert page.count("<svg") == 6
@@ -66,41 +64,31 @@ def test_main_reads_stdin(monkeypatch, capsys):
     assert "Eggbeater cut sheet" in capsys.readouterr().out
 
 
-def _spec(phasing: str) -> DesignSpec:
+def _spec() -> DesignSpec:
     # Coarse polygon keeps the nec2c-in-the-loop tests fast.
     return DesignSpec(
         freq_mhz=145.9,
         conductor=round_conductor(3.0),
-        phasing=phasing,
         reflector="none",
         reflector_spacing_wl=0.25,
-        coax_vf=0.66,
-        match_vf=0.66,
         sense="rhcp",
         segments=16,
     )
 
 
 @needs_nec2c
-def test_self_phasing_tunes_within_bounds():
-    result = design(_spec(PHASING_SELF))
+def test_design_resonates():
+    result = design(_spec())
     assert 0.8 < result.base_factor < 1.2
-    assert 0.0 < result.delta <= 0.15
-    # A detuned design must beat the linear (delta = 0) starting point.
-    assert math.isfinite(result.ar_boresight_db)
-
-
-@needs_nec2c
-def test_line_phasing_resonates():
-    result = design(_spec(PHASING_LINE))
     assert abs(result.z_in.imag) < 15.0
+    assert math.isfinite(result.ar_boresight_db)
 
 
 @needs_nec2c
 def test_coverage_gain_reported():
     from awadateki.report import format_cut_sheet
 
-    result = design(replace(_spec(PHASING_SELF), reflector="ground"))
+    result = design(replace(_spec(), reflector="ground"))
     assert math.isfinite(result.coverage_gain_db)
     assert "coverage gain" in format_cut_sheet(result)
 
@@ -108,23 +96,24 @@ def test_coverage_gain_reported():
 @needs_nec2c
 def test_square_loop_design_runs():
     # 16 segments divides by 4, so the square's corners land on vertices.
-    result = design(replace(_spec(PHASING_SELF), loop_shape="square"))
+    result = design(replace(_spec(), loop_shape="square"))
     assert math.isfinite(result.ar_boresight_db)
-    assert result.deck.count("\nGW ") == 2 * result.spec.segments
+    # The feed gap splits each loop's bottom side into three, adding 2 wires.
+    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
 
 
 @needs_nec2c
 def test_radial_reflector_runs():
-    spec = replace(_spec(PHASING_SELF), reflector="radials")
+    spec = replace(_spec(), reflector="radials")
     result = design(spec)
     assert math.isfinite(result.ar_boresight_db)
-    assert result.deck.count("\nGW ") == 2 * spec.segments + spec.radial_count
+    assert result.deck.count("\nGW ") == 2 * (spec.segments + 2) + spec.radial_count
 
 
 @needs_nec2c
 def test_sense_selection_flips_handedness():
-    rhcp = design(replace(_spec(PHASING_SELF), reflector="ground", sense="rhcp"))
-    lhcp = design(replace(_spec(PHASING_SELF), reflector="ground", sense="lhcp"))
+    rhcp = design(replace(_spec(), reflector="ground", sense="rhcp"))
+    lhcp = design(replace(_spec(), reflector="ground", sense="lhcp"))
     assert rhcp.sense == "RIGHT"
     assert lhcp.sense == "LEFT"
 
@@ -148,7 +137,7 @@ def test_bandwidth_none_when_center_mismatched():
 
 @needs_nec2c
 def test_optimize_reflector_returns_spec_with_provenance():
-    base = replace(_spec(PHASING_SELF), reflector="radials")
+    base = replace(_spec(), reflector="radials")
     best = optimize_reflector(base)
     assert isinstance(best, DesignSpec)
     # Coordinate descent returns continuous values within the search bounds.
@@ -191,7 +180,7 @@ def test_emit_spec_after_optimize_round_trips(tmp_path):
 
 @needs_nec2c
 def test_frequency_sweep_reports_both_bandwidths():
-    result = design(replace(_spec(PHASING_SELF), reflector="ground"))
+    result = design(replace(_spec(), reflector="ground"))
     sweep = frequency_sweep(result, span_fraction=0.05, points=11)
     center = result.spec.freq_mhz
     vswr_band = bandwidth_within([(p.freq_mhz, p.vswr) for p in sweep], VSWR_LIMIT)

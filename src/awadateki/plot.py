@@ -17,7 +17,6 @@ from .design import (
     VSWR_LIMIT,
     DesignResult,
     _axial_ratio_db,
-    _operating_point,
     analyze,
     bandwidth_within,
     frequency_sweep,
@@ -74,10 +73,8 @@ def _label(result: DesignResult) -> str:
 def _elevation_cut(result: DesignResult):
     """Axial ratio and gain versus elevation on the phi=0 plane."""
     spec = result.spec
-    factor_a, factor_b, phase_b = _operating_point(
-        result.base_factor, result.delta, spec.phasing, flip=False
-    )
-    nec, _ = analyze(spec, factor_a, factor_b, phase_b, grid=FINE_GRID)
+    base = result.base_factor
+    nec, _ = analyze(spec, base, grid=FINE_GRID)
     ar, gain = [], []
     for point in nec.pattern:
         elevation = 90.0 - point.theta_deg
@@ -222,10 +219,8 @@ def _hemisphere(result: DesignResult):
     sample folds onto 0.
     """
     spec = result.spec
-    factor_a, factor_b, phase_b = _operating_point(
-        result.base_factor, result.delta, spec.phasing, flip=False
-    )
-    nec, _ = analyze(spec, factor_a, factor_b, phase_b, grid=HEMI_GRID)
+    base = result.base_factor
+    nec, _ = analyze(spec, base, grid=HEMI_GRID)
     gain, ar = {}, {}
     for point in nec.pattern:
         key = (round(point.theta_deg), round(point.phi_deg) % 360)

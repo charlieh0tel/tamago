@@ -220,11 +220,15 @@ def _make_loop(
     tag_base: int,
     segments: int,
     shape: str,
+    feed_gap_m: float = 0.0,
 ) -> Loop:
     """Build one polygonal loop of the given outline in the 'xz' or 'yz' plane.
 
-    Side 0 is centred on the bottom of the loop, giving a well-defined feed
-    location near the reflector.
+    The bottom side carries the feed.  When feed_gap_m > 0 and fits within that
+    side, the side is split into a short feed segment of that length centred on
+    the bottom (where the line connects) flanked by two approach segments, so the
+    segment lengths step gently into the gap (NEC's segment-grading rule).  The
+    feed wire keeps tag_base; the remaining wires take the following tags.
     """
     points = []
     for across, up_offset in _loop_outline_points(
@@ -233,19 +237,39 @@ def _make_loop(
         up = center_z_m + up_offset
         points.append((across, 0.0, up) if plane == "xz" else (0.0, across, up))
     points.append(points[0])
+
+    a, b = points[0], points[1]  # the bottom side, centred on the loop bottom
+    dx, dy, dz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
+    side_len = math.sqrt(dx * dx + dy * dy + dz * dz)
+    segs: list[tuple[int, tuple, tuple]] = []
+    if 0.0 < feed_gap_m < side_len:
+        mx, my, mz = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2
+        ux, uy, uz = dx / side_len, dy / side_len, dz / side_len
+        h = feed_gap_m / 2.0
+        t0 = (mx - ux * h, my - uy * h, mz - uz * h)
+        t1 = (mx + ux * h, my + uy * h, mz + uz * h)
+        segs += [(tag_base + 1, a, t0), (tag_base, t0, t1), (tag_base + 2, t1, b)]
+        next_tag = tag_base + 3
+    else:
+        segs.append((tag_base, a, b))  # whole bottom side is the feed segment
+        next_tag = tag_base + 1
+    for k in range(1, segments):
+        segs.append((next_tag, points[k], points[k + 1]))
+        next_tag += 1
+
     wires = tuple(
         Wire(
-            tag=tag_base + k,
+            tag=tag,
             segments=1,
-            x1=points[k][0],
-            y1=points[k][1],
-            z1=points[k][2],
-            x2=points[k + 1][0],
-            y2=points[k + 1][1],
-            z2=points[k + 1][2],
+            x1=p[0],
+            y1=p[1],
+            z1=p[2],
+            x2=q[0],
+            y2=q[1],
+            z2=q[2],
             radius_m=conductor_radius_m,
         )
-        for k in range(segments)
+        for tag, p, q in segs
     )
     return Loop(wires=wires, feed_tag=tag_base, feed_segment=1)
 
@@ -258,6 +282,8 @@ def make_eggbeater(
     segments: int = DEFAULT_SEGMENTS,
     shape: str = SHAPE_CIRCLE,
     corner_radius_m: float = 0.0,
+    loop_offset_m: float = 0.0,
+    feed_gap_m: float = 0.0,
 ) -> Eggbeater:
     """Build crossed loops A (XZ plane) and B (YZ plane).
 
@@ -265,6 +291,13 @@ def make_eggbeater(
     it is ignored for circle and square. It must be positive and smaller than the
     equivalent circle radius (perimeter / 2*pi), past which no straight side
     remains and the shape would be a circle.
+
+    loop_offset_m vertically separates the two loop centres (loop A below, loop B
+    above, each by half the offset) so the crossed conductors clear at the top
+    and bottom crossings; the mean height stays at center_z_m.
+
+    feed_gap_m is the width of the feed gap at the bottom of each loop (where the
+    line connects); see _make_loop.
     """
     if shape not in LOOP_SHAPES:
         raise ValueError(f"unknown loop shape: {shape!r}")
@@ -275,25 +308,28 @@ def make_eggbeater(
                 f"squircle corner radius {corner_radius_m:.4g} m must be in "
                 f"(0, {max_radius:.4g}) for this loop perimeter"
             )
+    half_offset = loop_offset_m / 2.0
     loop_a = _make_loop(
         "xz",
         perimeter_a_m,
         corner_radius_m,
-        center_z_m,
+        center_z_m - half_offset,
         conductor_radius_m,
         LOOP_A_TAG_BASE,
         segments,
         shape,
+        feed_gap_m,
     )
     loop_b = _make_loop(
         "yz",
         perimeter_b_m,
         corner_radius_m,
-        center_z_m,
+        center_z_m + half_offset,
         conductor_radius_m,
         LOOP_B_TAG_BASE,
         segments,
         shape,
+        feed_gap_m,
     )
     return Eggbeater(loop_a=loop_a, loop_b=loop_b)
 

@@ -10,41 +10,43 @@ only when a frequency sweep is requested):
 
     spec        the input spec (see spec.spec_to_dict).
     build       buildable cut list:
-                  freq_mhz, wavelength_mm, phasing, loop_shape, reflector;
+                  freq_mhz, wavelength_mm, loop_shape, reflector;
                   corner_radius_mm present for the squircle shape;
                   loop_center_height_wl/_mm and radials present with a reflector;
-                  self phasing: detune_percent, large_loop, small_loop;
-                  line phasing: loop, phasing_line_mm;
-                  each loop dict is {perimeter_mm, width_mm} (width is the
-                  across dimension: diameter, side, or squircle width);
-                  match: series_element (null or {kind, value_nh|value_pf}),
-                         transformer_z0_ohm, transformer_standard_coax_ohm,
+                  loop {perimeter_mm, width_mm} (width is the across dimension:
+                  diameter, side, or squircle width); loop_offset_mm; feed_gap_mm;
+                  phasing_line {coax {name, z0_ohm, vf}, length_mm,
+                  connection (normal|crossed)};
+                  match: system_z_ohm, series_element (null or
+                         {kind, value_nh|value_pf}), transformer_z0_ohm (ideal),
+                         transformer_coax {name, z0_ohm, vf},
                          transformer_length_mm.
     performance feedpoint and pattern figures of merit:
-                  feed_z_ohm {real, imag}, feed_z_kind (feedpoint|per_loop),
+                  feed_z_ohm {real, imag}, feed_z_kind (feedpoint),
                   vswr_unmatched, vswr_matched, loop_current_phase_deg,
-                  sense, sense_requested, sense_achieved,
-                  axial_ratio_cone_db, axial_ratio_peak_db, coverage_gain_dbi.
+                  loop_balance (|I_B|/|I_A|), sense, sense_requested,
+                  sense_achieved, axial_ratio_cone_db, axial_ratio_peak_db,
+                  coverage_gain_dbi.
     bandwidth   vswr_2to1_mhz and axial_ratio_3db_mhz, each [low, high] or null.
 """
 
 import json
 
+from .coax import Coax
 from .design import (
     AR_TARGET_DB,
     MATCH_REACTANCE_WARN_OHMS,
     NEC_SENSE_TO_HAND,
-    PHASING_SELF,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
     VSWR_LIMIT,
     DesignResult,
     bandwidth_within,
     frequency_sweep,
-    nearest_standard_coax,
     post_match_vswr,
     quarter_wave_match_z0,
     series_match_element,
+    transformer_coax,
     vswr,
 )
 from .geometry import SHAPE_SQUIRCLE, loop_extent_m, wavelength_m
@@ -57,6 +59,15 @@ NH_PER_HENRY = 1.0e9
 QUARTER_WAVE = 0.25
 
 
+def _coax_dict(coax: Coax) -> dict:
+    return {"name": coax.name, "z0_ohm": coax.z0_ohm, "vf": coax.vf}
+
+
+def _quarter_wave_mm(wavelength: float, coax: Coax) -> float:
+    """Physical cut length of an electrical quarter wave in the given coax."""
+    return QUARTER_WAVE * wavelength * coax.vf * MM_PER_M
+
+
 def _loop_dims(perimeter_m: float, shape: str, corner_radius_m: float) -> dict:
     return {
         "perimeter_mm": perimeter_m * MM_PER_M,
@@ -67,7 +78,8 @@ def _loop_dims(perimeter_m: float, shape: str, corner_radius_m: float) -> dict:
 def _match_dict(result: DesignResult, wavelength: float) -> dict:
     spec = result.spec
     z = result.z_in
-    z0 = quarter_wave_match_z0(z)
+    z0 = quarter_wave_match_z0(z, spec.system_z_ohm)
+    coax = transformer_coax(z, spec.system_z_ohm, spec.match_coax)
     series = None
     if abs(z.imag) > MATCH_REACTANCE_WARN_OHMS:
         kind, value = series_match_element(z, spec.freq_mhz)
@@ -77,10 +89,11 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
         else:
             series["value_nh"] = value * NH_PER_HENRY
     return {
+        "system_z_ohm": spec.system_z_ohm,
         "series_element": series,
         "transformer_z0_ohm": z0,
-        "transformer_standard_coax_ohm": nearest_standard_coax(z0),
-        "transformer_length_mm": QUARTER_WAVE * wavelength * spec.match_vf * MM_PER_M,
+        "transformer_coax": _coax_dict(coax),
+        "transformer_length_mm": _quarter_wave_mm(wavelength, coax),
     }
 
 
@@ -90,7 +103,6 @@ def _build_dict(result: DesignResult) -> dict:
     build = {
         "freq_mhz": spec.freq_mhz,
         "wavelength_mm": wavelength * MM_PER_M,
-        "phasing": spec.phasing,
         "loop_shape": spec.loop_shape,
         "reflector": spec.reflector,
     }
@@ -110,20 +122,14 @@ def _build_dict(result: DesignResult) -> dict:
     )
     if shape == SHAPE_SQUIRCLE:
         build["corner_radius_mm"] = corner_radius_m * MM_PER_M
-    if spec.phasing == PHASING_SELF:
-        base = result.base_factor * wavelength
-        build["detune_percent"] = result.delta * 100.0
-        build["large_loop"] = _loop_dims(
-            base * (1.0 + result.delta), shape, corner_radius_m
-        )
-        build["small_loop"] = _loop_dims(
-            base * (1.0 - result.delta), shape, corner_radius_m
-        )
-    else:
-        build["loop"] = _loop_dims(
-            result.base_factor * wavelength, shape, corner_radius_m
-        )
-        build["phasing_line_mm"] = QUARTER_WAVE * wavelength * spec.coax_vf * MM_PER_M
+    build["loop"] = _loop_dims(result.base_factor * wavelength, shape, corner_radius_m)
+    build["loop_offset_mm"] = spec.loop_offset_mm
+    build["feed_gap_mm"] = spec.feed_gap_mm
+    build["phasing_line"] = {
+        "coax": _coax_dict(spec.phasing_coax),
+        "length_mm": _quarter_wave_mm(wavelength, spec.phasing_coax),
+        "connection": "crossed" if result.crossed_phasing_line else "normal",
+    }
     build["match"] = _match_dict(result, wavelength)
     return build
 
@@ -134,10 +140,11 @@ def _performance_dict(result: DesignResult) -> dict:
     achieved = NEC_SENSE_TO_HAND.get(result.sense)
     return {
         "feed_z_ohm": {"real": z.real, "imag": z.imag},
-        "feed_z_kind": "feedpoint" if spec.phasing == PHASING_SELF else "per_loop",
-        "vswr_unmatched": vswr(z),
-        "vswr_matched": post_match_vswr(z),
+        "feed_z_kind": "feedpoint",
+        "vswr_unmatched": vswr(z, spec.system_z_ohm),
+        "vswr_matched": post_match_vswr(z, spec.system_z_ohm, spec.match_coax),
         "loop_current_phase_deg": result.phase_diff_deg,
+        "loop_balance": result.loop_balance,
         "sense": (achieved.upper() if achieved else result.sense),
         "sense_requested": spec.sense.upper(),
         "sense_achieved": achieved == spec.sense,

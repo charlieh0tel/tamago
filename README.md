@@ -1,4 +1,4 @@
-# Tamago awadateki (たまご泡立て器)
+# Tamago awadateki (卵泡立て器)
 
 [![CI](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml/badge.svg)](https://github.com/charlieh0tel/tamago/actions/workflows/ci.yml)
 
@@ -35,15 +35,14 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
 {
   "freq_mhz": 145.9,
   "conductor": {"kind": "round", "diameter_mm": 5.0},
-  "phasing": "self",
   "sense": "rhcp",
   "reflector": "radials",
   "reflector_spacing_wl": 0.20,
   "radial_count": 8,
   "radial_length_wl": 0.27,
   "radial_droop_deg": 45.0,
-  "coax_vf": 0.66,
-  "match_vf": 0.66,
+  "phasing_coax": "RG-62",
+  "system_z_ohm": 50.0,
   "segments": 36,
   "label": "2 m"
 }
@@ -52,9 +51,8 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
 - `conductor` is `{"kind":"round","diameter_mm":d}`,
   `{"kind":"strip","width_mm":w}` (equiv radius = width / 4), or
   `{"kind":"bar","width_mm":w,"thickness_mm":t}` (GMD equiv radius).
-- `phasing`: `self` (detuned big/small loops, no harness) or `line` (equal
-  loops plus a quarter-wave coax phasing line). Default `self`.
-- `sense`: `rhcp` or `lhcp` (default `rhcp`); verified against the NEC pattern.
+- `sense`: `rhcp` or `lhcp` (default `rhcp`); selects the normal or crossed
+  phasing-line connection on the cut sheet (identical performance).
 - `loop_shape`: `circle` (default), `square`, or `squircle` (a square with
   radiused corners: four straight sides joined by quarter-circle arcs). The
   loop perimeter is held fixed across shapes; the cut sheet reports the across
@@ -66,7 +64,15 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `radials` (finite radial-wire reflector, ON6WG/M2 style).
 - `reflector_spacing_wl`: loop-center height above the reflector (default 0.25).
 - `radial_*`: count (8), length in wavelengths (0.27), droop in degrees (0).
-- `coax_vf` / `match_vf`: phasing-line and matching-section velocity factors.
+- `loop_offset_mm`: vertical gap between the loop centers so the equal loops
+  clear at the crossings (default 5).
+- `feed_gap_mm`: feed gap at the bottom of each loop (default 10).
+- `phasing_coax` / `match_coax`: cable for the quarter-wave phasing line and
+  the matching transformer. Either a catalog name (`"RG-58"`, `"RG-59"`,
+  `"RG-62"`) or a custom cable `{"name": ..., "z0_ohm": ..., "vf": ...}`. The
+  phasing line defaults to RG-62 (93 ohm, VF 0.84); the transformer defaults to
+  the catalog cable nearest the computed transformer impedance.
+- `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
 - `segments`: polygon sides per loop (default 36). Non-circular shapes resample
   to equal-length sides; a multiple of 4 lands a square's corners on vertices.
 - `label`: optional name for output; defaults to none.
@@ -104,23 +110,23 @@ A JSON document may hold one spec object or a list of them; a list runs each
 
 ## How it works
 
-Both phasing schemes use one model: two crossed loops, each driven by a
-voltage source.
-
-- `self`: equal feed phase; loop perimeters are detuned by +/- delta until the
-  loop currents are 90 degrees apart (large loop inductive, small loop
-  capacitive). The loops are paralleled at a common feedpoint.
-- `line`: equal resonant loops, feed phases 0 and -90 degrees, modelling an
-  ideal quarter-wave phasing line.
+The model is two equal resonant loops with the feed at the junction: a voltage
+source drives loop A directly across its feed gap, and loop B is fed through a
+quarter-wave phasing line (a NEC transmission-line card at the phasing coax's
+impedance), putting the loop currents 90 degrees apart for circular
+polarization. Crossing the line's conductors (modelled as a negative Z0)
+mirrors the handedness with identical performance, so the requested `sense`
+just picks the normal or crossed connection on the cut sheet.
 
 Conductor cross-sections are reduced to a NEC equivalent radius; the resonance
 sweep then corrects for any residual error in that estimate.
 
-The full-wave loop feedpoint runs about 100-130 ohms, so the cut sheet sizes a
-match to 50 ohm: a series element (inductor or capacitor) to cancel any residual
-feedpoint reactance, then a quarter-wave transformer (`Z0 = sqrt(50 * Rin)`)
-with the nearest standard coax. The reactance is tuned out at the feed rather
-than by resizing the loops, which would move the axial-ratio optimum.
+The junction feedpoint impedance depends on the loops and the reflector, so the
+cut sheet sizes a match to `system_z_ohm`: a series element (inductor or
+capacitor) to cancel any residual feedpoint reactance, then a quarter-wave
+transformer (`Z0 = sqrt(system_z * Rin)`) with the suggested coax. The
+reactance is tuned out at the feed rather than by resizing the loops, which
+would move the axial-ratio optimum.
 
 `--optimize-reflector` searches the reflector geometry to drive the feedpoint
 resistance toward the transformer's sweet spot (about 112 ohm for 75 ohm coax),
@@ -170,27 +176,28 @@ The generated plot pages render directly in a browser (GitHub Pages):
 
 `satellite_pair_squircle.input.json` is the same pair with squircle
 (rounded-corner square) loops, for building on a square frame; optimize it the
-same way to `satellite_pair_squircle.json`. It performs on par with the round
-pair (both bands optimize to 3 radials, post-match VSWR ~1.0, axial ratio
-~1.1 dB at band center).
+same way to `satellite_pair_squircle.json`. Predicted performance for both
+pairs is in the `.result.json` files and on the plot pages.
 
 ## Building
 
 These notes apply to any eggbeater the tool produces; the per-design dimensions
 are in the cut sheet (the text output or the `build` section of `--emit-result`).
 
-- Each loop is a full-wave loop. The two loops mount in perpendicular vertical
-  planes on a common vertical axis, fed at the bottom.
-- Self phasing: the loops are paralleled at a single feedpoint. The larger loop
-  is inductive and the smaller capacitive, so their currents fall ~90 degrees
-  apart, producing circular polarization with no phasing harness.
+- Each loop is a full-wave loop. The two equal loops mount in perpendicular
+  vertical planes on a common vertical axis, offset vertically by
+  `loop_offset_mm` so they clear at the crossings, fed at the bottom.
+- The radio connects at the junction, directly across loop A's feed gap; loop B
+  is fed from the same junction through the quarter-wave phasing line (cut to
+  the length on the sheet, which already includes the cable's velocity factor).
 - A radial reflector sits below the loops, its radials drooping below
   horizontal, with the loop centers a fraction of a wavelength above the hub.
 - Cancel the small residual feedpoint reactance with the series element, then
-  transform to 50 ohm with the quarter-wave coax section (e.g. 75 ohm RG-59 /
-  RG-11; scale the length to your coax with `match_vf`).
-- Sense (RHCP vs LHCP) is set by which loop is large vs. small and how the feed
-  is wired; mirror the loop assignment to swap handedness.
+  transform to the system impedance with the quarter-wave coax section (the
+  sheet names the cable and gives the VF-scaled length; set `match_coax` to use
+  a different cable).
+- Sense (RHCP vs LHCP) is set by the phasing-line connection: normal or crossed
+  (swap the line's conductors at one end), as called out on the cut sheet.
 
 ## Modeling caveats
 

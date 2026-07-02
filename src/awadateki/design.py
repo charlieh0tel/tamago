@@ -1,22 +1,21 @@
 """Design orchestration: build geometry, drive nec2c, tune resonance and phase.
 
-A single model serves both phasing schemes.  Both loops are driven by voltage
-sources; the scheme only changes how the two sources relate:
-
-  self  - equal feed phase, loop perimeters detuned by +/- delta so the two loop
-          currents fall ~90 deg apart (the classic large-loop/small-loop trick).
-  line  - equal resonant loops, feed phases 0 and -90 deg, modelling an ideal
-          quarter-wave phasing line between them.
+Two equal resonant loops share one feed at the junction: the radio drives loop A
+directly while loop B is fed through a quarter-wave phasing line (a NEC TL card),
+putting the two loop currents 90 deg apart for circular polarization. A crossed
+line (negative Z0) reverses the handedness.
 """
 
-import cmath
 import math
 import time
 from dataclasses import dataclass, replace
 
+from .coax import RG_62, Coax, nearest_standard_coax
 from .conductor import Conductor
 from .geometry import (
     DEFAULT_SEGMENTS,
+    LOOP_A_TAG_BASE,
+    LOOP_B_TAG_BASE,
     SHAPE_CIRCLE,
     Wire,
     loop_radius_m,
@@ -29,29 +28,28 @@ from .nec import (
     NecResult,
     RadiationGrid,
     Source,
+    TransmissionLine,
     build_deck,
     run_nec,
 )
 
-PHASING_SELF = "self"
-PHASING_LINE = "line"
 REFLECTOR_NONE = "none"
 REFLECTOR_GROUND = "ground"
 REFLECTOR_RADIALS = "radials"
 SENSE_RHCP = "rhcp"
 SENSE_LHCP = "lhcp"
 
-# Map nec2c's polarization sense column to a handedness constant.
+# Map nec2c's polarization sense column to a handedness constant, and back.
 NEC_SENSE_TO_HAND = {"RIGHT": SENSE_RHCP, "LEFT": SENSE_LHCP}
+HAND_TO_NEC_SENSE = {SENSE_RHCP: "RIGHT", SENSE_LHCP: "LEFT"}
 
 # Target NEC segment length along a radial, in wavelengths.
 RADIAL_SEGMENT_WL = 0.05
 
-# Feed phase of loop B for the quarter-wave-line scheme.
-LINE_PHASE_DEG = -90.0
+# Quarter-wave phasing line: a NEC ideal TL of this electrical length (free-space
+# wavelengths) gives the 90 deg between the loop currents.
+PHASING_LINE_WL = 0.25
 REFERENCE_IMPEDANCE_OHMS = 50.0
-# Common coax characteristic impedances suggested for the matching section.
-STANDARD_COAX_OHMS = (50.0, 75.0, 93.0)
 # Residual feedpoint reactance above which a series tuning element is sized.
 MATCH_REACTANCE_WARN_OHMS = 10.0
 HZ_PER_MHZ = 1.0e6
@@ -63,12 +61,10 @@ DEFAULT_GRID = RadiationGrid(
 
 # Bounds and convergence controls for the solvers.
 FACTOR_BOUNDS = (0.70, 1.40)
-DELTA_BOUNDS = (0.0, 0.15)
 SOLVER_MAX_ITERATIONS = 40
 REACTANCE_TOLERANCE_OHMS = 0.5
-# Golden-section ratio and absolute delta tolerance for the AR minimization.
+# Golden-section ratio for the reflector-placement minimization.
 GOLDEN_RATIO = (math.sqrt(5.0) - 1.0) / 2.0
-DELTA_TOLERANCE = 1e-3
 # Axial ratio is optimized and reported over the high-elevation coverage cone,
 # theta <= BORESIGHT_THETA_DEG from zenith (the region that matters for the
 # satellite use case), rather than at the raw gain peak.
@@ -111,15 +107,23 @@ class DesignSpec:
     Fields:
         freq_mhz: design frequency.
         conductor: conductor cross-section.
-        phasing: PHASING_SELF or PHASING_LINE.
         reflector: REFLECTOR_NONE, REFLECTOR_GROUND, or REFLECTOR_RADIALS.
         reflector_spacing_wl: loop-centre height above the reflector, wavelengths.
-        coax_vf: velocity factor of the phasing-line coax (line scheme).
-        match_vf: velocity factor of the matching-section coax.
+        phasing_coax: cable of the quarter-wave phasing line feeding loop B.
+            Its z0_ohm drives the NEC TL model; its vf sets only the reported
+            physical cut length (the NEC line is an ideal electrical quarter
+            wave).
+        match_coax: cable of the quarter-wave matching transformer, or None to
+            suggest the catalog cable nearest the computed transformer Z0.
         sense: desired polarization, SENSE_RHCP or SENSE_LHCP.
         loop_shape: loop outline, SHAPE_CIRCLE, SHAPE_SQUARE, or SHAPE_SQUIRCLE.
         corner_radius_wl: rounded-corner radius for the squircle shape, in
             wavelengths (ignored for circle and square).
+        loop_offset_mm: vertical gap between the two loop centres (loop A below,
+            loop B above) so the crossed conductors clear at the top and bottom.
+        feed_gap_mm: width of the feed gap at the bottom of each loop, where the
+            line connects.
+        system_z_ohm: radio-end reference impedance the match targets (50 or 75).
         segments: polygon sides per loop.
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
@@ -136,14 +140,16 @@ class DesignSpec:
 
     freq_mhz: float
     conductor: Conductor
-    phasing: str = PHASING_SELF
     reflector: str = REFLECTOR_NONE
     reflector_spacing_wl: float = 0.25
-    coax_vf: float = 0.66
-    match_vf: float = 0.66
+    phasing_coax: Coax = RG_62
+    match_coax: Coax | None = None
     sense: str = SENSE_RHCP
     loop_shape: str = SHAPE_CIRCLE
     corner_radius_wl: float = 0.05
+    loop_offset_mm: float = 5.0
+    feed_gap_mm: float = 10.0
+    system_z_ohm: float = 50.0
     segments: int = DEFAULT_SEGMENTS
     radial_count: int = 8
     radial_length_wl: float = 0.27
@@ -196,24 +202,27 @@ class DesignResult:
     Fields:
         spec: the originating DesignSpec.
         base_factor: resonant perimeter as a multiple of wavelength.
-        delta: self-phasing detune fraction (0 for the line scheme).
-        z_in: predicted feedpoint impedance (combined for self phasing,
-            per-loop for line phasing).
-        phase_diff_deg: loop current phase difference.
-        sense: polarization sense reported at the pattern peak.
+        z_in: predicted feedpoint impedance at the radio (junction) end.
+        phase_diff_deg: loop current phase difference (loop A minus loop B).
+        loop_balance: loop current magnitude ratio |I_B| / |I_A| (1.0 is
+            balanced; boresight axial ratio is 20*log10(max(r, 1/r)) dB).
+        crossed_phasing_line: whether the phasing line is connected crossed to
+            deliver the requested sense (the cut-sheet wiring instruction).
+        sense: achieved polarization sense (nec2c vocabulary, e.g. RIGHT).
         ar_boresight_db: mean axial ratio over the high-elevation coverage cone
             (theta <= BORESIGHT_THETA_DEG), dB; 0 is perfect circular.
         ar_peak_db: axial ratio at the pattern peak (dB).
         coverage_gain_db: worst-case total gain over the coverage cone
             (theta <= COVERAGE_THETA_DEG), dBi.
-        deck: the tuned NEC deck text.
+        deck: the tuned NEC deck text (with the chosen line connection).
     """
 
     spec: DesignSpec
     base_factor: float
-    delta: float
     z_in: complex
     phase_diff_deg: float
+    loop_balance: float
+    crossed_phasing_line: bool
     sense: str
     ar_boresight_db: float
     ar_peak_db: float
@@ -249,65 +258,94 @@ def _reflector_wires(spec: DesignSpec, wavelength: float):
 def _comment_lines(spec: DesignSpec) -> list[str]:
     return [
         "Eggbeater antenna (crossed full-wave loops)",
-        f"freq {spec.freq_mhz:g} MHz, phasing {spec.phasing}, "
-        f"reflector {spec.reflector}",
+        f"freq {spec.freq_mhz:g} MHz, reflector {spec.reflector}",
         f"conductor: {spec.conductor.description}, "
         f"equiv radius {spec.conductor.equivalent_radius_mm:.4g} mm",
     ]
 
 
-def _sources(spec: DesignSpec, egg, phase_b_deg: float) -> tuple[Source, ...]:
-    phase_b = math.radians(phase_b_deg)
-    return (
-        Source(egg.loop_a.feed_tag, egg.loop_a.feed_segment, 1.0, 0.0),
-        Source(
-            egg.loop_b.feed_tag,
-            egg.loop_b.feed_segment,
-            math.cos(phase_b),
-            math.sin(phase_b),
-        ),
-    )
+def _feed_wire(loop) -> Wire:
+    """The loop's feed wire (the one carrying the source/line connection)."""
+    return next(w for w in loop.wires if w.tag == loop.feed_tag)
 
 
-def analyze(
-    spec: DesignSpec,
-    factor_a: float,
-    factor_b: float,
-    phase_b_deg: float,
-    run_freq_mhz: float | None = None,
-    grid: RadiationGrid | None = None,
-) -> tuple[NecResult, str]:
-    """Run nec2c once for the given perimeters and feed phase.
+def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
+    """Junction source and quarter-wave phasing line for the eggbeater.
 
-    Geometry is always scaled to the design frequency; run_freq_mhz overrides
-    only the analysis frequency (the FR card), so the fixed physical antenna can
-    be swept across a band.  grid overrides the radiation-pattern sampling (for
-    a fine elevation cut).  Sources are ordered loop A then loop B, matching
-    nec2c's reporting order.
+    The radio drives loop A directly (1<0 source on its feed gap); loop B is fed
+    through a quarter-wave line (TL card). A crossed line (negative Z0) reverses
+    it, flipping the polarization handedness with identical performance.
     """
+    source = Source(egg.loop_a.feed_tag, egg.loop_a.feed_segment, 1.0, 0.0)
+    z0 = -spec.phasing_coax.z0_ohm if flip else spec.phasing_coax.z0_ohm
+    line = TransmissionLine(
+        egg.loop_a.feed_tag,
+        egg.loop_a.feed_segment,
+        egg.loop_b.feed_tag,
+        egg.loop_b.feed_segment,
+        z0,
+        PHASING_LINE_WL * wavelength,
+    )
+    return (source,), (line,)
+
+
+def _eggbeater(spec: DesignSpec, factor: float):
+    """Build the crossed-loop geometry for a perimeter factor; returns
+    (eggbeater, wavelength)."""
     wavelength = wavelength_m(spec.freq_mhz)
-    perimeter_a = factor_a * wavelength
-    perimeter_b = factor_b * wavelength
-    center_z = _center_z_m(spec, wavelength, perimeter_a)
+    perimeter = factor * wavelength
+    center_z = _center_z_m(spec, wavelength, perimeter)
     egg = make_eggbeater(
-        perimeter_a,
-        perimeter_b,
+        perimeter,
+        perimeter,
         center_z,
         spec.conductor.equivalent_radius_m,
         spec.segments,
         spec.loop_shape,
         spec.corner_radius_wl * wavelength,
+        spec.loop_offset_mm / 1000.0,
+        spec.feed_gap_mm / 1000.0,
     )
-    sources = _sources(spec, egg, phase_b_deg)
+    return egg, wavelength
+
+
+def _build_deck_text(
+    spec: DesignSpec,
+    factor: float,
+    flip: bool,
+    run_freq_mhz: float | None,
+    grid: RadiationGrid | None,
+) -> str:
+    egg, wavelength = _eggbeater(spec, factor)
+    sources, lines = _feed(egg, spec, wavelength, flip)
     wires = egg.wires + _reflector_wires(spec, wavelength)
-    deck = build_deck(
+    return build_deck(
         _comment_lines(spec),
         wires,
         sources,
         ground=spec.reflector == REFLECTOR_GROUND,
         freq_mhz=run_freq_mhz if run_freq_mhz is not None else spec.freq_mhz,
         grid=grid if grid is not None else DEFAULT_GRID,
+        transmission_lines=lines,
     )
+
+
+def analyze(
+    spec: DesignSpec,
+    factor: float,
+    flip: bool = False,
+    run_freq_mhz: float | None = None,
+    grid: RadiationGrid | None = None,
+) -> tuple[NecResult, str]:
+    """Run nec2c once for the given loop perimeter and line connection.
+
+    Geometry and the phasing-line length scale to the design frequency;
+    run_freq_mhz overrides only the analysis frequency (the FR card), so the
+    fixed physical antenna sweeps across a band and the fixed-length line drifts
+    from 90 deg off design (real dispersion). grid overrides the pattern
+    sampling. flip crosses the phasing line, reversing the handedness.
+    """
+    deck = _build_deck_text(spec, factor, flip, run_freq_mhz, grid)
     return run_nec(deck, spec.nec2c), deck
 
 
@@ -316,30 +354,15 @@ def tuned_geometry(
 ) -> tuple[tuple[Wire, ...], tuple[tuple[float, float, float], ...]]:
     """Reconstruct the tuned wire model and the two loop feed points.
 
-    Built from the same geometry calls as analyze(), so a 3-D view matches the
+    Built from the same geometry call as analyze(), so a 3-D view matches the
     deck without parsing it. Returns the loop and reflector wires and the feed
     points (midpoint of each loop's bottom feed wire), in metres.
     """
-    spec = result.spec
-    wavelength = wavelength_m(spec.freq_mhz)
-    factor_a, factor_b, _ = _operating_point(
-        result.base_factor, result.delta, spec.phasing, flip=False
-    )
-    perimeter_a = factor_a * wavelength
-    center_z = _center_z_m(spec, wavelength, perimeter_a)
-    egg = make_eggbeater(
-        perimeter_a,
-        factor_b * wavelength,
-        center_z,
-        spec.conductor.equivalent_radius_m,
-        spec.segments,
-        spec.loop_shape,
-        spec.corner_radius_wl * wavelength,
-    )
-    wires = egg.wires + _reflector_wires(spec, wavelength)
+    egg, wavelength = _eggbeater(result.spec, result.base_factor)
+    wires = egg.wires + _reflector_wires(result.spec, wavelength)
     feeds = tuple(
         ((w.x1 + w.x2) / 2.0, (w.y1 + w.y2) / 2.0, (w.z1 + w.z2) / 2.0)
-        for w in (egg.loop_a.wires[0], egg.loop_b.wires[0])
+        for w in (_feed_wire(egg.loop_a), _feed_wire(egg.loop_b))
     )
     return wires, feeds
 
@@ -380,33 +403,36 @@ def _golden_section_min(func, low: float, high: float, tolerance: float) -> floa
 
 
 def _resonant_factor(spec: DesignSpec) -> float:
-    """Find the perimeter factor giving zero loop reactance (delta = 0)."""
+    """Find the perimeter factor giving zero reactance at the junction feed."""
 
     def reactance(factor: float) -> float:
-        result, _ = analyze(spec, factor, factor, 0.0)
+        result, _ = analyze(spec, factor)
         return result.sources[0].z_imag
 
     return _secant(reactance, 1.0, 1.05, FACTOR_BOUNDS, REACTANCE_TOLERANCE_OHMS)
 
 
+def _loop_currents(result: NecResult) -> tuple[complex, complex]:
+    """Feed-segment currents of loop A and loop B."""
+    return result.feed_current(LOOP_A_TAG_BASE), result.feed_current(LOOP_B_TAG_BASE)
+
+
 def _phase_difference(result: NecResult) -> float:
-    return result.sources[0].current_phase_deg - result.sources[1].current_phase_deg
+    """Loop A minus loop B current phase, degrees."""
+    ia, ib = _loop_currents(result)
+    pa = math.degrees(math.atan2(ia.imag, ia.real))
+    pb = math.degrees(math.atan2(ib.imag, ib.real))
+    return pa - pb
 
 
-def _combined_feed_z(result: NecResult) -> complex:
-    """Parallel feedpoint impedance of the self-phased loops (common 1 V feed)."""
-    i_total = complex(result.sources[0].i_real, result.sources[0].i_imag) + complex(
-        result.sources[1].i_real, result.sources[1].i_imag
-    )
-    if i_total == 0:
-        return cmath.inf
-    return 1.0 / i_total
+def _loop_balance(result: NecResult) -> float:
+    """Loop current magnitude ratio |I_B| / |I_A| (1.0 is balanced)."""
+    ia, ib = _loop_currents(result)
+    return abs(ib) / abs(ia) if abs(ia) > 0.0 else math.inf
 
 
-def _antenna_feed_z(result: NecResult, phasing: str) -> complex:
-    """Antenna feedpoint impedance for the scheme (combined self, per-loop line)."""
-    if phasing == PHASING_SELF:
-        return _combined_feed_z(result)
+def _antenna_feed_z(result: NecResult) -> complex:
+    """Feedpoint impedance the radio sees at the junction (loop A's source)."""
     return complex(result.sources[0].z_real, result.sources[0].z_imag)
 
 
@@ -435,8 +461,8 @@ def _axial_ratio_db(axial_ratio: float) -> float:
 def _boresight_ar_db(result: NecResult) -> float:
     """Mean axial ratio (dB) over the high-elevation coverage cone.
 
-    A single detune knob cannot force both equal current magnitude and a 90 deg
-    phase split, so axial ratio (which captures both) is the proper objective.
+    Axial ratio captures both the 90 deg phase split and the current-magnitude
+    balance, so it is the proper single objective for circular polarization.
     """
     cone = [
         p
@@ -462,18 +488,6 @@ def _coverage_gain_db(result: NecResult) -> float:
     if not cone:
         return -math.inf
     return min(cone)
-
-
-def _self_phase_delta(spec: DesignSpec, base_factor: float) -> float:
-    """Detune fraction minimizing boresight axial ratio (golden-section search)."""
-
-    def cost(delta: float) -> float:
-        result, _ = analyze(
-            spec, base_factor * (1.0 + delta), base_factor * (1.0 - delta), 0.0
-        )
-        return _boresight_ar_db(result)
-
-    return _golden_section_min(cost, *DELTA_BOUNDS, DELTA_TOLERANCE)
 
 
 def _boresight_sense(result: NecResult) -> str:
@@ -521,74 +535,63 @@ def quarter_wave_match_z0(
     return math.sqrt(reference * z.real)
 
 
-def nearest_standard_coax(z0: float) -> float:
-    """Closest common coax characteristic impedance to z0."""
-    return min(STANDARD_COAX_OHMS, key=lambda c: abs(c - z0))
+def transformer_coax(
+    z: complex,
+    reference: float = REFERENCE_IMPEDANCE_OHMS,
+    override: Coax | None = None,
+) -> Coax:
+    """Cable used for the quarter-wave transformer.
 
-
-def post_match_vswr(z: complex, reference: float = REFERENCE_IMPEDANCE_OHMS) -> float:
-    """SWR at the design frequency after the standard-coax match network.
-
-    The series element cancels the reactance and a nearest-standard-coax
-    quarter-wave transformer scales the resistance toward the reference.
+    The override (spec.match_coax) wins when set; otherwise the catalog cable
+    nearest the ideal transformer impedance is suggested.
     """
-    z0 = nearest_standard_coax(quarter_wave_match_z0(z))
+    return override or nearest_standard_coax(quarter_wave_match_z0(z, reference))
+
+
+def post_match_vswr(
+    z: complex,
+    reference: float = REFERENCE_IMPEDANCE_OHMS,
+    coax: Coax | None = None,
+) -> float:
+    """SWR at the design frequency after the coax match network.
+
+    The series element cancels the reactance and the transformer coax scales
+    the resistance toward the reference.
+    """
+    z0 = transformer_coax(z, reference, coax).z0_ohm
     transformed = z0 * z0 / z.real
     return vswr(complex(transformed, 0.0), reference)
-
-
-def _operating_point(
-    base_factor: float, delta: float, phasing: str, flip: bool
-) -> tuple[float, float, float]:
-    """Loop perimeters and feed phase for one polarization orientation.
-
-    Flipping reverses the handedness: it swaps which loop is large (self) or the
-    sign of the feed phase (line).
-    """
-    if phasing == PHASING_SELF:
-        sign = -1.0 if flip else 1.0
-        return (
-            base_factor * (1.0 + sign * delta),
-            base_factor * (1.0 - sign * delta),
-            0.0,
-        )
-    return base_factor, base_factor, -LINE_PHASE_DEG if flip else LINE_PHASE_DEG
 
 
 def design(spec: DesignSpec) -> DesignResult:
     """Tune an eggbeater to the spec and return the result.
 
-    Resonance and detune are handedness-independent, so they are solved once;
-    the orientation is then chosen (and verified against nec2c) to deliver the
-    requested polarization sense.
+    One nec2c run sizes the loops and characterizes the (mirror-symmetric)
+    pattern; the requested polarization sense is then just which way the phasing
+    line is connected (normal or crossed), with identical performance, so no
+    second run is needed -- crossing only changes the cut-sheet wiring.
     """
     base_factor = _resonant_factor(spec)
-    delta = (
-        _self_phase_delta(spec, base_factor) if spec.phasing == PHASING_SELF else 0.0
-    )
+    result, deck = analyze(spec, base_factor)
+    ar_boresight, ar_peak, default_sense = _polarization_summary(result)
 
-    # Build with the default orientation, then flip once if nec2c reports the
-    # opposite sense from the one requested.
-    flip = False
-    for _ in range(2):
-        factor_a, factor_b, phase_b = _operating_point(
-            base_factor, delta, spec.phasing, flip
-        )
-        result, deck = analyze(spec, factor_a, factor_b, phase_b)
-        ar_boresight, ar_peak, sense = _polarization_summary(result)
-        if NEC_SENSE_TO_HAND.get(sense, spec.sense) == spec.sense:
-            break
-        flip = True
+    default_hand = NEC_SENSE_TO_HAND.get(default_sense)
+    if default_hand is None:
+        crossed, sense = False, default_sense
+    else:
+        crossed = default_hand != spec.sense
+        sense = HAND_TO_NEC_SENSE[spec.sense]
+    if crossed:
+        # Mirror image: identical performance, only the line connection changes.
+        deck = _build_deck_text(spec, base_factor, True, None, None)
 
-    # For self phasing this is the combined parallel feed; for line phasing it is
-    # one loop's driving impedance (the tee plus phasing line combine them).
-    z_in = _antenna_feed_z(result, spec.phasing)
     return DesignResult(
         spec=spec,
         base_factor=base_factor,
-        delta=delta,
-        z_in=z_in,
+        z_in=_antenna_feed_z(result),
         phase_diff_deg=_phase_difference(result),
+        loop_balance=_loop_balance(result),
+        crossed_phasing_line=crossed,
         sense=sense,
         ar_boresight_db=ar_boresight,
         ar_peak_db=ar_peak,
@@ -600,14 +603,18 @@ def design(spec: DesignSpec) -> DesignResult:
 def _reflector_cost(result: DesignResult) -> float:
     """Optimization cost: post-match SWR, penalized for excess axial ratio."""
     excess = max(0.0, result.ar_boresight_db - AR_TARGET_DB)
-    return post_match_vswr(result.z_in) + AR_PENALTY_PER_DB * excess
+    spec = result.spec
+    swr = post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
+    return swr + AR_PENALTY_PER_DB * excess
 
 
 def _reflector_feasible(result: DesignResult) -> bool:
     """Whether a tuned design meets the axial-ratio and match objectives."""
+    spec = result.spec
     return (
         result.ar_boresight_db <= AR_TARGET_DB
-        and post_match_vswr(result.z_in) <= FEASIBLE_VSWR
+        and post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
+        <= FEASIBLE_VSWR
     )
 
 
@@ -705,7 +712,8 @@ def _matched_input_z(
     freq_mhz: float,
     design_freq_mhz: float,
     z_center: complex,
-    match_vf: float,
+    system_z: float,
+    match_coax: Coax | None,
 ) -> complex:
     """Input impedance after the match network sized at the design frequency.
 
@@ -717,7 +725,7 @@ def _matched_input_z(
     series_reactance = omega * value if kind == "inductor" else -1.0 / (omega * value)
     z_after_series = z_ant + 1j * series_reactance
 
-    z0 = nearest_standard_coax(quarter_wave_match_z0(z_center))
+    z0 = transformer_coax(z_center, system_z, match_coax).z0_ohm
     # The line is a quarter wave at the design frequency, so its electrical
     # length scales linearly with frequency.
     theta = (math.pi / 2.0) * (freq_mhz / design_freq_mhz)
@@ -735,7 +743,7 @@ class SweepPoint:
 
     Fields:
         freq_mhz: analysis frequency.
-        vswr: SWR at 50 ohm after the fixed match network.
+        vswr: SWR at the system impedance after the fixed match network.
         ar_db: boresight axial ratio (dB; 0 is perfect circular).
     """
 
@@ -752,22 +760,25 @@ def frequency_sweep(
     """Matched SWR and boresight axial ratio versus frequency.
 
     The tuned physical geometry is held fixed and swept across +/- span_fraction;
-    the match network is fixed at the design frequency.
+    the match network is fixed at the design frequency.  The phasing line is a
+    fixed length, so it drifts from 90 deg off design (real dispersion).
     """
     spec = result.spec
     design_freq = spec.freq_mhz
-    factor_a, factor_b, phase_b = _operating_point(
-        result.base_factor, result.delta, spec.phasing, flip=False
-    )
+    base = result.base_factor
     low = design_freq * (1.0 - span_fraction)
     high = design_freq * (1.0 + span_fraction)
     sweep = []
     for i in range(points):
         freq = low + (high - low) * i / (points - 1)
-        nec, _ = analyze(spec, factor_a, factor_b, phase_b, run_freq_mhz=freq)
-        z_ant = _antenna_feed_z(nec, spec.phasing)
-        z_in = _matched_input_z(z_ant, freq, design_freq, result.z_in, spec.match_vf)
-        sweep.append(SweepPoint(freq, vswr(z_in), _boresight_ar_db(nec)))
+        nec, _ = analyze(spec, base, run_freq_mhz=freq)
+        z_ant = _antenna_feed_z(nec)
+        z_in = _matched_input_z(
+            z_ant, freq, design_freq, result.z_in, spec.system_z_ohm, spec.match_coax
+        )
+        sweep.append(
+            SweepPoint(freq, vswr(z_in, spec.system_z_ohm), _boresight_ar_db(nec))
+        )
     return sweep
 
 

@@ -10,6 +10,7 @@ The runtime-only nec2c executable path is intentionally not serialized.
 
 import json
 
+from .coax import Coax, catalog_coax
 from .conductor import (
     KIND_BAR,
     KIND_ROUND,
@@ -23,14 +24,16 @@ from .design import DesignSpec, Optimization
 
 # Optional spec fields carried in JSON, in a stable output order.
 _OPTIONAL_FIELDS = (
-    "phasing",
     "sense",
     "loop_shape",
     "corner_radius_wl",
+    "loop_offset_mm",
+    "feed_gap_mm",
+    "phasing_coax",
+    "match_coax",
+    "system_z_ohm",
     "reflector",
     "reflector_spacing_wl",
-    "coax_vf",
-    "match_vf",
     "segments",
     "radial_count",
     "radial_length_wl",
@@ -38,6 +41,9 @@ _OPTIONAL_FIELDS = (
     "label",
     "notes",
 )
+
+# Spec fields holding a Coax; serialized through coax_to_dict/coax_from_dict.
+_COAX_FIELDS = ("phasing_coax", "match_coax")
 
 
 def conductor_to_dict(conductor: Conductor) -> dict:
@@ -61,6 +67,21 @@ def conductor_from_dict(data: dict) -> Conductor:
     if kind == KIND_BAR:
         return bar_conductor(float(data["width_mm"]), float(data["thickness_mm"]))
     raise ValueError(f"unknown conductor kind: {kind!r}")
+
+
+def coax_to_dict(coax: Coax) -> dict:
+    return {"name": coax.name, "z0_ohm": coax.z0_ohm, "vf": coax.vf}
+
+
+def coax_from_dict(data) -> Coax:
+    """A catalog cable name ("RG-62") or an object {name?, z0_ohm, vf}."""
+    if isinstance(data, str):
+        return catalog_coax(data)
+    return Coax(
+        name=data.get("name", "custom"),
+        z0_ohm=float(data["z0_ohm"]),
+        vf=float(data["vf"]),
+    )
 
 
 def optimization_to_dict(opt: Optimization) -> dict:
@@ -113,7 +134,7 @@ def spec_to_dict(spec: DesignSpec) -> dict:
         value = getattr(spec, field)
         if value is None:
             continue
-        data[field] = value
+        data[field] = coax_to_dict(value) if field in _COAX_FIELDS else value
     if spec.optimization is not None:
         data["optimization"] = optimization_to_dict(spec.optimization)
     return data
@@ -122,6 +143,9 @@ def spec_to_dict(spec: DesignSpec) -> dict:
 def spec_from_dict(data: dict) -> DesignSpec:
     """Build a spec from a dict; missing fields use the DesignSpec defaults."""
     fields = {field: data[field] for field in _OPTIONAL_FIELDS if field in data}
+    for field in _COAX_FIELDS:
+        if field in fields:
+            fields[field] = coax_from_dict(fields[field])
     if "optimization" in data:
         fields["optimization"] = optimization_from_dict(data["optimization"])
     return DesignSpec(
