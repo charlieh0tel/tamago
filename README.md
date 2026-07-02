@@ -204,8 +204,15 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 
 ## Modeling caveats
 
+- The phasing line is a NEC ideal transmission line: lossless, with no shield
+  or common-mode current (a real build uses a current balun; see TODO). Its
+  off-design phase drift matches a real cable exactly, since physical length
+  and in-cable wavelength scale by the same velocity factor.
 - The match-network bandwidth assumes an idealized lossless network; treat the
   axial-ratio band as the operational coverage.
+- The cone axial ratio is a mean over the sampled coverage cone, not a worst
+  case, and the sampling weights zenith (the theta = 0 direction is sampled
+  once per azimuth column).
 - Patterns are modeled with perfect conductors over a perfect (or simple)
   ground.
 - Figures of merit are sampled over one azimuth quadrant (phi 0-90 deg), which

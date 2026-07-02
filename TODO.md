@@ -24,6 +24,28 @@ tuned NEC decks, design doc, tests passing).
       TL card (lossless, dispersionless); model real cable loss.
 - [ ] Conductor loss and real ground. NEC runs are perfect-conductor with
       perfect or simple ground.
+- [ ] Validate loop_offset_mm against the conductor diameter. At the top and
+      bottom crossings the loop axes are loop_offset apart; the default 5 mm
+      offset with 5 mm tubing puts the modeled wire surfaces in contact
+      (results are insensitive at current sizes, but nothing stops an invalid
+      smaller offset). Enforce offset > conductor diameter plus margin in
+      make_eggbeater.
+- [ ] Consistent series-element handling below the 10 ohm reactance
+      threshold. The cut sheet omits the element, but post_match_vswr assumes
+      the reactance is canceled and the frequency sweep models the element
+      anyway; worst case reports ~1.0 VSWR where the built network gives
+      ~1.25. Carry the uncanceled reactance through, or always include the
+      element.
+- [ ] Cone axial ratio is a zenith-weighted mean (theta = 0 sampled once per
+      azimuth column, no solid-angle weighting). Dedupe zenith and consider
+      reporting the cone worst case alongside the mean.
+
+## Reporting
+
+- [ ] Wrap the reported loop current phase to +/-180 deg.
+- [ ] Crossed designs report the uncrossed run's phase difference; the
+      delivered antenna's measurement would differ by 180 deg. Negate on
+      cross or state the convention on the cut sheet.
 
 ## Feed and matching
 
