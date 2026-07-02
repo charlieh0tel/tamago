@@ -9,6 +9,9 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 ]
 
+[project.urls]
+Repository = "https://github.com/charlieh0tel/tamago"
+
 [project.scripts]
 awadateki = "awadateki.cli:main"
 

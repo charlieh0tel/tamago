@@ -72,7 +72,7 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
         f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
         f"Phasing line        : {line['length_mm']:.1f} mm ({line['coax']['name']}, "
         f"{line['coax']['z0_ohm']:g} ohm, 1/4 wave, VF {line['coax']['vf']:g})",
-        f"Feed                : radio at junction across loop A; "
+        f"Feed                : feedline (via match) to junction across loop A; "
         f"{line['connection']} line to loop B",
     ]
 

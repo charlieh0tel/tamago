@@ -190,9 +190,10 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 - Each loop is a full-wave loop. The two equal loops mount in perpendicular
   vertical planes on a common vertical axis, offset vertically by
   `loop_offset_mm` so they clear at the crossings, fed at the bottom.
-- The radio connects at the junction, directly across loop A's feed gap; loop B
-  is fed from the same junction through the quarter-wave phasing line (cut to
-  the length on the sheet, which already includes the cable's velocity factor).
+- The feedline (through the match network) connects at the junction, directly
+  across loop A's feed gap; loop B is fed from the same junction through the
+  quarter-wave phasing line (cut to the length on the sheet, which already
+  includes the cable's velocity factor).
 - A radial reflector sits below the loops, its radials drooping below
   horizontal, with the loop centers a fraction of a wavelength above the hub.
 - Cancel the small residual feedpoint reactance with the series element, then

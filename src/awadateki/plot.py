@@ -9,6 +9,7 @@ import html
 import json
 import math
 from functools import cache
+from importlib.metadata import PackageNotFoundError, metadata
 from importlib.resources import files
 
 from .design import (
@@ -31,10 +32,26 @@ from .spec import spec_to_dict
 # Data trace colors, cycled per design (teal, amber, violet, green, ...).
 TRACE_COLORS = ("#0E7C86", "#C8881C", "#6D4AA7", "#357960", "#B5532A")
 LIMIT_COLOR = "#B23A48"
-# Project repository, linked from the page footer.
-REPO_URL = "https://github.com/charlieh0tel/tamago"
 GRID_COLOR = "#DCE3E1"
 AXIS_COLOR = "#9FB0AC"
+
+
+def _repo_url() -> str:
+    """Project repository URL from the package metadata ([project.urls])."""
+    try:
+        entries = metadata("awadateki").get_all("Project-URL") or ()
+    except PackageNotFoundError:
+        return ""
+    for entry in entries:
+        label, _, url = entry.partition(",")
+        if label.strip().lower() == "repository":
+            return url.strip()
+    return ""
+
+
+# Linked from the page header and footer.
+REPO_URL = _repo_url()
+REPO_NAME = REPO_URL.removeprefix("https://github.com/")
 
 # Fine principal-plane (phi = 0) grid for elevation cuts, theta 0..90 deg.
 FINE_GRID = RadiationGrid(ntheta=46, nphi=1, theta0=0.0, phi0=0.0, dtheta=2.0, dphi=0.0)
@@ -545,6 +562,7 @@ def render_artifact(results: list[DesignResult]) -> str:
     return (
         _TEMPLATE.replace("{LIMIT}", LIMIT_COLOR)
         .replace("{REPO}", REPO_URL)
+        .replace("{REPO_NAME}", REPO_NAME)
         .format(
             rows=rows,
             legend=legend,
@@ -561,7 +579,7 @@ _TEMPLATE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Eggbeater Performance</title>
+<title>Eggbeater (卵泡立て器) Performance</title>
 <meta name="description" content="nec2c-modeled eggbeater antenna performance: VSWR, axial ratio, and elevation coverage.">
 <style>
   :root {{
@@ -575,6 +593,14 @@ _TEMPLATE = """<!doctype html>
   .wrap {{ max-width:980px; margin:0 auto; padding:40px 24px 64px; }}
   .eyebrow {{ font-family:var(--mono); font-size:12px; letter-spacing:.18em;
     text-transform:uppercase; color:var(--teal); margin:0 0 10px; }}
+  .topline {{ display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px; }}
+  .repo {{ font-family:var(--mono); font-size:12px; color:var(--teal);
+    text-decoration:none; border:1px solid var(--line); border-radius:999px;
+    padding:4px 12px; background:var(--panel); white-space:nowrap; }}
+  .repo:hover {{ border-color:var(--teal); }}
+  h1 .jp {{ font-size:0.72em; font-weight:500; color:var(--muted);
+    letter-spacing:0; margin-left:6px; }}
   h1 {{ font-size:30px; line-height:1.15; margin:0 0 8px; font-weight:650;
     text-wrap:balance; letter-spacing:-.01em; }}
   .lede {{ color:var(--muted); margin:0 0 28px; max-width:64ch; }}
@@ -629,8 +655,11 @@ _TEMPLATE = """<!doctype html>
 </head>
 <body>
 <div class="wrap">
-  <p class="eyebrow">nec2c modeled</p>
-  <h1>Eggbeater Performance</h1>
+  <div class="topline">
+    <p class="eyebrow">nec2c modeled</p>
+    <a class="repo" href="{REPO}">{REPO_NAME}</a>
+  </div>
+  <h1>Eggbeater Performance <span class="jp" lang="ja">卵泡立て器</span></h1>
   <p class="lede">Frequency plots overlay each design on offset from its own
   design frequency; the 3 dB axial-ratio band is the binding limit on usable
   coverage. The input spec and physical cut list for each design follow the

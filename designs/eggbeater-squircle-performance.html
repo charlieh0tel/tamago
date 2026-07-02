@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Eggbeater Performance</title>
+<title>Eggbeater (卵泡立て器) Performance</title>
 <meta name="description" content="nec2c-modeled eggbeater antenna performance: VSWR, axial ratio, and elevation coverage.">
 <style>
   :root {
@@ -17,6 +17,14 @@
   .wrap { max-width:980px; margin:0 auto; padding:40px 24px 64px; }
   .eyebrow { font-family:var(--mono); font-size:12px; letter-spacing:.18em;
     text-transform:uppercase; color:var(--teal); margin:0 0 10px; }
+  .topline { display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px; }
+  .repo { font-family:var(--mono); font-size:12px; color:var(--teal);
+    text-decoration:none; border:1px solid var(--line); border-radius:999px;
+    padding:4px 12px; background:var(--panel); white-space:nowrap; }
+  .repo:hover { border-color:var(--teal); }
+  h1 .jp { font-size:0.72em; font-weight:500; color:var(--muted);
+    letter-spacing:0; margin-left:6px; }
   h1 { font-size:30px; line-height:1.15; margin:0 0 8px; font-weight:650;
     text-wrap:balance; letter-spacing:-.01em; }
   .lede { color:var(--muted); margin:0 0 28px; max-width:64ch; }
@@ -71,8 +79,11 @@
 </head>
 <body>
 <div class="wrap">
-  <p class="eyebrow">nec2c modeled</p>
-  <h1>Eggbeater Performance</h1>
+  <div class="topline">
+    <p class="eyebrow">nec2c modeled</p>
+    <a class="repo" href="https://github.com/charlieh0tel/tamago">charlieh0tel/tamago</a>
+  </div>
+  <h1>Eggbeater Performance <span class="jp" lang="ja">卵泡立て器</span></h1>
   <p class="lede">Frequency plots overlay each design on offset from its own
   design frequency; the 3 dB axial-ratio band is the binding limit on usable
   coverage. The input spec and physical cut list for each design follow the
@@ -211,7 +222,7 @@ Both loops          : 2157.5 mm perimeter, 583.5 mm width
 Loop offset         : 5 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-Feed                : radio at junction across loop A; normal line to loop B
+Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------
 Match to 50 ohm:
   1/4-wave Z0       : 48.5 ohms (use RG-58, 50 ohm)
@@ -313,7 +324,7 @@ Both loops          : 727.4 mm perimeter, 196.6 mm width
 Loop offset         : 5 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 Phasing line        : 144.4 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-Feed                : radio at junction across loop A; normal line to loop B
+Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------
 Match to 50 ohm:
   1/4-wave Z0       : 47.7 ohms (use RG-58, 50 ohm)

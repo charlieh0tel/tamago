@@ -1,6 +1,6 @@
 """Design orchestration: build geometry, drive nec2c, tune resonance and phase.
 
-Two equal resonant loops share one feed at the junction: the radio drives loop A
+Two equal resonant loops share one feed at the junction: the feed drives loop A
 directly while loop B is fed through a quarter-wave phasing line (a NEC TL card),
 putting the two loop currents 90 deg apart for circular polarization. A crossed
 line (negative Z0) reverses the handedness.
@@ -213,7 +213,8 @@ class DesignResult:
     Fields:
         spec: the originating DesignSpec.
         base_factor: resonant perimeter as a multiple of wavelength.
-        z_in: predicted feedpoint impedance at the radio (junction) end.
+        z_in: predicted feedpoint impedance at the junction (feedline side,
+            before the match network).
         phase_diff_deg: loop current phase difference (loop A minus loop B).
         loop_balance: loop current magnitude ratio |I_B| / |I_A| (1.0 is
             balanced; boresight axial ratio is 20*log10(max(r, 1/r)) dB).
@@ -283,7 +284,7 @@ def _feed_wire(loop) -> Wire:
 def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
     """Junction source and quarter-wave phasing line for the eggbeater.
 
-    The radio drives loop A directly (1<0 source on its feed gap); loop B is fed
+    The feed drives loop A directly (1<0 source on its feed gap); loop B is fed
     through a quarter-wave line (TL card). A crossed line (negative Z0) reverses
     it, flipping the polarization handedness with identical performance.
     """
@@ -443,7 +444,7 @@ def _loop_balance(result: NecResult) -> float:
 
 
 def _antenna_feed_z(result: NecResult) -> complex:
-    """Feedpoint impedance the radio sees at the junction (loop A's source)."""
+    """Feedpoint impedance at the junction (loop A's source), before the match."""
     return complex(result.sources[0].z_real, result.sources[0].z_imag)
 
 
