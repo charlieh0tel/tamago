@@ -73,6 +73,9 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   phasing line defaults to RG-62 (93 ohm, VF 0.84); the transformer defaults to
   the catalog cable nearest the computed transformer impedance.
 - `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
+- `ar_margin_db`: margin `--optimize-reflector` holds below the 3 dB
+  axial-ratio budget at band center (default 0.5), so the design frequency
+  keeps usable axial-ratio bandwidth on both sides.
 - `segments`: polygon sides per loop (default 36). Non-circular shapes resample
   to equal-length sides; a multiple of 4 lands a square's corners on vertices.
 - `label`: optional name for output; defaults to none.

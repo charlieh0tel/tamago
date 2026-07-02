@@ -19,6 +19,7 @@
       "system_z_ohm": 50.0,
       "reflector": "radials",
       "reflector_spacing_wl": 0.20408363781378808,
+      "ar_margin_db": 0.5,
       "segments": 36,
       "radial_count": 3,
       "radial_length_wl": 0.27,
@@ -45,6 +46,7 @@
           "system_z_ohm": 50.0,
           "reflector": "radials",
           "reflector_spacing_wl": 0.25,
+          "ar_margin_db": 0.5,
           "segments": 36,
           "radial_count": 8,
           "radial_length_wl": 0.27,
@@ -52,7 +54,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 0.827,
+        "elapsed_s": 1.17,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -73,6 +75,7 @@
             8
           ],
           "ar_target_db": 3.0,
+          "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
           "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
@@ -165,11 +168,12 @@
       },
       "system_z_ohm": 50.0,
       "reflector": "radials",
-      "reflector_spacing_wl": 0.20001832843589645,
+      "reflector_spacing_wl": 0.2053398874989485,
+      "ar_margin_db": 0.5,
       "segments": 36,
       "radial_count": 3,
       "radial_length_wl": 0.27,
-      "radial_droop_deg": 13.854381999831755,
+      "radial_droop_deg": 10.003665687179286,
       "label": "70 cm",
       "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
       "optimization": {
@@ -192,6 +196,7 @@
           "system_z_ohm": 50.0,
           "reflector": "radials",
           "reflector_spacing_wl": 0.25,
+          "ar_margin_db": 0.5,
           "segments": 36,
           "radial_count": 8,
           "radial_length_wl": 0.27,
@@ -199,7 +204,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 0.829,
+        "elapsed_s": 0.995,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -220,6 +225,7 @@
             8
           ],
           "ar_target_db": 3.0,
+          "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
           "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
@@ -231,16 +237,16 @@
       "wavelength_mm": 687.597380733945,
       "loop_shape": "circle",
       "reflector": "radials",
-      "loop_center_height_wl": 0.20001832843589645,
-      "loop_center_height_mm": 137.53207873130435,
+      "loop_center_height_wl": 0.2053398874989485,
+      "loop_center_height_mm": 141.1911688044799,
       "radials": {
         "count": 3,
         "length_mm": 185.65129279816514,
-        "droop_deg": 13.854381999831755
+        "droop_deg": 10.003665687179286
       },
       "loop": {
-        "perimeter_mm": 720.3303504522985,
-        "width_mm": 229.28827186720122
+        "perimeter_mm": 721.9772497706423,
+        "width_mm": 229.81249620177934
       },
       "loop_offset_mm": 5.0,
       "feed_gap_mm": 10.0,
@@ -256,7 +262,7 @@
       "match": {
         "system_z_ohm": 50.0,
         "series_element": null,
-        "transformer_z0_ohm": 47.41624194303045,
+        "transformer_z0_ohm": 47.10785497133148,
         "transformer_coax": {
           "name": "RG-58",
           "z0_ohm": 50.0,
@@ -267,29 +273,29 @@
     },
     "performance": {
       "feed_z_ohm": {
-        "real": 44.966,
-        "imag": -0.39958
+        "real": 44.383,
+        "imag": -0.40331
       },
       "feed_z_kind": "feedpoint",
-      "vswr_unmatched": 1.1123221034374056,
-      "vswr_matched": 1.11195125205711,
-      "loop_current_phase_deg": 101.00439601940367,
-      "loop_balance": 1.0926005853027856,
+      "vswr_unmatched": 1.1269027199341188,
+      "vswr_matched": 1.126557465696325,
+      "loop_current_phase_deg": 96.7088390452191,
+      "loop_balance": 1.1014476884614304,
       "sense": "RHCP",
       "sense_requested": "RHCP",
       "sense_achieved": true,
-      "axial_ratio_cone_db": 2.995256395856439,
-      "axial_ratio_peak_db": 2.183758020897512,
-      "coverage_gain_dbi": -0.63
+      "axial_ratio_cone_db": 2.4954686225848057,
+      "axial_ratio_peak_db": 1.6572449448711142,
+      "coverage_gain_dbi": -0.64
     },
     "bandwidth": {
       "vswr_2to1_mhz": [
-        407.26514220300294,
+        405.2097389380303,
         479.6
       ],
       "axial_ratio_3db_mhz": [
-        435.9800555100974,
-        446.95319601106735
+        433.3518267003681,
+        445.31433945457024
       ]
     }
   }

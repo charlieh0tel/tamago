@@ -51,6 +51,7 @@ def test_spec_round_trip_with_optimization():
         sweeps=2,
         radial_count_grid=(3, 4, 6, 8),
         ar_target_db=3.0,
+        ar_margin_db=0.5,
         ar_penalty_per_db=1.0,
         feasible_vswr=1.5,
         objective="minimize post-match VSWR",

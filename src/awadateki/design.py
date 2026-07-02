@@ -88,10 +88,14 @@ PLACEMENT_SWEEPS = 2
 # the objectives (fewer radials is cheaper, lighter, and less wind load).
 RADIAL_COUNT_GRID = (3, 4, 6, 8)
 AR_TARGET_DB = 3.0
-# Cost penalty per dB of axial ratio above AR_TARGET_DB.
+# Default spec.ar_margin_db: margin the optimizer holds below AR_TARGET_DB at
+# band center, so the design does not sit exactly at the budget with no usable
+# axial-ratio bandwidth.
+AR_MARGIN_DB = 0.5
+# Cost penalty per dB of axial ratio above the margin-tightened budget.
 AR_PENALTY_PER_DB = 1.0
 # A radial count is acceptable when the tuned design holds axial ratio within
-# AR_TARGET_DB and post-match VSWR within this limit.
+# the margin-tightened budget and post-match VSWR within this limit.
 FEASIBLE_VSWR = 1.5
 
 # Frequency-sweep defaults and the SWR threshold whose bandwidth is reported.
@@ -124,6 +128,9 @@ class DesignSpec:
         feed_gap_mm: width of the feed gap at the bottom of each loop, where the
             line connects.
         system_z_ohm: radio-end reference impedance the match targets (50 or 75).
+        ar_margin_db: margin the reflector optimizer holds below the
+            AR_TARGET_DB budget at band center, keeping usable axial-ratio
+            bandwidth around the design frequency.
         segments: polygon sides per loop.
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
@@ -150,6 +157,7 @@ class DesignSpec:
     loop_offset_mm: float = 5.0
     feed_gap_mm: float = 10.0
     system_z_ohm: float = 50.0
+    ar_margin_db: float = AR_MARGIN_DB
     segments: int = DEFAULT_SEGMENTS
     radial_count: int = 8
     radial_length_wl: float = 0.27
@@ -174,7 +182,9 @@ class Optimization:
         sweeps: alternating spacing/droop passes per radial count.
         radial_count_grid: radial counts searched.
         ar_target_db: axial-ratio budget the search held to.
-        ar_penalty_per_db: cost penalty per dB of axial ratio above the budget.
+        ar_margin_db: margin held below the budget at band center.
+        ar_penalty_per_db: cost penalty per dB of axial ratio above the
+            margin-tightened budget.
         feasible_vswr: post-match VSWR a radial count had to meet to be kept.
         objective: short description of what was minimized.
         elapsed_s: wall-clock seconds the search took.
@@ -189,6 +199,7 @@ class Optimization:
     sweeps: int
     radial_count_grid: tuple[int, ...]
     ar_target_db: float
+    ar_margin_db: float
     ar_penalty_per_db: float
     feasible_vswr: float
     objective: str
@@ -602,8 +613,9 @@ def design(spec: DesignSpec) -> DesignResult:
 
 def _reflector_cost(result: DesignResult) -> float:
     """Optimization cost: post-match SWR, penalized for excess axial ratio."""
-    excess = max(0.0, result.ar_boresight_db - AR_TARGET_DB)
     spec = result.spec
+    budget = AR_TARGET_DB - spec.ar_margin_db
+    excess = max(0.0, result.ar_boresight_db - budget)
     swr = post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
     return swr + AR_PENALTY_PER_DB * excess
 
@@ -612,7 +624,7 @@ def _reflector_feasible(result: DesignResult) -> bool:
     """Whether a tuned design meets the axial-ratio and match objectives."""
     spec = result.spec
     return (
-        result.ar_boresight_db <= AR_TARGET_DB
+        result.ar_boresight_db <= AR_TARGET_DB - spec.ar_margin_db
         and post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
         <= FEASIBLE_VSWR
     )
@@ -699,6 +711,7 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
         sweeps=PLACEMENT_SWEEPS,
         radial_count_grid=counts,
         ar_target_db=AR_TARGET_DB,
+        ar_margin_db=spec.ar_margin_db,
         ar_penalty_per_db=AR_PENALTY_PER_DB,
         feasible_vswr=FEASIBLE_VSWR,
         objective="fewest radials meeting AR and VSWR, then minimize match cost",

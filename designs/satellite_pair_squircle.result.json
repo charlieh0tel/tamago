@@ -18,11 +18,12 @@
       },
       "system_z_ohm": 50.0,
       "reflector": "radials",
-      "reflector_spacing_wl": 0.2073725421878943,
+      "reflector_spacing_wl": 0.21801566031399838,
+      "ar_margin_db": 0.5,
       "segments": 36,
-      "radial_count": 3,
+      "radial_count": 4,
       "radial_length_wl": 0.27,
-      "radial_droop_deg": 46.88470506254732,
+      "radial_droop_deg": 39.996334312820714,
       "label": "2 m",
       "notes": "2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
       "optimization": {
@@ -45,6 +46,7 @@
           "system_z_ohm": 50.0,
           "reflector": "radials",
           "reflector_spacing_wl": 0.25,
+          "ar_margin_db": 0.5,
           "segments": 36,
           "radial_count": 8,
           "radial_length_wl": 0.27,
@@ -52,7 +54,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 0.707,
+        "elapsed_s": 2.238,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -73,6 +75,7 @@
             8
           ],
           "ar_target_db": 3.0,
+          "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
           "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
@@ -84,12 +87,12 @@
       "wavelength_mm": 2054.7803838245377,
       "loop_shape": "squircle",
       "reflector": "radials",
-      "loop_center_height_wl": 0.2073725421878943,
-      "loop_center_height_mm": 426.10503183151155,
+      "loop_center_height_wl": 0.21801566031399838,
+      "loop_center_height_mm": 447.9743021797576,
       "radials": {
-        "count": 3,
+        "count": 4,
         "length_mm": 554.7907036326252,
-        "droop_deg": 46.88470506254732
+        "droop_deg": 39.996334312820714
       },
       "corner_radius_mm": 102.73901919122689,
       "loop": {
@@ -110,7 +113,7 @@
       "match": {
         "system_z_ohm": 50.0,
         "series_element": null,
-        "transformer_z0_ohm": 48.59269492423733,
+        "transformer_z0_ohm": 48.45719760778579,
         "transformer_coax": {
           "name": "RG-58",
           "z0_ohm": 50.0,
@@ -121,29 +124,29 @@
     },
     "performance": {
       "feed_z_ohm": {
-        "real": 47.225,
-        "imag": 0.49976
+        "real": 46.962,
+        "imag": 0.49883
       },
       "feed_z_kind": "feedpoint",
-      "vswr_unmatched": 1.0597339904649383,
-      "vswr_matched": 1.0587612493382743,
-      "loop_current_phase_deg": 101.69315730158498,
-      "loop_balance": 1.0482581824813715,
+      "vswr_unmatched": 1.0655843600956925,
+      "vswr_matched": 1.064690600911375,
+      "loop_current_phase_deg": 100.16233586250577,
+      "loop_balance": 1.05420575714254,
       "sense": "RHCP",
       "sense_requested": "RHCP",
       "sense_achieved": true,
-      "axial_ratio_cone_db": 2.515625333157286,
-      "axial_ratio_peak_db": 1.7917812017062364,
-      "coverage_gain_dbi": 1.46
+      "axial_ratio_cone_db": 2.1923421897209776,
+      "axial_ratio_peak_db": 1.5808458808910149,
+      "coverage_gain_dbi": 1.91
     },
     "bandwidth": {
       "vswr_2to1_mhz": [
-        135.87841547302716,
+        134.12029333433105,
         160.49
       ],
       "axial_ratio_3db_mhz": [
-        145.09197113696703,
-        152.83323557627853
+        144.53649930045376,
+        152.60824190784436
       ]
     }
   },
@@ -166,11 +169,12 @@
       },
       "system_z_ohm": 50.0,
       "reflector": "radials",
-      "reflector_spacing_wl": 0.18608630593568615,
+      "reflector_spacing_wl": 0.193440519687684,
+      "ar_margin_db": 0.5,
       "segments": 36,
-      "radial_count": 3,
+      "radial_count": 4,
       "radial_length_wl": 0.27,
-      "radial_droop_deg": 24.999999999999996,
+      "radial_droop_deg": 24.59346906221083,
       "label": "70 cm",
       "notes": "70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
       "optimization": {
@@ -193,6 +197,7 @@
           "system_z_ohm": 50.0,
           "reflector": "radials",
           "reflector_spacing_wl": 0.25,
+          "ar_margin_db": 0.5,
           "segments": 36,
           "radial_count": 8,
           "radial_length_wl": 0.27,
@@ -200,7 +205,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 1.622,
+        "elapsed_s": 2.573,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -221,6 +226,7 @@
             8
           ],
           "ar_target_db": 3.0,
+          "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
           "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
@@ -232,17 +238,17 @@
       "wavelength_mm": 687.597380733945,
       "loop_shape": "squircle",
       "reflector": "radials",
-      "loop_center_height_wl": 0.18608630593568615,
-      "loop_center_height_mm": 127.95245655183335,
+      "loop_center_height_wl": 0.193440519687684,
+      "loop_center_height_mm": 133.00919466506463,
       "radials": {
-        "count": 3,
+        "count": 4,
         "length_mm": 185.65129279816514,
-        "droop_deg": 24.999999999999996
+        "droop_deg": 24.59346906221083
       },
       "corner_radius_mm": 34.37986903669725,
       "loop": {
-        "perimeter_mm": 727.997856662383,
-        "width_mm": 196.7554302404566
+        "perimeter_mm": 727.3982949192274,
+        "width_mm": 196.6055398046677
       },
       "loop_offset_mm": 5.0,
       "feed_gap_mm": 10.0,
@@ -258,7 +264,7 @@
       "match": {
         "system_z_ohm": 50.0,
         "series_element": null,
-        "transformer_z0_ohm": 47.7676668888067,
+        "transformer_z0_ohm": 47.65291176832744,
         "transformer_coax": {
           "name": "RG-58",
           "z0_ohm": 50.0,
@@ -269,29 +275,29 @@
     },
     "performance": {
       "feed_z_ohm": {
-        "real": 45.635,
-        "imag": 0.14238
+        "real": 45.416,
+        "imag": 0.10326
       },
       "feed_z_kind": "feedpoint",
-      "vswr_unmatched": 1.0957034625563284,
-      "vswr_matched": 1.095650268434316,
-      "loop_current_phase_deg": 102.34319203049688,
-      "loop_balance": 1.0896946260550489,
+      "vswr_unmatched": 1.100960427182089,
+      "vswr_matched": 1.1009335916857494,
+      "loop_current_phase_deg": 100.46053018108023,
+      "loop_balance": 1.0852560505649353,
       "sense": "RHCP",
       "sense_requested": "RHCP",
       "sense_achieved": true,
-      "axial_ratio_cone_db": 2.9745470109278584,
-      "axial_ratio_peak_db": 2.2083639570075255,
-      "coverage_gain_dbi": -0.32
+      "axial_ratio_cone_db": 2.486888953495906,
+      "axial_ratio_peak_db": 1.8970399628796795,
+      "coverage_gain_dbi": 0.42
     },
     "bandwidth": {
       "vswr_2to1_mhz": [
-        407.65399878193574,
+        405.0695129412212,
         479.6
       ],
       "axial_ratio_3db_mhz": [
-        435.895203612243,
-        449.30149609696684
+        433.7802190932713,
+        451.24405515698675
       ]
     }
   }
