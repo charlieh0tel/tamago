@@ -28,16 +28,6 @@ tuned NEC decks, design doc, tests passing).
       reflector; re-run the spacing sweep with this model to test that
       hypothesis.
 
-## Feed and matching
-
-- [ ] Balanced feed option: a coaxial 4:1 balun transformer plus a pair of
-      quarter-wave Q-sections, as an alternative to the current series-element
-      and single quarter-wave transformer. The 4:1 balun gives balanced drive
-      and a 4:1 impedance step; the two Q-sections match each loop. This is the
-      common practical eggbeater feed and would also let the model balance the
-      two loop currents (the bare phasing line over- or under-drives one loop
-      depending on Z0 vs the loop impedance).
-
 ## Tooling and integrations
 
 - [ ] Investigate NECBOL -- a Python library for building NEC models; assess

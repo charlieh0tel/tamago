@@ -52,7 +52,18 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `{"kind":"strip","width_mm":w}` (equiv radius = width / 4), or
   `{"kind":"bar","width_mm":w,"thickness_mm":t}` (GMD equiv radius).
 - `sense`: `rhcp` or `lhcp` (default `rhcp`); selects the normal or crossed
-  phasing-line connection on the cut sheet (identical performance).
+  loop B connection on the cut sheet (identical performance).
+- `feed`: coax harness scheme. `line` (default): source at the junction across
+  loop A, quarter-wave phasing line to loop B. `turnstile`: a quarter-wave
+  Q-section per loop joined at a harness port, a quarter-wave delay line in
+  loop B's leg, then a quarter-wave transformer and 1:1 current choke to the
+  radio. `balun4`: the ON6WG/F5VIF balanced system -- a quarter-wave 100 ohm
+  balanced phasing line between the loops (two RG-58 side by side, braids
+  bonded), fed through a quarter-wave 100 ohm balanced Q-section and a
+  half-wave 4:1 coax balun ([Appendix
+  A](http://146970.com/PDFs/Antenna%20Egg%20Beater%20Appendix%20A%20-%20English.pdf),
+  courtesy ON6WG/F5VIF). The turnstile drives both loops near-equally; balun4
+  gives a balanced feed (no feedline common-mode) with everyday cable.
 - `loop_shape`: `circle` (default), `square`, or `squircle` (a square with
   radiused corners: four straight sides joined by quarter-circle arcs). The
   loop perimeter is held fixed across shapes; the cut sheet reports the across
@@ -116,13 +127,22 @@ A JSON document may hold one spec object or a list of them; a list runs each
 
 ## How it works
 
-The model is two equal resonant loops with the feed at the junction: a voltage
-source drives loop A directly across its feed gap, and loop B is fed through a
+The model is two equal resonant loops driven with their currents 90 degrees
+apart for circular polarization. With the default `line` feed, a voltage
+source drives loop A directly across its feed gap and loop B is fed through a
 quarter-wave phasing line (a NEC transmission-line card at the phasing coax's
-impedance), putting the loop currents 90 degrees apart for circular
-polarization. Crossing the line's conductors (modelled as a negative Z0)
-mirrors the handedness with identical performance, so the requested `sense`
-just picks the normal or crossed connection on the cut sheet.
+impedance). Crossing a line's conductors (modelled as a negative Z0) mirrors
+the handedness with identical performance, so the requested `sense` just picks
+the normal or crossed connection on the cut sheet.
+
+The `turnstile` harness models each coax leg as a NEC transmission line
+joined at a tiny isolated port wire that hosts the source (a NEC network port
+must be a wire segment; the port wire sits at the loop centre and radiates
+negligibly). The `balun4` feed is the line feed's model with a 100 ohm
+balanced phasing line; its Q-section and balun sit in series toward the radio
+and do not affect the loop currents, so they are sized analytically
+(junction ~50 ohm -> 200 ohm through the quarter-wave 100 ohm Q-section ->
+50 ohm through the 4:1 balun).
 
 Conductor cross-sections are reduced to a NEC equivalent radius; the resonance
 sweep then corrects for any residual error in that estimate.
@@ -168,22 +188,30 @@ uv run awadateki designs/satellite_pair_circle.json --sweep \
     --emit-result designs/satellite_pair_circle.result.json
 
 # performance-plot page (HTML)
-uv run awadateki designs/satellite_pair_circle.json --plot designs/eggbeater-circle-performance.html
+uv run awadateki designs/satellite_pair_circle.json --plot designs/satellite_pair_circle.html
 
 # tuned NEC decks, one design at a time (--deck is single-design only)
-jq '.[0]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/eggbeater_circle_2m.nec
-jq '.[1]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/eggbeater_circle_70cm.nec
+jq '.[0]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/satellite_pair_circle.2m.nec
+jq '.[1]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/satellite_pair_circle.70cm.nec
 ```
+
+Each pair keeps one basename in `designs/`: `<name>.input.json` (authored),
+`<name>.json` (optimized spec), `<name>.result.json`, `<name>.html`, and for
+the circle pair the per-band `.2m.nec`/`.70cm.nec` decks.
 
 The generated plot pages render directly in a browser (GitHub Pages):
 
-- [circle pair](https://charlieh0tel.github.io/tamago/designs/eggbeater-circle-performance.html)
-- [squircle pair](https://charlieh0tel.github.io/tamago/designs/eggbeater-squircle-performance.html)
+- [circle pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_circle.html)
+- [squircle pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_squircle.html)
+- [turnstile-fed pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_turnstile.html)
+- [balun-fed pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_balun4.html)
 
-`satellite_pair_squircle.input.json` is the same pair with squircle
-(rounded-corner square) loops, for building on a square frame; optimize it the
-same way to `satellite_pair_squircle.json`. Predicted performance for both
-pairs is in the `.result.json` files and on the plot pages.
+The variants: `satellite_pair_squircle` is the same pair with squircle
+(rounded-corner square) loops, for building on a square frame;
+`satellite_pair_turnstile` and `satellite_pair_balun4` are the circle pair
+fed by the balanced harnesses (`feed: turnstile` / `feed: balun4`). Predicted
+performance for every pair is in the `.result.json` files and on the plot
+pages.
 
 ## Building
 
@@ -231,6 +259,7 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 uv run ruff check
 uv run ruff format
 uv run pytest
+make -j4        # regenerate the worked examples in designs/ (needs jq)
 ```
 
 Tests that drive `nec2c` are skipped automatically when it is not installed.

@@ -6,8 +6,8 @@
       "diameter_mm": 5.0
     },
     "sense": "rhcp",
-    "feed": "line",
-    "loop_shape": "squircle",
+    "feed": "turnstile",
+    "loop_shape": "circle",
     "corner_radius_wl": 0.05,
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
@@ -18,14 +18,14 @@
     },
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.21066144656200053,
+    "reflector_spacing_wl": 0.2451033003106336,
     "ar_margin_db": 0.5,
     "segments": 36,
     "radial_count": 3,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 34.67477524976867,
+    "radial_droop_deg": 0.32889043741062085,
     "label": "2 m",
-    "notes": "2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
+    "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
       "input": {
         "freq_mhz": 145.9,
@@ -34,8 +34,8 @@
           "diameter_mm": 5.0
         },
         "sense": "rhcp",
-        "feed": "line",
-        "loop_shape": "squircle",
+        "feed": "turnstile",
+        "loop_shape": "circle",
         "corner_radius_wl": 0.05,
         "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
@@ -53,9 +53,9 @@
         "radial_length_wl": 0.27,
         "radial_droop_deg": 0.0,
         "label": "2 m",
-        "notes": "2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
+        "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 1.564,
+      "elapsed_s": 1.312,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -90,8 +90,8 @@
       "diameter_mm": 3.0
     },
     "sense": "rhcp",
-    "feed": "line",
-    "loop_shape": "squircle",
+    "feed": "turnstile",
+    "loop_shape": "circle",
     "corner_radius_wl": 0.05,
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
@@ -102,14 +102,14 @@
     },
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.20205098312484226,
+    "reflector_spacing_wl": 0.2073725421878943,
     "ar_margin_db": 0.5,
     "segments": 36,
-    "radial_count": 4,
+    "radial_count": 3,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 22.871376374779178,
+    "radial_droop_deg": 23.935688187389587,
     "label": "70 cm",
-    "notes": "70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
+    "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
       "input": {
         "freq_mhz": 436.0,
@@ -118,8 +118,8 @@
           "diameter_mm": 3.0
         },
         "sense": "rhcp",
-        "feed": "line",
-        "loop_shape": "squircle",
+        "feed": "turnstile",
+        "loop_shape": "circle",
         "corner_radius_wl": 0.05,
         "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
@@ -137,9 +137,9 @@
         "radial_length_wl": 0.27,
         "radial_droop_deg": 0.0,
         "label": "70 cm",
-        "notes": "70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
+        "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 4.431,
+      "elapsed_s": 2.37,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [

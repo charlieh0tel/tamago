@@ -7,6 +7,7 @@
         "diameter_mm": 5.0
       },
       "sense": "rhcp",
+      "feed": "line",
       "loop_shape": "circle",
       "corner_radius_wl": 0.05,
       "loop_offset_mm": 10.0,
@@ -34,6 +35,7 @@
             "diameter_mm": 5.0
           },
           "sense": "rhcp",
+          "feed": "line",
           "loop_shape": "circle",
           "corner_radius_wl": 0.05,
           "loop_offset_mm": 10.0,
@@ -54,7 +56,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 1.445,
+        "elapsed_s": 2.394,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -100,6 +102,7 @@
       },
       "loop_offset_mm": 10.0,
       "feed_gap_mm": 10.0,
+      "feed": "line",
       "phasing_line": {
         "coax": {
           "name": "RG-62",
@@ -158,6 +161,7 @@
         "diameter_mm": 3.0
       },
       "sense": "rhcp",
+      "feed": "line",
       "loop_shape": "circle",
       "corner_radius_wl": 0.05,
       "loop_offset_mm": 10.0,
@@ -185,6 +189,7 @@
             "diameter_mm": 3.0
           },
           "sense": "rhcp",
+          "feed": "line",
           "loop_shape": "circle",
           "corner_radius_wl": 0.05,
           "loop_offset_mm": 10.0,
@@ -205,7 +210,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 1.889,
+        "elapsed_s": 3.248,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -251,6 +256,7 @@
       },
       "loop_offset_mm": 10.0,
       "feed_gap_mm": 10.0,
+      "feed": "line",
       "phasing_line": {
         "coax": {
           "name": "RG-62",
