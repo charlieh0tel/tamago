@@ -35,7 +35,6 @@ import json
 from .coax import Coax
 from .design import (
     AR_TARGET_DB,
-    MATCH_REACTANCE_WARN_OHMS,
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
@@ -45,6 +44,7 @@ from .design import (
     frequency_sweep,
     post_match_vswr,
     quarter_wave_match_z0,
+    series_element_fitted,
     series_match_element,
     transformer_coax,
     vswr,
@@ -81,7 +81,7 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
     z0 = quarter_wave_match_z0(z, spec.system_z_ohm)
     coax = transformer_coax(z, spec.system_z_ohm, spec.match_coax)
     series = None
-    if abs(z.imag) > MATCH_REACTANCE_WARN_OHMS:
+    if series_element_fitted(z):
         kind, value = series_match_element(z, spec.freq_mhz)
         series = {"kind": kind}
         if kind == "capacitor":

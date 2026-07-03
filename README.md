@@ -65,7 +65,8 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
 - `reflector_spacing_wl`: loop-center height above the reflector (default 0.25).
 - `radial_*`: count (8), length in wavelengths (0.27), droop in degrees (0).
 - `loop_offset_mm`: vertical gap between the loop centers so the equal loops
-  clear at the crossings (default 5).
+  clear at the crossings (default 10; must be at least 1.5x the equivalent
+  conductor diameter).
 - `feed_gap_mm`: feed gap at the bottom of each loop (default 10).
 - `phasing_coax` / `match_coax`: cable for the quarter-wave phasing line and
   the matching transformer. Either a catalog name (`"RG-58"`, `"RG-59"`,

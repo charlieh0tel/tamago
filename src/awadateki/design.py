@@ -49,6 +49,9 @@ RADIAL_SEGMENT_WL = 0.05
 # Quarter-wave phasing line: a NEC ideal TL of this electrical length (free-space
 # wavelengths) gives the 90 deg between the loop currents.
 PHASING_LINE_WL = 0.25
+# The loop offset must give the crossing conductors at least this many
+# equivalent conductor diameters of axis separation (1.0 = surfaces touching).
+MIN_LOOP_OFFSET_DIAMETERS = 1.5
 REFERENCE_IMPEDANCE_OHMS = 50.0
 # Residual feedpoint reactance above which a series tuning element is sized.
 MATCH_REACTANCE_WARN_OHMS = 10.0
@@ -125,6 +128,8 @@ class DesignSpec:
             wavelengths (ignored for circle and square).
         loop_offset_mm: vertical gap between the two loop centres (loop A below,
             loop B above) so the crossed conductors clear at the top and bottom.
+            Must be at least MIN_LOOP_OFFSET_DIAMETERS equivalent conductor
+            diameters.
         feed_gap_mm: width of the feed gap at the bottom of each loop, where the
             line connects.
         system_z_ohm: radio-end reference impedance the match targets (50 or 75).
@@ -154,7 +159,7 @@ class DesignSpec:
     sense: str = SENSE_RHCP
     loop_shape: str = SHAPE_CIRCLE
     corner_radius_wl: float = 0.05
-    loop_offset_mm: float = 5.0
+    loop_offset_mm: float = 10.0
     feed_gap_mm: float = 10.0
     system_z_ohm: float = 50.0
     ar_margin_db: float = AR_MARGIN_DB
@@ -215,7 +220,8 @@ class DesignResult:
         base_factor: resonant perimeter as a multiple of wavelength.
         z_in: predicted feedpoint impedance at the junction (feedline side,
             before the match network).
-        phase_diff_deg: loop current phase difference (loop A minus loop B).
+        phase_diff_deg: loop current phase difference (loop A minus loop B),
+            wrapped to [-180, 180), for the delivered line connection.
         loop_balance: loop current magnitude ratio |I_B| / |I_A| (1.0 is
             balanced; boresight axial ratio is 20*log10(max(r, 1/r)) dB).
         crossed_phasing_line: whether the phasing line is connected crossed to
@@ -304,6 +310,15 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
 def _eggbeater(spec: DesignSpec, factor: float):
     """Build the crossed-loop geometry for a perimeter factor; returns
     (eggbeater, wavelength)."""
+    min_offset_mm = (
+        MIN_LOOP_OFFSET_DIAMETERS * 2.0e3 * spec.conductor.equivalent_radius_m
+    )
+    if spec.loop_offset_mm < min_offset_mm:
+        raise ValueError(
+            f"loop_offset_mm {spec.loop_offset_mm:g} is below {min_offset_mm:.1f} "
+            f"({MIN_LOOP_OFFSET_DIAMETERS:g}x the equivalent conductor diameter); "
+            "the loops would touch or overlap at the crossings"
+        )
     wavelength = wavelength_m(spec.freq_mhz)
     perimeter = factor * wavelength
     center_z = _center_z_m(spec, wavelength, perimeter)
@@ -429,12 +444,17 @@ def _loop_currents(result: NecResult) -> tuple[complex, complex]:
     return result.feed_current(LOOP_A_TAG_BASE), result.feed_current(LOOP_B_TAG_BASE)
 
 
+def wrap_phase_deg(angle: float) -> float:
+    """Wrap an angle in degrees to [-180, 180)."""
+    return (angle + 180.0) % 360.0 - 180.0
+
+
 def _phase_difference(result: NecResult) -> float:
-    """Loop A minus loop B current phase, degrees."""
+    """Loop A minus loop B current phase, degrees, wrapped to [-180, 180)."""
     ia, ib = _loop_currents(result)
     pa = math.degrees(math.atan2(ia.imag, ia.real))
     pb = math.degrees(math.atan2(ib.imag, ib.real))
-    return pa - pb
+    return wrap_phase_deg(pa - pb)
 
 
 def _loop_balance(result: NecResult) -> float:
@@ -446,6 +466,11 @@ def _loop_balance(result: NecResult) -> float:
 def _antenna_feed_z(result: NecResult) -> complex:
     """Feedpoint impedance at the junction (loop A's source), before the match."""
     return complex(result.sources[0].z_real, result.sources[0].z_imag)
+
+
+def series_element_fitted(z: complex) -> bool:
+    """Whether the match includes a series element for this feedpoint z."""
+    return abs(z.imag) > MATCH_REACTANCE_WARN_OHMS
 
 
 def series_match_element(z: complex, freq_mhz: float) -> tuple[str, float]:
@@ -567,12 +592,14 @@ def post_match_vswr(
 ) -> float:
     """SWR at the design frequency after the coax match network.
 
-    The series element cancels the reactance and the transformer coax scales
-    the resistance toward the reference.
+    A series element is fitted (and cancels the reactance) only when the
+    reactance exceeds MATCH_REACTANCE_WARN_OHMS, matching the cut sheet;
+    otherwise the residual reactance transforms through the quarter-wave
+    coax along with the resistance.
     """
     z0 = transformer_coax(z, reference, coax).z0_ohm
-    transformed = z0 * z0 / z.real
-    return vswr(complex(transformed, 0.0), reference)
+    load = complex(z.real, 0.0) if series_element_fitted(z) else z
+    return vswr(z0 * z0 / load, reference)
 
 
 def design(spec: DesignSpec) -> DesignResult:
@@ -593,15 +620,19 @@ def design(spec: DesignSpec) -> DesignResult:
     else:
         crossed = default_hand != spec.sense
         sense = HAND_TO_NEC_SENSE[spec.sense]
+    phase_diff = _phase_difference(result)
     if crossed:
         # Mirror image: identical performance, only the line connection changes.
         deck = _build_deck_text(spec, base_factor, True, None, None)
+        # Crossing reverses loop B's current polarity, shifting its phase 180
+        # deg; report the phase of the delivered connection.
+        phase_diff = wrap_phase_deg(phase_diff + 180.0)
 
     return DesignResult(
         spec=spec,
         base_factor=base_factor,
         z_in=_antenna_feed_z(result),
-        phase_diff_deg=_phase_difference(result),
+        phase_diff_deg=phase_diff,
         loop_balance=_loop_balance(result),
         crossed_phasing_line=crossed,
         sense=sense,
@@ -731,13 +762,16 @@ def _matched_input_z(
 ) -> complex:
     """Input impedance after the match network sized at the design frequency.
 
-    The series element (sized from z_center) and the quarter-wave transformer
-    are fixed by the design; here they are evaluated at freq_mhz.
+    The series element (fitted and sized from z_center only when the cut sheet
+    includes one) and the quarter-wave transformer are fixed by the design;
+    here they are evaluated at freq_mhz.
     """
-    omega = 2.0 * math.pi * freq_mhz * HZ_PER_MHZ
-    kind, value = series_match_element(z_center, design_freq_mhz)
-    series_reactance = omega * value if kind == "inductor" else -1.0 / (omega * value)
-    z_after_series = z_ant + 1j * series_reactance
+    z_after_series = z_ant
+    if series_element_fitted(z_center):
+        omega = 2.0 * math.pi * freq_mhz * HZ_PER_MHZ
+        kind, value = series_match_element(z_center, design_freq_mhz)
+        reactance = omega * value if kind == "inductor" else -1.0 / (omega * value)
+        z_after_series = z_ant + 1j * reactance
 
     z0 = transformer_coax(z_center, system_z, match_coax).z0_ohm
     # The line is a quarter wave at the design frequency, so its electrical

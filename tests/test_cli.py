@@ -11,11 +11,13 @@ from awadateki.design import (
     AR_TARGET_DB,
     VSWR_LIMIT,
     DesignSpec,
+    _eggbeater,
     bandwidth_within,
     design,
     frequency_sweep,
     optimize_reflector,
     post_match_vswr,
+    wrap_phase_deg,
 )
 
 HAS_NEC2C = shutil.which("nec2c") is not None
@@ -122,6 +124,30 @@ def test_sense_selection_flips_handedness():
 def test_post_match_vswr_ideal():
     # 112.5 ohm transforms through a 75 ohm quarter wave to exactly 50 ohm.
     assert math.isclose(post_match_vswr(complex(112.5, 0.0)), 1.0, abs_tol=1e-6)
+
+
+def test_post_match_vswr_carries_unfitted_reactance():
+    # Below the 10 ohm threshold no series element is fitted, so the residual
+    # reactance transforms through the quarter wave and degrades the SWR.
+    ideal = post_match_vswr(complex(112.5, 0.0))
+    residual = post_match_vswr(complex(112.5, 8.0))
+    assert residual > ideal + 0.05
+    # Above the threshold the element cancels the reactance exactly.
+    assert math.isclose(post_match_vswr(complex(112.5, -16.0)), ideal, abs_tol=1e-9)
+
+
+def test_wrap_phase_deg():
+    assert wrap_phase_deg(340.0) == -20.0
+    assert wrap_phase_deg(-190.0) == 170.0
+    assert wrap_phase_deg(88.0) == 88.0
+    assert wrap_phase_deg(180.0) == -180.0
+
+
+def test_loop_offset_clearance_validated():
+    # 3 mm conductor needs at least 4.5 mm of loop offset (1.5 diameters).
+    with pytest.raises(ValueError, match="loop_offset_mm"):
+        _eggbeater(replace(_spec(), loop_offset_mm=4.0), 1.0)
+    _eggbeater(replace(_spec(), loop_offset_mm=4.5), 1.0)
 
 
 def test_bandwidth_interpolates_edges():

@@ -8,7 +8,7 @@
     "sense": "rhcp",
     "loop_shape": "circle",
     "corner_radius_wl": 0.05,
-    "loop_offset_mm": 5.0,
+    "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
     "phasing_coax": {
       "name": "RG-62",
@@ -17,12 +17,12 @@
     },
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.20408363781378808,
+    "reflector_spacing_wl": 0.2192719099991588,
     "ar_margin_db": 0.5,
     "segments": 36,
     "radial_count": 3,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 49.67110956258938,
+    "radial_droop_deg": 38.93202250021031,
     "label": "2 m",
     "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
@@ -35,7 +35,7 @@
         "sense": "rhcp",
         "loop_shape": "circle",
         "corner_radius_wl": 0.05,
-        "loop_offset_mm": 5.0,
+        "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
         "phasing_coax": {
           "name": "RG-62",
@@ -53,7 +53,7 @@
         "label": "2 m",
         "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 1.17,
+      "elapsed_s": 1.31,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -90,7 +90,7 @@
     "sense": "rhcp",
     "loop_shape": "circle",
     "corner_radius_wl": 0.05,
-    "loop_offset_mm": 5.0,
+    "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
     "phasing_coax": {
       "name": "RG-62",
@@ -99,12 +99,12 @@
     },
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.2053398874989485,
+    "reflector_spacing_wl": 0.21395035093610676,
     "ar_margin_db": 0.5,
     "segments": 36,
-    "radial_count": 3,
+    "radial_count": 6,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 10.003665687179286,
+    "radial_droop_deg": 9.75241575014721,
     "label": "70 cm",
     "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
@@ -117,7 +117,7 @@
         "sense": "rhcp",
         "loop_shape": "circle",
         "corner_radius_wl": 0.05,
-        "loop_offset_mm": 5.0,
+        "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
         "phasing_coax": {
           "name": "RG-62",
@@ -135,7 +135,7 @@
         "label": "70 cm",
         "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 0.995,
+      "elapsed_s": 2.583,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
