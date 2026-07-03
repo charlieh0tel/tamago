@@ -60,26 +60,63 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
     return lines
 
 
+def _coax_text(piece: dict) -> str:
+    coax = piece["coax"]
+    return (
+        f"{piece['length_mm']:.1f} mm ({coax['name']}, "
+        f"{coax['z0_ohm']:g} ohm, 1/4 wave, VF {coax['vf']:g})"
+    )
+
+
+def _feed_lines(build: dict) -> list[str]:
+    if "phasing_line" in build:
+        line = build["phasing_line"]
+        return [
+            f"Phasing line        : {_coax_text(line)}",
+            f"Feed                : feedline (via match) to junction across "
+            f"loop A; {line['connection']} line to loop B",
+        ]
+    harness = build["harness"]
+    balun = harness["balun"]
+    if "phasing_line" in harness:
+        # The F5VIF balanced system (balun4).
+        return [
+            f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+            f"Q-section           : {_coax_text(harness['q_section'])}",
+            "Pair braids         : bonded to each other at both ends; not grounded",
+            f"Balun               : {balun['kind']}, {balun['length_mm']:.1f} mm "
+            f"{balun['coax']['name']} (VF {balun['coax']['vf']:g}); braid bonds "
+            "to the feedline braid",
+            f"Feed                : balun then Q-section to the junction across "
+            f"loop A; {harness['connection']} phasing line to loop B",
+        ]
+    return [
+        f"Q-sections          : 2 x {_coax_text(harness['q_section'])}",
+        f"Delay line          : {_coax_text(harness['delay_line'])} in the loop B leg",
+        f"Balun               : {balun['kind']} at the radio",
+        f"Feed                : Q-section legs joined at the harness port; "
+        f"{harness['connection']} Q-section to loop B",
+    ]
+
+
 def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
     term = _WIDTH_TERM.get(build["loop_shape"], "width")
     loop = build["loop"]
-    line = build["phasing_line"]
     return [
         f"Both loops          : {loop['perimeter_mm']:.1f} mm perimeter, "
         f"{loop['width_mm']:.1f} mm {term}",
         f"Loop offset         : {build['loop_offset_mm']:g} mm (loop A below, "
         "loop B above)",
         f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
-        f"Phasing line        : {line['length_mm']:.1f} mm ({line['coax']['name']}, "
-        f"{line['coax']['z0_ohm']:g} ohm, 1/4 wave, VF {line['coax']['vf']:g})",
-        f"Feed                : feedline (via match) to junction across loop A; "
-        f"{line['connection']} line to loop B",
-    ]
+    ] + _feed_lines(build)
 
 
 def _match_lines(result: DesignResult, build: dict) -> list[str]:
     match = build["match"]
     lines = [f"Match to {match['system_z_ohm']:g} ohm:"]
+    if match.get("network") == "harness":
+        lines.append("  via the harness Q-section and 4:1 balun (see above)")
+        return lines
     series = match["series_element"]
     if series is not None:
         sized = (

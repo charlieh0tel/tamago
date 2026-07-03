@@ -3,9 +3,9 @@ from awadateki.design import DesignResult, DesignSpec
 from awadateki.schematic import render_feed_schematic
 
 
-def _result(**overrides) -> DesignResult:
+def _result(feed: str = "line", **overrides) -> DesignResult:
     fields = dict(
-        spec=DesignSpec(freq_mhz=145.9, conductor=round_conductor(5.0)),
+        spec=DesignSpec(freq_mhz=145.9, conductor=round_conductor(5.0), feed=feed),
         base_factor=1.05,
         z_in=complex(112.5, -16.0),
         phase_diff_deg=88.0,
@@ -43,3 +43,23 @@ def test_schematic_crossed_connection_marked():
 def test_schematic_no_series_element_when_reactance_small():
     svg = render_feed_schematic(_result(z_in=complex(112.5, 2.0)))
     assert ">L1<" not in svg and ">C1<" not in svg
+
+
+def test_turnstile_schematic():
+    svg = render_feed_schematic(_result(feed="turnstile", z_in=complex(25.5, 0.0)))
+    assert "Q1" in svg and "Q2" in svg and "DL1" in svg
+    # 25.5 ohm port wants a ~35.7 ohm transformer: the paired-cable suggestion.
+    assert "2x RG-59" in svg
+    assert "1:1 choke" in svg
+
+
+def test_balun4_schematic():
+    svg = render_feed_schematic(
+        _result(feed="balun4", z_in=complex(46.0, 0.0), crossed_phasing_line=True)
+    )
+    assert "4:1 balun" in svg
+    assert "1/2 wave" in svg
+    # Balanced phasing line and Q-section, both the two-RG-58 pair.
+    assert "PL1" in svg and ">Q1" in svg
+    assert "2x RG-58 (balanced)" in svg
+    assert "crossed" in svg

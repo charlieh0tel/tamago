@@ -1,4 +1,5 @@
 import json
+import math
 
 from awadateki.conductor import round_conductor
 from awadateki.design import DesignResult, DesignSpec
@@ -53,6 +54,38 @@ def test_build_and_performance_sections():
     assert perf["coverage_gain_dbi"] == 0.34
     assert perf["sense"] == "RHCP"
     assert perf["sense_achieved"] is True
+
+
+def test_turnstile_build_sections():
+    data = result_to_dict(_result(feed="turnstile"))
+    build = data["build"]
+    assert build["feed"] == "turnstile"
+    assert "phasing_line" not in build
+    harness = build["harness"]
+    assert harness["q_section"]["coax"]["name"] == "RG-59"
+    assert harness["q_section"]["count"] == 2
+    assert harness["delay_line"]["coax"]["name"] == "RG-58"
+    assert harness["balun"] == {"kind": "1:1 current choke"}
+    assert build["match"]["transformer_coax"]["name"] == "RG-59"
+
+
+def test_balun4_build_sections():
+    data = result_to_dict(_result(feed="balun4"))
+    build = data["build"]
+    harness = build["harness"]
+    # The F5VIF balanced system: 100 ohm balanced pair for the phasing line
+    # and Q-section, a half-wave RG-58 hairpin for the 4:1 balun.
+    assert harness["phasing_line"]["coax"]["name"] == "2x RG-58 (balanced)"
+    assert harness["phasing_line"]["coax"]["z0_ohm"] == 100.0
+    assert harness["q_section"]["coax"]["name"] == "2x RG-58 (balanced)"
+    assert harness["balun"]["kind"] == "half-wave 4:1"
+    assert harness["balun"]["coax"]["name"] == "RG-58"
+    # Half wave of RG-58 is twice the quarter-wave phasing-line cut at the
+    # same velocity factor.
+    assert math.isclose(
+        harness["balun"]["length_mm"], 2.0 * harness["phasing_line"]["length_mm"]
+    )
+    assert build["match"] == {"system_z_ohm": 50.0, "network": "harness"}
 
 
 def test_bandwidth_absent_unless_requested():

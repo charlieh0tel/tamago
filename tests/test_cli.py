@@ -114,6 +114,41 @@ def test_radial_reflector_runs():
 
 
 @needs_nec2c
+def test_turnstile_feed_designs():
+    # Full resolution: the coarse test polygon shifts the loop impedance the
+    # Q-sections are sized against, wrecking the balance this test checks.
+    result = design(replace(_spec(), reflector="ground", feed="turnstile", segments=36))
+    # Two ~50 ohm Q-section legs parallel to ~25 ohm at the port.
+    assert 20.0 < result.z_in.real < 35.0
+    assert abs(result.z_in.imag) < 5.0
+    # Symmetric legs drive the loops near-equally.
+    assert result.loop_balance < 1.1
+    # The harness adds two port wires to the deck.
+    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2) + 2
+
+
+@needs_nec2c
+def test_balun4_feed_designs():
+    result = design(replace(_spec(), reflector="ground", feed="balun4", segments=36))
+    # The junction: two ~100 ohm loops paralleled by the 100 ohm balanced
+    # phasing line land near 50 ohm (F5VIF's stated figure).
+    assert 40.0 < result.z_in.real < 60.0
+    assert abs(result.z_in.imag) < 5.0
+    # Balance follows |Z_loop| / 100 ohm, near unity.
+    assert result.loop_balance < 1.2
+    assert math.isfinite(result.ar_boresight_db)
+    # No port wires: the Q-section and balun are outside the NEC model.
+    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
+
+
+def test_unknown_feed_rejected():
+    from awadateki.design import _build_deck_text
+
+    with pytest.raises(ValueError, match="feed"):
+        _build_deck_text(replace(_spec(), feed="bogus"), 1.0, False, None, None)
+
+
+@needs_nec2c
 def test_sense_selection_flips_handedness():
     rhcp = design(replace(_spec(), reflector="ground", sense="rhcp"))
     lhcp = design(replace(_spec(), reflector="ground", sense="lhcp"))

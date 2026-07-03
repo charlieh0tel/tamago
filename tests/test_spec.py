@@ -68,6 +68,13 @@ def test_spec_round_trip_with_optimization():
     assert restored.optimization.input == base
 
 
+def test_spec_round_trip_feed_scheme():
+    spec = _spec(feed="turnstile")
+    data = spec_to_dict(spec)
+    assert data["feed"] == "turnstile"
+    assert spec_from_dict(data) == spec
+
+
 def test_spec_round_trip_custom_coax():
     spec = _spec(
         phasing_coax=Coax("hardline", 93.0, 0.80),

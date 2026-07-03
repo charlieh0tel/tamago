@@ -15,12 +15,18 @@ only when a frequency sweep is requested):
                   loop_center_height_wl/_mm and radials present with a reflector;
                   loop {perimeter_mm, width_mm} (width is the across dimension:
                   diameter, side, or squircle width); loop_offset_mm; feed_gap_mm;
+                  feed (line|turnstile|balun4);
                   phasing_line {coax {name, z0_ohm, vf}, length_mm,
-                  connection (normal|crossed)};
-                  match: system_z_ohm, series_element (null or
-                         {kind, value_nh|value_pf}), transformer_z0_ohm (ideal),
+                  connection (normal|crossed)} for the line feed, else
+                  harness (turnstile: q_section {coax, length_mm, count},
+                  delay_line, balun {kind}, connection; balun4: phasing_line,
+                  q_section, balun {kind, coax, length_mm}, connection);
+                  match: system_z_ohm plus, for line/turnstile,
+                         series_element (null or {kind, value_nh|value_pf}),
+                         transformer_z0_ohm (ideal),
                          transformer_coax {name, z0_ohm, vf},
-                         transformer_length_mm.
+                         transformer_length_mm ("network": "harness" for
+                         balun4, whose Q-section and balun do the matching).
     performance feedpoint and pattern figures of merit:
                   feed_z_ohm {real, imag}, feed_z_kind (feedpoint),
                   vswr_unmatched, vswr_matched, loop_current_phase_deg,
@@ -36,14 +42,22 @@ import json
 from .coax import Coax
 from .design import (
     AR_TARGET_DB,
+    BALUN4_BALUN_COAX,
+    BALUN4_PHASING_COAX,
+    BALUN4_Q_COAX,
+    BALUN_LINE_WL,
+    FEED_BALUN4,
+    FEED_LINE,
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
+    TURNSTILE_DELAY_COAX,
+    TURNSTILE_Q_COAX,
     VSWR_LIMIT,
     DesignResult,
     bandwidth_within,
     frequency_sweep,
-    post_match_vswr,
+    matched_vswr,
     quarter_wave_match_z0,
     series_element_fitted,
     series_match_element,
@@ -79,6 +93,9 @@ def _loop_dims(perimeter_m: float, shape: str, corner_radius_m: float) -> dict:
 def _match_dict(result: DesignResult, wavelength: float) -> dict:
     spec = result.spec
     z = result.z_in
+    if spec.feed == FEED_BALUN4:
+        # The Q-section and balun in the harness are the match network.
+        return {"system_z_ohm": spec.system_z_ohm, "network": "harness"}
     z0 = quarter_wave_match_z0(z, spec.system_z_ohm)
     coax = transformer_coax(z, spec.system_z_ohm, spec.match_coax)
     series = None
@@ -95,6 +112,44 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
         "transformer_z0_ohm": z0,
         "transformer_coax": _coax_dict(coax),
         "transformer_length_mm": _quarter_wave_mm(wavelength, coax),
+    }
+
+
+def _harness_dict(result: DesignResult, wavelength: float) -> dict:
+    """Harness pieces for the turnstile and balun4 feeds."""
+    connection = "crossed" if result.crossed_phasing_line else "normal"
+    if result.spec.feed == FEED_BALUN4:
+        return {
+            "phasing_line": {
+                "coax": _coax_dict(BALUN4_PHASING_COAX),
+                "length_mm": _quarter_wave_mm(wavelength, BALUN4_PHASING_COAX),
+            },
+            "q_section": {
+                "coax": _coax_dict(BALUN4_Q_COAX),
+                "length_mm": _quarter_wave_mm(wavelength, BALUN4_Q_COAX),
+            },
+            "balun": {
+                "kind": "half-wave 4:1",
+                "coax": _coax_dict(BALUN4_BALUN_COAX),
+                "length_mm": BALUN_LINE_WL
+                * wavelength
+                * BALUN4_BALUN_COAX.vf
+                * MM_PER_M,
+            },
+            "connection": connection,
+        }
+    return {
+        "q_section": {
+            "coax": _coax_dict(TURNSTILE_Q_COAX),
+            "length_mm": _quarter_wave_mm(wavelength, TURNSTILE_Q_COAX),
+            "count": 2,
+        },
+        "delay_line": {
+            "coax": _coax_dict(TURNSTILE_DELAY_COAX),
+            "length_mm": _quarter_wave_mm(wavelength, TURNSTILE_DELAY_COAX),
+        },
+        "balun": {"kind": "1:1 current choke"},
+        "connection": connection,
     }
 
 
@@ -126,11 +181,15 @@ def _build_dict(result: DesignResult) -> dict:
     build["loop"] = _loop_dims(result.base_factor * wavelength, shape, corner_radius_m)
     build["loop_offset_mm"] = spec.loop_offset_mm
     build["feed_gap_mm"] = spec.feed_gap_mm
-    build["phasing_line"] = {
-        "coax": _coax_dict(spec.phasing_coax),
-        "length_mm": _quarter_wave_mm(wavelength, spec.phasing_coax),
-        "connection": "crossed" if result.crossed_phasing_line else "normal",
-    }
+    build["feed"] = spec.feed
+    if spec.feed == FEED_LINE:
+        build["phasing_line"] = {
+            "coax": _coax_dict(spec.phasing_coax),
+            "length_mm": _quarter_wave_mm(wavelength, spec.phasing_coax),
+            "connection": "crossed" if result.crossed_phasing_line else "normal",
+        }
+    else:
+        build["harness"] = _harness_dict(result, wavelength)
     build["match"] = _match_dict(result, wavelength)
     return build
 
@@ -143,7 +202,7 @@ def _performance_dict(result: DesignResult) -> dict:
         "feed_z_ohm": {"real": z.real, "imag": z.imag},
         "feed_z_kind": "feedpoint",
         "vswr_unmatched": vswr(z, spec.system_z_ohm),
-        "vswr_matched": post_match_vswr(z, spec.system_z_ohm, spec.match_coax),
+        "vswr_matched": matched_vswr(spec, z),
         "loop_current_phase_deg": result.phase_diff_deg,
         "loop_balance": result.loop_balance,
         "sense": (achieved.upper() if achieved else result.sense),

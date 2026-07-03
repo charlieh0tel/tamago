@@ -27,9 +27,17 @@ class Coax:
 RG_58 = Coax("RG-58", 50.0, 0.66)
 RG_59 = Coax("RG-59", 75.0, 0.66)
 RG_62 = Coax("RG-62", 93.0, 0.84)
+# Two equal lengths connected in parallel halve the impedance: the standard
+# construction for low transformer impedances.
+RG_58_PAIR = Coax("2x RG-58 (parallel)", 25.0, 0.66)
+RG_59_PAIR = Coax("2x RG-59 (parallel)", 37.5, 0.66)
+# Two lengths side by side with braids bonded, the centre conductors used as
+# a shielded balanced pair: differential impedance is the sum. Not in the
+# catalog (it is a balanced line, not a transformer suggestion).
+RG_58_BALANCED = Coax("2x RG-58 (balanced)", 100.0, 0.66)
 
 # Cables suggested for the matching transformer and the default phasing line.
-COAX_CATALOG = (RG_58, RG_59, RG_62)
+COAX_CATALOG = (RG_58_PAIR, RG_59_PAIR, RG_58, RG_59, RG_62)
 
 
 def nearest_standard_coax(z0: float) -> Coax:

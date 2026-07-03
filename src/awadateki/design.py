@@ -1,16 +1,20 @@
 """Design orchestration: build geometry, drive nec2c, tune resonance and phase.
 
-Two equal resonant loops share one feed at the junction: the feed drives loop A
-directly while loop B is fed through a quarter-wave phasing line (a NEC TL card),
-putting the two loop currents 90 deg apart for circular polarization. A crossed
-line (negative Z0) reverses the handedness.
+Two equal resonant loops are driven with their currents 90 deg apart for
+circular polarization, by one of three coax feed harnesses (spec.feed): the
+source at the junction with a quarter-wave line to loop B (line), a Q-section
+per loop paralleled at a port with a delay line in loop B's leg (turnstile),
+or the ON6WG/F5VIF balanced system -- a 100 ohm balanced phasing line fed
+through a balanced Q-section and half-wave 4:1 balun (balun4). Harness lines
+are NEC TL cards; crossing loop B's connection (negative Z0) reverses the
+handedness.
 """
 
 import math
 import time
 from dataclasses import dataclass, replace
 
-from .coax import RG_62, Coax, nearest_standard_coax
+from .coax import RG_58, RG_58_BALANCED, RG_59, RG_62, Coax, nearest_standard_coax
 from .conductor import Conductor
 from .geometry import (
     DEFAULT_SEGMENTS,
@@ -46,9 +50,39 @@ HAND_TO_NEC_SENSE = {SENSE_RHCP: "RIGHT", SENSE_LHCP: "LEFT"}
 # Target NEC segment length along a radial, in wavelengths.
 RADIAL_SEGMENT_WL = 0.05
 
-# Quarter-wave phasing line: a NEC ideal TL of this electrical length (free-space
-# wavelengths) gives the 90 deg between the loop currents.
+# Quarter-wave sections (phasing line, Q-sections, delay line): NEC ideal TLs
+# of this electrical length (free-space wavelengths) give 90 deg each.
 PHASING_LINE_WL = 0.25
+BALUN_LINE_WL = 0.5
+
+# Feed schemes: how the radio drives the two loops.
+FEED_LINE = "line"  # source at the junction across loop A; 1/4-wave line to B
+FEED_TURNSTILE = "turnstile"  # per-loop Q-sections joined in parallel
+# The ON6WG/F5VIF "balanced system": a 100 ohm balanced phasing line between
+# the loops, fed at the junction through a 100 ohm balanced Q-section and a
+# half-wave 4:1 coax balun.
+FEED_BALUN4 = "balun4"
+FEEDS = (FEED_LINE, FEED_TURNSTILE, FEED_BALUN4)
+
+# Harness cables per scheme (catalog defaults). The turnstile delay line's Z0
+# is chosen near the impedance at its insertion point so it adds 90 deg
+# transparently.
+TURNSTILE_Q_COAX = RG_59
+TURNSTILE_DELAY_COAX = RG_58
+BALUN4_PHASING_COAX = RG_58_BALANCED
+BALUN4_Q_COAX = RG_58_BALANCED
+BALUN4_BALUN_COAX = RG_58
+# Half-wave coax balun: steps the balanced Q-section side down to the radio.
+BALUN_IMPEDANCE_RATIO = 4.0
+
+# Port wires: tiny isolated segments hosting harness junctions (a NEC TL port
+# must be a wire segment). They sit at the loop centre, far from the loop
+# conductors, and are short and thin so they radiate negligibly.
+PORT_TAG_BASE = 400
+PORT_SEGMENT_LENGTH_M = 0.002
+PORT_RADIUS_M = 0.0005
+PORT_SPACING_M = 0.02
+
 # The loop offset must give the crossing conductors at least this many
 # equivalent conductor diameters of axis separation (1.0 = surfaces touching).
 MIN_LOOP_OFFSET_DIAMETERS = 1.5
@@ -122,10 +156,15 @@ class DesignSpec:
         conductor: conductor cross-section.
         reflector: REFLECTOR_NONE, REFLECTOR_GROUND, or REFLECTOR_RADIALS.
         reflector_spacing_wl: loop-centre height above the reflector, wavelengths.
-        phasing_coax: cable of the quarter-wave phasing line feeding loop B.
-            Its z0_ohm drives the NEC TL model; its vf sets only the reported
-            physical cut length (the NEC line is an ideal electrical quarter
-            wave).
+        feed: FEED_LINE (source at the junction, quarter-wave line to loop B),
+            FEED_TURNSTILE (a Q-section per loop paralleled at a port, delay
+            line in loop B's leg, quarter-wave transformer and 1:1 choke to the
+            radio), or FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm
+            balanced phasing line, balanced Q-section, half-wave 4:1 balun).
+        phasing_coax: cable of the quarter-wave phasing line feeding loop B
+            (FEED_LINE only). Its z0_ohm drives the NEC TL model; its vf sets
+            only the reported physical cut length (the NEC line is an ideal
+            electrical quarter wave).
         match_coax: cable of the quarter-wave matching transformer, or None to
             suggest the catalog cable nearest the computed transformer Z0.
         sense: desired polarization, SENSE_RHCP or SENSE_LHCP.
@@ -160,6 +199,7 @@ class DesignSpec:
     conductor: Conductor
     reflector: str = REFLECTOR_NONE
     reflector_spacing_wl: float = 0.25
+    feed: str = FEED_LINE
     phasing_coax: Coax = RG_62
     match_coax: Coax | None = None
     sense: str = SENSE_RHCP
@@ -224,8 +264,8 @@ class DesignResult:
     Fields:
         spec: the originating DesignSpec.
         base_factor: resonant perimeter as a multiple of wavelength.
-        z_in: predicted feedpoint impedance at the junction (feedline side,
-            before the match network).
+        z_in: predicted feedpoint impedance at the harness source (the
+            junction or port), before the match network or balun.
         phase_diff_deg: loop current phase difference (loop A minus loop B),
             wrapped to [-180, 180), for the delivered line connection.
         loop_balance: loop current magnitude ratio |I_B| / |I_A| (1.0 is
@@ -312,7 +352,87 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
         z0,
         PHASING_LINE_WL * wavelength,
     )
-    return (source,), (line,)
+    return (), (source,), (line,)
+
+
+def _port_wire(tag: int, segments: int, center_z: float, index: int) -> Wire:
+    """Tiny isolated wire at the loop centre hosting harness TL ports."""
+    half = PORT_SEGMENT_LENGTH_M * segments / 2.0
+    z = center_z + index * PORT_SPACING_M
+    return Wire(
+        tag=tag,
+        segments=segments,
+        x1=-half,
+        y1=0.0,
+        z1=z,
+        x2=half,
+        y2=0.0,
+        z2=z,
+        radius_m=PORT_RADIUS_M,
+    )
+
+
+def _feed_turnstile(egg, spec: DesignSpec, wavelength: float, flip: bool, center_z):
+    """Parallel harness: a quarter-wave Q-section per loop joined at a port.
+
+    Loop B's leg has an extra quarter-wave delay line for the 90 deg. The
+    source drives the port; the transformer to the radio (and the 1:1 choke)
+    do not affect the loop currents, so they are sized analytically like the
+    line feed's match network.
+    """
+    port = _port_wire(PORT_TAG_BASE, 1, center_z, 0)
+    mid = _port_wire(PORT_TAG_BASE + 1, 1, center_z, 1)
+    quarter = PHASING_LINE_WL * wavelength
+    q_z0 = TURNSTILE_Q_COAX.z0_ohm
+    lines = (
+        TransmissionLine(
+            port.tag, 1, egg.loop_a.feed_tag, egg.loop_a.feed_segment, q_z0, quarter
+        ),
+        TransmissionLine(port.tag, 1, mid.tag, 1, TURNSTILE_DELAY_COAX.z0_ohm, quarter),
+        TransmissionLine(
+            mid.tag,
+            1,
+            egg.loop_b.feed_tag,
+            egg.loop_b.feed_segment,
+            -q_z0 if flip else q_z0,
+            quarter,
+        ),
+    )
+    return (port, mid), (Source(port.tag, 1, 1.0, 0.0),), lines
+
+
+def _feed_balun4(egg, spec: DesignSpec, wavelength: float, flip: bool):
+    """The ON6WG/F5VIF balanced system.
+
+    Like the line feed but with a 100 ohm balanced phasing line (two RG-58
+    side by side, braids bonded) between the loops. The junction (~50 ohm
+    balanced) is fed through a quarter-wave 100 ohm balanced Q-section (up to
+    200 ohm) and a half-wave 4:1 coax balun (back down to the radio); those
+    are series elements toward the radio, so they are sized analytically and
+    only the phasing line enters the NEC model.
+    """
+    source = Source(egg.loop_a.feed_tag, egg.loop_a.feed_segment, 1.0, 0.0)
+    z0 = BALUN4_PHASING_COAX.z0_ohm
+    line = TransmissionLine(
+        egg.loop_a.feed_tag,
+        egg.loop_a.feed_segment,
+        egg.loop_b.feed_tag,
+        egg.loop_b.feed_segment,
+        -z0 if flip else z0,
+        PHASING_LINE_WL * wavelength,
+    )
+    return (), (source,), (line,)
+
+
+def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool, center_z: float):
+    """Feed harness for the spec's scheme: (port wires, sources, TL cards)."""
+    if spec.feed == FEED_LINE:
+        return _feed(egg, spec, wavelength, flip)
+    if spec.feed == FEED_TURNSTILE:
+        return _feed_turnstile(egg, spec, wavelength, flip, center_z)
+    if spec.feed == FEED_BALUN4:
+        return _feed_balun4(egg, spec, wavelength, flip)
+    raise ValueError(f"unknown feed scheme: {spec.feed!r}")
 
 
 def _eggbeater(spec: DesignSpec, factor: float):
@@ -352,8 +472,9 @@ def _build_deck_text(
     grid: RadiationGrid | None,
 ) -> str:
     egg, wavelength = _eggbeater(spec, factor)
-    sources, lines = _feed(egg, spec, wavelength, flip)
-    wires = egg.wires + _reflector_wires(spec, wavelength)
+    center_z = _center_z_m(spec, wavelength, factor * wavelength)
+    ports, sources, lines = _harness(egg, spec, wavelength, flip, center_z)
+    wires = egg.wires + ports + _reflector_wires(spec, wavelength)
     return build_deck(
         _comment_lines(spec),
         wires,
@@ -472,7 +593,8 @@ def _loop_balance(result: NecResult) -> float:
 
 
 def _antenna_feed_z(result: NecResult) -> complex:
-    """Feedpoint impedance at the junction (loop A's source), before the match."""
+    """Feedpoint impedance at the harness source (junction or port wire),
+    before the match network or balun."""
     return complex(result.sources[0].z_real, result.sources[0].z_imag)
 
 
@@ -633,6 +755,21 @@ def post_match_vswr(
     return vswr(z0 * z0 / load, reference)
 
 
+def matched_vswr(spec: DesignSpec, z: complex) -> float:
+    """Post-match VSWR at the radio for the spec's feed scheme.
+
+    The balun4 feed reaches the radio through the quarter-wave balanced
+    Q-section and the 4:1 balun; the other schemes use the
+    series-element/transformer match.
+    """
+    if spec.feed == FEED_BALUN4:
+        if z.real <= 0.0:
+            return math.inf
+        q_z0 = BALUN4_Q_COAX.z0_ohm
+        return vswr(q_z0 * q_z0 / z / BALUN_IMPEDANCE_RATIO, spec.system_z_ohm)
+    return post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
+
+
 def design(spec: DesignSpec) -> DesignResult:
     """Tune an eggbeater to the spec and return the result.
 
@@ -680,8 +817,7 @@ def _reflector_cost(result: DesignResult) -> float:
     spec = result.spec
     budget = AR_TARGET_DB - spec.ar_margin_db
     excess = max(0.0, result.ar_boresight_db - budget)
-    swr = post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
-    return swr + AR_PENALTY_PER_DB * excess
+    return matched_vswr(spec, result.z_in) + AR_PENALTY_PER_DB * excess
 
 
 def _reflector_feasible(result: DesignResult) -> bool:
@@ -689,8 +825,7 @@ def _reflector_feasible(result: DesignResult) -> bool:
     spec = result.spec
     return (
         result.ar_boresight_db <= AR_TARGET_DB - spec.ar_margin_db
-        and post_match_vswr(result.z_in, spec.system_z_ohm, spec.match_coax)
-        <= FEASIBLE_VSWR
+        and matched_vswr(spec, result.z_in) <= FEASIBLE_VSWR
     )
 
 
@@ -784,6 +919,17 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
     return replace(best_spec, optimization=provenance)
 
 
+def _line_input_z(z_load: complex, z0: float, theta: float) -> complex:
+    """Input impedance of a lossless line of electrical length theta (rad)."""
+    tan_theta = math.tan(theta)
+    return z0 * (z_load + 1j * z0 * tan_theta) / (z0 + 1j * z_load * tan_theta)
+
+
+def _quarter_wave_theta(freq_mhz: float, design_freq_mhz: float) -> float:
+    """Electrical length of a fixed quarter-wave-at-design line at freq_mhz."""
+    return (math.pi / 2.0) * (freq_mhz / design_freq_mhz)
+
+
 def _matched_input_z(
     z_ant: complex,
     freq_mhz: float,
@@ -806,15 +952,8 @@ def _matched_input_z(
         z_after_series = z_ant + 1j * reactance
 
     z0 = transformer_coax(z_center, system_z, match_coax).z0_ohm
-    # The line is a quarter wave at the design frequency, so its electrical
-    # length scales linearly with frequency.
-    theta = (math.pi / 2.0) * (freq_mhz / design_freq_mhz)
-    tan_theta = math.tan(theta)
-    return (
-        z0
-        * (z_after_series + 1j * z0 * tan_theta)
-        / (z0 + 1j * z_after_series * tan_theta)
-    )
+    theta = _quarter_wave_theta(freq_mhz, design_freq_mhz)
+    return _line_input_z(z_after_series, z0, theta)
 
 
 @dataclass(frozen=True)
@@ -853,9 +992,20 @@ def frequency_sweep(
         freq = low + (high - low) * i / (points - 1)
         nec, _ = analyze(spec, base, run_freq_mhz=freq)
         z_ant = _antenna_feed_z(nec)
-        z_in = _matched_input_z(
-            z_ant, freq, design_freq, result.z_in, spec.system_z_ohm, spec.match_coax
-        )
+        if spec.feed == FEED_BALUN4:
+            # Fixed balanced Q-section, then the (frequency-flat) 4:1 balun.
+            theta = _quarter_wave_theta(freq, design_freq)
+            z_bal = _line_input_z(z_ant, BALUN4_Q_COAX.z0_ohm, theta)
+            z_in = z_bal / BALUN_IMPEDANCE_RATIO
+        else:
+            z_in = _matched_input_z(
+                z_ant,
+                freq,
+                design_freq,
+                result.z_in,
+                spec.system_z_ohm,
+                spec.match_coax,
+            )
         sweep.append(
             SweepPoint(freq, vswr(z_in, spec.system_z_ohm), _boresight_ar_db(nec))
         )

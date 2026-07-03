@@ -21,7 +21,7 @@ from .design import (
     analyze,
     bandwidth_within,
     frequency_sweep,
-    post_match_vswr,
+    matched_vswr,
     tuned_geometry,
 )
 from .geometry import LOOP_B_TAG_BASE, RADIAL_TAG_BASE
@@ -116,7 +116,7 @@ def _collect(result: DesignResult) -> dict:
         "f0": f0,
         "z": result.z_in,
         "sense": (NEC_SENSE_TO_HAND.get(result.sense) or result.sense).upper(),
-        "vswr_post": post_match_vswr(result.z_in),
+        "vswr_post": matched_vswr(result.spec, result.z_in),
         "ar_cone": result.ar_boresight_db,
         "cov_gain": result.coverage_gain_db,
         "vswr_band": bandwidth_within(vswr_pairs, VSWR_LIMIT),

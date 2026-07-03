@@ -97,6 +97,53 @@ def _coax_section(
     return "".join(parts)
 
 
+def _balanced_pair_section(
+    x0: float, x1: float, y_top: float, label_lines: tuple[str, ...]
+) -> str:
+    """Balanced pair: two coax side by side (one per conductor), a shield
+    cylinder around each, braids bonded by a strap at both ends. The pair's
+    shields float (no pigtails, no ground)."""
+    r = COAX_RY
+    parts = []
+    for y in (y_top, y_top + RAIL_GAP):
+        parts.append(_line(x0, y - r, x1, y - r) + _line(x0, y + r, x1, y + r))
+        parts.append(
+            "".join(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}"/>' for x in (x0, x1))
+        )
+    # Braids soldered together at both ends.
+    for x in (x0, x1):
+        parts.append(_line(x, y_top + r, x, y_top + RAIL_GAP - r))
+    y = y_top - r - 12.0 - 13.0 * (len(label_lines) - 1)
+    for s in label_lines:
+        parts.append(_text((x0 + x1) / 2.0, y, s))
+        y += 13.0
+    return "".join(parts)
+
+
+def _balun_hairpin(x: float, y_top: float) -> tuple[str, float]:
+    """Half-wave coax balun: a shielded hairpin (coax U) whose centre-conductor
+    ends are the balanced pair. Returns (svg, x where the outer shield wall
+    crosses the return-rail height, for the feed line's braid bond)."""
+    r_c = RAIL_GAP / 2.0  # centre conductor
+    r_o = r_c + COAX_RY  # shield, outer wall
+    r_i = r_c - COAX_RY  # shield, inner wall
+    y_bot = y_top + RAIL_GAP
+    body = (
+        f'<path d="M{x:.1f},{y_top:.1f} A{r_c},{r_c} 0 0 0 {x:.1f},{y_bot:.1f}"/>'
+        f'<path d="M{x:.1f},{y_top - COAX_RY:.1f} '
+        f'A{r_o},{r_o} 0 0 0 {x:.1f},{y_bot + COAX_RY:.1f}"/>'
+        f'<path d="M{x:.1f},{y_top + COAX_RY:.1f} '
+        f'A{r_i},{r_i} 0 0 0 {x:.1f},{y_bot - COAX_RY:.1f}"/>'
+        + "".join(
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{COAX_RY}"/>' for y in (y_top, y_bot)
+        )
+        + _dot(x, y_top)
+        + _dot(x, y_bot)
+    )
+    bond_x = x - math.sqrt(r_o * r_o - r_c * r_c)
+    return body, bond_x
+
+
 def _hop(x: float, y_from: float, y_cross: float, y_to: float) -> str:
     """Vertical conductor that hops over a horizontal one at y_cross."""
     return (
@@ -208,10 +255,182 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
     return "".join(parts), 790, 320
 
 
+def _section_label(designator: str, piece: dict, fraction: str) -> tuple[str, str]:
+    coax = piece["coax"]
+    return (
+        f"{designator}  {coax['name']} ({coax['z0_ohm']:g} &#8486;)",
+        f"{fraction} wave  {piece['length_mm']:.0f} mm",
+    )
+
+
+def _turnstile_layout(build: dict) -> tuple[str, int, int]:
+    """Layout for the turnstile harness.
+
+    Rig -> quarter-wave transformer -> harness port -> a Q-section leg per
+    loop, with the delay line in loop B's leg and the sense connection at
+    loop B.
+    """
+    harness = build["harness"]
+    match = build["match"]
+    crossed = harness["connection"] == "crossed"
+
+    y_a = 120.0  # hot rail of the main run and the loop A leg
+    y_b = 230.0  # hot rail of the loop B leg
+    x_term = 48.0
+    x_s0, x_s1 = 96.0, 244.0  # transformer
+    x_ser0, x_ser1 = 268.0, 320.0  # series element, when fitted
+    x_tee_a, x_tee_b = 348.0, 364.0  # harness port tees
+    x_qa0, x_qa1 = 404.0, 524.0  # loop A Q-section
+    x_rail_end = 560.0
+    loop_a_cx = 620.0
+    x_dl0, x_dl1 = 404.0, 500.0  # delay line, loop B leg
+    x_qb0, x_qb1 = 528.0, 624.0  # loop B Q-section
+    x_swap0, x_swap = 634.0, 658.0
+    loop_b_cx = 720.0
+
+    top_label = _section_label(
+        "TL1",
+        {
+            "coax": match["transformer_coax"],
+            "length_mm": match["transformer_length_mm"],
+        },
+        "1/4",
+    )
+    rig = f"to rig ({match['system_z_ohm']:g} &#8486;, 1:1 choke)"
+    series = match["series_element"]
+
+    parts = [
+        _text(x_term - 24.0, y_a + RAIL_GAP + 30.0, rig, "start"),
+        _terminal_pair(x_term, y_a),
+        # Hot rail through the first section and series element to loop A.
+        _line(x_term + TERMINAL_RADIUS, y_a, x_ser0, y_a),
+        _series_element(series, x_ser0, x_ser1, y_a),
+        _line(x_ser1, y_a, x_rail_end, y_a),
+        # Return rail, broken for each coax section's shield.
+        _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_s0, y_a + RAIL_GAP),
+        _line(x_s1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
+        _coax_section(x_s0, x_s1, y_a, y_a + RAIL_GAP, top_label),
+        _coax_section(
+            x_qa0,
+            x_qa1,
+            y_a,
+            y_a + RAIL_GAP,
+            _section_label("Q1", harness["q_section"], "1/4"),
+        ),
+        # Harness port: loop B's leg tees off both conductors.
+        _dot(x_tee_a, y_a),
+        _dot(x_tee_b, y_a + RAIL_GAP),
+        _hop(x_tee_a, y_a, y_a + RAIL_GAP, y_b),
+        _line(x_tee_b, y_a + RAIL_GAP, x_tee_b, y_b + RAIL_GAP),
+        _loop_symbol(x_rail_end, y_a, loop_a_cx, "LOOP A"),
+        # Loop B leg: delay line then Q-section.
+        _line(x_tee_a, y_b, x_swap0, y_b),
+        _line(x_tee_b, y_b + RAIL_GAP, x_dl0, y_b + RAIL_GAP),
+        _line(x_dl1, y_b + RAIL_GAP, x_qb0, y_b + RAIL_GAP),
+        _line(x_qb1, y_b + RAIL_GAP, x_swap0, y_b + RAIL_GAP),
+        _coax_section(
+            x_dl0,
+            x_dl1,
+            y_b,
+            y_b + RAIL_GAP,
+            _section_label("DL1", harness["delay_line"], "1/4"),
+        ),
+        _coax_section(
+            x_qb0,
+            x_qb1,
+            y_b,
+            y_b + RAIL_GAP,
+            _section_label("Q2", harness["q_section"], "1/4"),
+        ),
+    ]
+    if crossed:
+        parts.append(_crossover(x_swap0, x_swap, y_b))
+        parts.append(_text((x_swap0 + x_swap) / 2.0, y_b + RAIL_GAP + 24.0, "crossed"))
+    else:
+        parts.append(_line(x_swap0, y_b, x_swap, y_b))
+        parts.append(_line(x_swap0, y_b + RAIL_GAP, x_swap, y_b + RAIL_GAP))
+    parts.append(_loop_symbol(x_swap, y_b, loop_b_cx, "LOOP B"))
+    return "".join(parts), 810, 320
+
+
+def _balun4_layout(build: dict) -> tuple[str, int, int]:
+    """Layout for the F5VIF balanced system (balun4).
+
+    Rig coax arrives at one end of the half-wave balun hairpin (braids
+    grounded); the hairpin's open ends are the 200 ohm balanced pair, which
+    runs through the balanced Q-section to the junction across loop A; the
+    balanced phasing line reaches loop B.
+    """
+    harness = build["harness"]
+    match = build["match"]
+    balun = harness["balun"]
+    crossed = harness["connection"] == "crossed"
+
+    y_a = 120.0  # upper conductor of the balanced pair and the loop A run
+    y_b = 230.0  # upper conductor of the loop B branch
+    x_term = 40.0
+    x_balun = 124.0  # hairpin open ends (the balanced pair starts here)
+    x_q0, x_q1 = 180.0, 320.0  # balanced Q-section
+    x_tee_a, x_tee_b = 382.0, 398.0  # junction tees
+    x_rail_end = 470.0
+    loop_a_cx = 530.0
+    x_ph0, x_ph1 = 440.0, 600.0  # balanced phasing line
+    x_swap0, x_swap = 610.0, 634.0
+    loop_b_cx = 696.0
+
+    rig = f"to rig ({match['system_z_ohm']:g} &#8486;)"
+    y_bot = y_a + RAIL_GAP
+    balun_label_1 = f"BL1  {balun['coax']['name']} 4:1 balun"
+    balun_label_2 = f"1/2 wave  {balun['length_mm']:.0f} mm"
+    hairpin, bond_x = _balun_hairpin(x_balun, y_a)
+    parts = [
+        _terminal_pair(x_term, y_a),
+        # Feedline: centre conductor to the hairpin's near end, braid bonded
+        # onto the hairpin's shield (there is no ground in this harness).
+        _line(x_term + TERMINAL_RADIUS, y_a, x_balun, y_a),
+        _line(x_term + TERMINAL_RADIUS, y_bot, bond_x, y_bot),
+        _dot(bond_x, y_bot),
+        hairpin,
+        _text(x_term - 20.0, y_bot + 42.0, balun_label_1, "start"),
+        _text(x_term - 20.0, y_bot + 55.0, balun_label_2, "start"),
+        _text(x_term - 20.0, y_bot + 78.0, rig, "start"),
+        # The balanced pair to the loop A junction.
+        _line(x_balun, y_a, x_rail_end, y_a),
+        _line(x_balun, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
+        _balanced_pair_section(
+            x_q0, x_q1, y_a, _section_label("Q1", harness["q_section"], "1/4")
+        ),
+        _dot(x_tee_a, y_a),
+        _dot(x_tee_b, y_a + RAIL_GAP),
+        _hop(x_tee_a, y_a, y_a + RAIL_GAP, y_b),
+        _line(x_tee_b, y_a + RAIL_GAP, x_tee_b, y_b + RAIL_GAP),
+        _loop_symbol(x_rail_end, y_a, loop_a_cx, "LOOP A"),
+        # Balanced phasing line to loop B.
+        _line(x_tee_a, y_b, x_swap0, y_b),
+        _line(x_tee_b, y_b + RAIL_GAP, x_swap0, y_b + RAIL_GAP),
+        _balanced_pair_section(
+            x_ph0, x_ph1, y_b, _section_label("PL1", harness["phasing_line"], "1/4")
+        ),
+    ]
+    if crossed:
+        parts.append(_crossover(x_swap0, x_swap, y_b))
+        parts.append(_text((x_swap0 + x_swap) / 2.0, y_b + RAIL_GAP + 24.0, "crossed"))
+    else:
+        parts.append(_line(x_swap0, y_b, x_swap, y_b))
+        parts.append(_line(x_swap0, y_b + RAIL_GAP, x_swap, y_b + RAIL_GAP))
+    parts.append(_loop_symbol(x_swap, y_b, loop_b_cx, "LOOP B"))
+    return "".join(parts), 780, 330
+
+
 def render_feed_schematic(result: DesignResult) -> str:
     """Feed and match schematic for a tuned design, as an SVG string."""
     build = result_to_dict(result)["build"]
-    body, width, height = _line_phased(build)
+    if "phasing_line" in build:
+        body, width, height = _line_phased(build)
+    elif "phasing_line" in build["harness"]:
+        body, width, height = _balun4_layout(build)
+    else:
+        body, width, height = _turnstile_layout(build)
     return (
         f'<svg class="sch" viewBox="0 0 {width} {height}" '
         f'role="img" aria-label="Feed and match schematic">{body}</svg>'

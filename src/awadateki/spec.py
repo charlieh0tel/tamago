@@ -25,6 +25,7 @@ from .design import DesignSpec, Optimization
 # Optional spec fields carried in JSON, in a stable output order.
 _OPTIONAL_FIELDS = (
     "sense",
+    "feed",
     "loop_shape",
     "corner_radius_wl",
     "loop_offset_mm",
