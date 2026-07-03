@@ -23,6 +23,7 @@ def _result(**spec_overrides) -> DesignResult:
         crossed_phasing_line=False,
         sense="RIGHT",
         ar_boresight_db=1.3,
+        ar_cone_worst_db=2.4,
         ar_peak_db=0.7,
         coverage_gain_db=0.34,
         deck="",
@@ -48,6 +49,7 @@ def test_build_and_performance_sections():
     perf = data["performance"]
     assert perf["feed_z_kind"] == "feedpoint"
     assert perf["loop_balance"] == 1.1
+    assert perf["axial_ratio_cone_worst_db"] == 2.4
     assert perf["coverage_gain_dbi"] == 0.34
     assert perf["sense"] == "RHCP"
     assert perf["sense_achieved"] is True

@@ -229,6 +229,7 @@ class DesignResult:
         sense: achieved polarization sense (nec2c vocabulary, e.g. RIGHT).
         ar_boresight_db: mean axial ratio over the high-elevation coverage cone
             (theta <= BORESIGHT_THETA_DEG), dB; 0 is perfect circular.
+        ar_cone_worst_db: worst axial ratio over the same cone (dB).
         ar_peak_db: axial ratio at the pattern peak (dB).
         coverage_gain_db: worst-case total gain over the coverage cone
             (theta <= COVERAGE_THETA_DEG), dBi.
@@ -243,6 +244,7 @@ class DesignResult:
     crossed_phasing_line: bool
     sense: str
     ar_boresight_db: float
+    ar_cone_worst_db: float
     ar_peak_db: float
     coverage_gain_db: float
     deck: str
@@ -495,20 +497,44 @@ def _axial_ratio_db(axial_ratio: float) -> float:
     return -20.0 * math.log10(axial_ratio)
 
 
+def _cone_points(result: NecResult, theta_max_deg: float) -> list:
+    """Usable pattern points within theta_max_deg of zenith.
+
+    The RP grid emits the theta = 0 direction once per azimuth column; all are
+    the same direction, so only the first is kept (otherwise zenith dominates
+    any average over the cone).
+    """
+    cone = []
+    seen_zenith = False
+    for p in result.pattern:
+        if p.theta_deg > theta_max_deg or p.total_gain_db <= NULL_GAIN_DB:
+            continue
+        if p.theta_deg == 0.0:
+            if seen_zenith:
+                continue
+            seen_zenith = True
+        cone.append(p)
+    return cone
+
+
 def _boresight_ar_db(result: NecResult) -> float:
     """Mean axial ratio (dB) over the high-elevation coverage cone.
 
     Axial ratio captures both the 90 deg phase split and the current-magnitude
     balance, so it is the proper single objective for circular polarization.
     """
-    cone = [
-        p
-        for p in result.pattern
-        if p.theta_deg <= BORESIGHT_THETA_DEG and p.total_gain_db > NULL_GAIN_DB
-    ]
+    cone = _cone_points(result, BORESIGHT_THETA_DEG)
     if not cone:
         return math.inf
     return sum(_axial_ratio_db(p.axial_ratio) for p in cone) / len(cone)
+
+
+def _cone_worst_ar_db(result: NecResult) -> float:
+    """Worst axial ratio (dB) over the high-elevation coverage cone."""
+    cone = _cone_points(result, BORESIGHT_THETA_DEG)
+    if not cone:
+        return math.inf
+    return max(_axial_ratio_db(p.axial_ratio) for p in cone)
 
 
 def _coverage_gain_db(result: NecResult) -> float:
@@ -517,37 +543,31 @@ def _coverage_gain_db(result: NecResult) -> float:
     The minimum over theta <= COVERAGE_THETA_DEG is the lowest gain a pass sees
     in the high-elevation sky, so it bounds worst-case link margin there.
     """
-    cone = [
-        p.total_gain_db
-        for p in result.pattern
-        if p.theta_deg <= COVERAGE_THETA_DEG and p.total_gain_db > NULL_GAIN_DB
-    ]
+    cone = _cone_points(result, COVERAGE_THETA_DEG)
     if not cone:
         return -math.inf
-    return min(cone)
+    return min(p.total_gain_db for p in cone)
 
 
 def _boresight_sense(result: NecResult) -> str:
     """Polarization sense at the most circular point in the coverage cone."""
-    cone = [
-        p
-        for p in result.pattern
-        if p.theta_deg <= BORESIGHT_THETA_DEG and p.total_gain_db > NULL_GAIN_DB
-    ]
+    cone = _cone_points(result, BORESIGHT_THETA_DEG)
     if not cone:
         return "UNKNOWN"
     best = min(cone, key=lambda p: _axial_ratio_db(p.axial_ratio))
     return best.sense
 
 
-def _polarization_summary(result: NecResult) -> tuple[float, float, str]:
-    """Boresight axial ratio (dB), peak axial ratio (dB), and boresight sense."""
+def _polarization_summary(result: NecResult) -> tuple[float, float, float, str]:
+    """Cone mean and worst axial ratio (dB), peak axial ratio (dB), and
+    boresight sense."""
     usable = [p for p in result.pattern if p.total_gain_db > NULL_GAIN_DB]
     if not usable:
-        return math.inf, math.inf, "UNKNOWN"
+        return math.inf, math.inf, math.inf, "UNKNOWN"
     peak = max(usable, key=lambda p: p.total_gain_db)
     return (
         _boresight_ar_db(result),
+        _cone_worst_ar_db(result),
         _axial_ratio_db(peak.axial_ratio),
         _boresight_sense(result),
     )
@@ -612,7 +632,7 @@ def design(spec: DesignSpec) -> DesignResult:
     """
     base_factor = _resonant_factor(spec)
     result, deck = analyze(spec, base_factor)
-    ar_boresight, ar_peak, default_sense = _polarization_summary(result)
+    ar_boresight, ar_worst, ar_peak, default_sense = _polarization_summary(result)
 
     default_hand = NEC_SENSE_TO_HAND.get(default_sense)
     if default_hand is None:
@@ -637,6 +657,7 @@ def design(spec: DesignSpec) -> DesignResult:
         crossed_phasing_line=crossed,
         sense=sense,
         ar_boresight_db=ar_boresight,
+        ar_cone_worst_db=ar_worst,
         ar_peak_db=ar_peak,
         coverage_gain_db=_coverage_gain_db(result),
         deck=deck,

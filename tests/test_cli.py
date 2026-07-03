@@ -143,6 +143,19 @@ def test_wrap_phase_deg():
     assert wrap_phase_deg(180.0) == -180.0
 
 
+def test_cone_ar_dedupes_zenith():
+    from awadateki.design import _boresight_ar_db, _cone_worst_ar_db
+    from awadateki.nec import NecResult, PatternPoint
+
+    # Zenith (0 dB AR) appears once per azimuth column; the ring point is 6 dB.
+    zenith = [PatternPoint(0.0, phi, 5.0, 1.0, "RIGHT") for phi in (0.0, 45.0, 90.0)]
+    ring = [PatternPoint(10.0, 0.0, 5.0, 0.5, "RIGHT")]
+    nec = NecResult(sources=(), pattern=tuple(zenith + ring))
+    # Mean counts zenith once: (0 + 6.02) / 2, not (0 + 0 + 0 + 6.02) / 4.
+    assert math.isclose(_boresight_ar_db(nec), 3.0103, abs_tol=1e-3)
+    assert math.isclose(_cone_worst_ar_db(nec), 6.0206, abs_tol=1e-3)
+
+
 def test_loop_offset_clearance_validated():
     # 3 mm conductor needs at least 4.5 mm of loop offset (1.5 diameters).
     with pytest.raises(ValueError, match="loop_offset_mm"):

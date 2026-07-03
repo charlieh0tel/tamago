@@ -24,9 +24,6 @@ tuned NEC decks, design doc, tests passing).
       TL card (lossless, dispersionless); model real cable loss.
 - [ ] Conductor loss and real ground. NEC runs are perfect-conductor with
       perfect or simple ground.
-- [ ] Cone axial ratio is a zenith-weighted mean (theta = 0 sampled once per
-      azimuth column, no solid-angle weighting). Dedupe zenith and consider
-      reporting the cone worst case alongside the mean.
 
 ## Feed and matching
 

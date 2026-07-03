@@ -214,9 +214,9 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   and in-cable wavelength scale by the same velocity factor.
 - The match-network bandwidth assumes an idealized lossless network; treat the
   axial-ratio band as the operational coverage.
-- The cone axial ratio is a mean over the sampled coverage cone, not a worst
-  case, and the sampling weights zenith (the theta = 0 direction is sampled
-  once per azimuth column).
+- The cone axial ratio the optimizer targets is a mean over the sampled
+  coverage cone (zenith counted once, no solid-angle weighting); the cut sheet
+  reports the cone worst case alongside it.
 - Patterns are modeled with perfect conductors over a perfect (or simple)
   ground.
 - Figures of merit are sampled over one azimuth quadrant (phi 0-90 deg), which

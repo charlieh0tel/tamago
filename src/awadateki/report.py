@@ -111,7 +111,8 @@ def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
         "(target +/-90)",
         f"  loop balance     : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = circular)",
         f"  polarization sense: {_format_sense(result)}",
-        f"  axial ratio (cone): {perf['axial_ratio_cone_db']:.2f} dB "
+        f"  axial ratio (cone): {perf['axial_ratio_cone_db']:.2f} dB mean, "
+        f"{perf['axial_ratio_cone_worst_db']:.2f} dB worst "
         f"(<= {int(BORESIGHT_THETA_DEG)} deg from zenith)",
         f"  axial ratio (peak): {perf['axial_ratio_peak_db']:.2f} dB",
         f"  coverage gain     : {perf['coverage_gain_dbi']:.2f} dBi "

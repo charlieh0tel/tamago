@@ -13,6 +13,7 @@ def _result(**overrides) -> DesignResult:
         crossed_phasing_line=False,
         sense="RIGHT",
         ar_boresight_db=1.3,
+        ar_cone_worst_db=2.4,
         ar_peak_db=0.7,
         coverage_gain_db=0.34,
         deck="",

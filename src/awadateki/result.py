@@ -25,7 +25,8 @@ only when a frequency sweep is requested):
                   feed_z_ohm {real, imag}, feed_z_kind (feedpoint),
                   vswr_unmatched, vswr_matched, loop_current_phase_deg,
                   loop_balance (|I_B|/|I_A|), sense, sense_requested,
-                  sense_achieved, axial_ratio_cone_db, axial_ratio_peak_db,
+                  sense_achieved, axial_ratio_cone_db (mean),
+                  axial_ratio_cone_worst_db, axial_ratio_peak_db,
                   coverage_gain_dbi.
     bandwidth   vswr_2to1_mhz and axial_ratio_3db_mhz, each [low, high] or null.
 """
@@ -149,6 +150,7 @@ def _performance_dict(result: DesignResult) -> dict:
         "sense_requested": spec.sense.upper(),
         "sense_achieved": achieved == spec.sense,
         "axial_ratio_cone_db": result.ar_boresight_db,
+        "axial_ratio_cone_worst_db": result.ar_cone_worst_db,
         "axial_ratio_peak_db": result.ar_peak_db,
         "coverage_gain_dbi": result.coverage_gain_db,
     }
