@@ -136,6 +136,12 @@ def test_post_match_vswr_carries_unfitted_reactance():
     assert math.isclose(post_match_vswr(complex(112.5, -16.0)), ideal, abs_tol=1e-9)
 
 
+def test_post_match_vswr_negative_resistance_is_inf():
+    # NEC can report a negative feed resistance at pathological geometries
+    # (e.g. loops ~0.15 wl over ground); the match must not crash on it.
+    assert post_match_vswr(complex(-3.6, -0.1)) == math.inf
+
+
 def test_wrap_phase_deg():
     assert wrap_phase_deg(340.0) == -20.0
     assert wrap_phase_deg(-190.0) == 170.0

@@ -13,10 +13,6 @@ tuned NEC decks, design doc, tests passing).
       (gain ripple < 0.3 dB, AR < 3 dB within 20 deg of zenith; worst-case
       coverage gain matches the quadrant value to 0.1 dB). Only worth adding if a
       worst-case (not average) azimuth metric is wanted.
-- [ ] Experiment with larger reflector spacing. The spacing search caps at
-      0.40 lambda; a report suggested slightly more than 1/2 lambda (reflector
-      lower, farther below the loops) was beneficial. Try extending the spacing
-      bound past 0.5 lambda and see whether gain/AR/VSWR improve.
 
 ## Modeling fidelity
 
@@ -24,6 +20,13 @@ tuned NEC decks, design doc, tests passing).
       TL card (lossless, dispersionless); model real cable loss.
 - [ ] Conductor loss and real ground. NEC runs are perfect-conductor with
       perfect or simple ground.
+- [ ] Model the feedline shield and a reflector bonded to it: a vertical wire
+      (coax shield exterior / mast) from the junction down to the radial hub,
+      bonded there. Today the radials float and no shield exists in the model,
+      so shield common-mode and counterpoise effects are invisible. Published
+      results favoring > 0.5 lambda reflector spacing may assume a bonded
+      reflector; re-run the spacing sweep with this model to test that
+      hypothesis.
 
 ## Feed and matching
 

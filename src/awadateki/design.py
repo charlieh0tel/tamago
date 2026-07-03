@@ -80,6 +80,12 @@ COVERAGE_THETA_DEG = 60.0
 NULL_GAIN_DB = -100.0
 
 # Reflector optimization: continuous search bounds and the axial-ratio budget.
+# Spacing is capped at 0.40: a sweep to 0.70 (ground and radials, both bands)
+# showed coverage gain falls steadily past ~0.3 and collapses near 0.5, where
+# the reflector image nulls the pattern at zenith, with no compensating AR or
+# VSWR benefit. Published reports favoring > 0.5 spacing may assume a
+# reflector bonded to the coax shield, which this model does not represent
+# (see TODO); revisit if that model lands.
 SPACING_BOUNDS_WL = (0.15, 0.40)
 DROOP_BOUNDS_DEG = (0.0, 50.0)
 # Coordinate-descent tolerances (the placement is refined to this resolution).
@@ -616,7 +622,12 @@ def post_match_vswr(
     reactance exceeds MATCH_REACTANCE_WARN_OHMS, matching the cut sheet;
     otherwise the residual reactance transforms through the quarter-wave
     coax along with the resistance.
+
+    A non-positive feed resistance (NEC pathology at extreme geometries, e.g.
+    loops very close to ground) is unmatchable: inf.
     """
+    if z.real <= 0.0:
+        return math.inf
     z0 = transformer_coax(z, reference, coax).z0_ohm
     load = complex(z.real, 0.0) if series_element_fitted(z) else z
     return vswr(z0 * z0 / load, reference)
