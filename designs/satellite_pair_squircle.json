@@ -11,11 +11,6 @@
     "corner_radius_wl": 0.05,
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
-    "phasing_coax": {
-      "name": "RG-62",
-      "z0_ohm": 93.0,
-      "vf": 0.84
-    },
     "system_z_ohm": 50.0,
     "reflector": "radials",
     "reflector_spacing_wl": 0.21066144656200053,
@@ -39,11 +34,6 @@
         "corner_radius_wl": 0.05,
         "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
-        "phasing_coax": {
-          "name": "RG-62",
-          "z0_ohm": 93.0,
-          "vf": 0.84
-        },
         "system_z_ohm": 50.0,
         "reflector": "radials",
         "reflector_spacing_wl": 0.25,
@@ -55,7 +45,7 @@
         "label": "2 m",
         "notes": "2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 0.866,
+      "elapsed_s": 0.891,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -95,11 +85,6 @@
     "corner_radius_wl": 0.05,
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
-    "phasing_coax": {
-      "name": "RG-62",
-      "z0_ohm": 93.0,
-      "vf": 0.84
-    },
     "system_z_ohm": 50.0,
     "reflector": "radials",
     "reflector_spacing_wl": 0.20205098312484226,
@@ -123,11 +108,6 @@
         "corner_radius_wl": 0.05,
         "loop_offset_mm": 10.0,
         "feed_gap_mm": 10.0,
-        "phasing_coax": {
-          "name": "RG-62",
-          "z0_ohm": 93.0,
-          "vf": 0.84
-        },
         "system_z_ohm": 50.0,
         "reflector": "radials",
         "reflector_spacing_wl": 0.25,
@@ -139,7 +119,7 @@
         "label": "70 cm",
         "notes": "70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 2.372,
+      "elapsed_s": 2.438,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [

@@ -58,6 +58,7 @@ from .design import (
     bandwidth_within,
     frequency_sweep,
     matched_vswr,
+    phasing_line_coax,
     quarter_wave_match_z0,
     series_element_fitted,
     series_match_element,
@@ -184,8 +185,8 @@ def _build_dict(result: DesignResult) -> dict:
     build["feed"] = spec.feed
     if spec.feed == FEED_LINE:
         build["phasing_line"] = {
-            "coax": _coax_dict(spec.phasing_coax),
-            "length_mm": _quarter_wave_mm(wavelength, spec.phasing_coax),
+            "coax": _coax_dict(phasing_line_coax(spec)),
+            "length_mm": _quarter_wave_mm(wavelength, phasing_line_coax(spec)),
             "connection": "crossed" if result.crossed_phasing_line else "normal",
         }
     else:

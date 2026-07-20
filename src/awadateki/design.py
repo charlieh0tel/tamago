@@ -63,6 +63,8 @@ FEED_TURNSTILE = "turnstile"  # per-loop Q-sections joined in parallel
 FEED_BALUN4 = "balun4"
 FEEDS = (FEED_LINE, FEED_TURNSTILE, FEED_BALUN4)
 
+# Default phasing-line cable for the line feed (spec.phasing_coax overrides).
+LINE_PHASING_COAX = RG_62
 # Harness cables per scheme (catalog defaults). The turnstile delay line's Z0
 # is chosen near the impedance at its insertion point to keep its extra 90 deg
 # roughly transparent; the residual mismatch leaves the delivered inter-loop
@@ -165,12 +167,16 @@ class DesignSpec:
             line in loop B's leg, quarter-wave transformer and 1:1 choke to the
             radio), or FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm
             balanced phasing line, balanced Q-section, half-wave 4:1 balun).
-        phasing_coax: cable of the quarter-wave phasing line feeding loop B
-            (FEED_LINE only). Its z0_ohm drives the NEC TL model; its vf sets
+        phasing_coax: cable of the quarter-wave phasing line feeding loop B,
+            or None for the scheme default (RG-62). FEED_LINE only; setting
+            it for a harness feed is an error, since those harnesses fix
+            their own cables. Its z0_ohm drives the NEC TL model; its vf sets
             only the reported physical cut length (the NEC line is an ideal
             electrical quarter wave).
         match_coax: cable of the quarter-wave matching transformer, or None to
             suggest the catalog cable nearest the computed transformer Z0.
+            Not applicable to FEED_BALUN4 (its Q-section and balun are the
+            match); setting it there is an error.
         sense: desired polarization, SENSE_RHCP or SENSE_LHCP.
         loop_shape: loop outline, SHAPE_CIRCLE, SHAPE_SQUARE, or SHAPE_SQUIRCLE.
         corner_radius_wl: rounded-corner radius for the squircle shape, in
@@ -204,7 +210,7 @@ class DesignSpec:
     reflector: str = REFLECTOR_NONE
     reflector_spacing_wl: float = 0.25
     feed: str = FEED_LINE
-    phasing_coax: Coax = RG_62
+    phasing_coax: Coax | None = None
     match_coax: Coax | None = None
     sense: str = SENSE_RHCP
     loop_shape: str = SHAPE_CIRCLE
@@ -349,16 +355,21 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
     it, flipping the polarization handedness with identical performance.
     """
     source = Source(egg.loop_a.feed_tag, egg.loop_a.feed_segment, 1.0, 0.0)
-    z0 = -spec.phasing_coax.z0_ohm if flip else spec.phasing_coax.z0_ohm
+    z0 = phasing_line_coax(spec).z0_ohm
     line = TransmissionLine(
         egg.loop_a.feed_tag,
         egg.loop_a.feed_segment,
         egg.loop_b.feed_tag,
         egg.loop_b.feed_segment,
-        z0,
+        -z0 if flip else z0,
         PHASING_LINE_WL * wavelength,
     )
     return (), (source,), (line,)
+
+
+def phasing_line_coax(spec: DesignSpec) -> Coax:
+    """The line feed's phasing cable: the spec override or the default."""
+    return spec.phasing_coax or LINE_PHASING_COAX
 
 
 def _port_wire(tag: int, segments: int, center_z: float, index: int) -> Wire:
@@ -453,6 +464,16 @@ def _eggbeater(spec: DesignSpec, factor: float):
         raise ValueError(
             f"segments {spec.segments} exceeds {MAX_SEGMENTS}; the loop wire"
             " tags would collide with the next NEC tag range"
+        )
+    if spec.phasing_coax is not None and spec.feed != FEED_LINE:
+        raise ValueError(
+            f"phasing_coax applies only to the line feed; the {spec.feed!r} "
+            "harness fixes its own cables"
+        )
+    if spec.match_coax is not None and spec.feed == FEED_BALUN4:
+        raise ValueError(
+            "match_coax does not apply to the balun4 feed; its Q-section and "
+            "balun are the match"
         )
     min_offset_mm = (
         MIN_LOOP_OFFSET_DIAMETERS * 2.0e3 * spec.conductor.equivalent_radius_m

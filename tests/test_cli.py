@@ -237,6 +237,21 @@ def test_cone_ar_dedupes_zenith():
     assert math.isclose(_cone_worst_ar_db(nec), 6.0206, abs_tol=1e-3)
 
 
+def test_coax_fields_rejected_for_wrong_feed():
+    from awadateki.coax import RG_59, RG_62
+
+    # phasing_coax belongs to the line feed only.
+    with pytest.raises(ValueError, match="phasing_coax"):
+        _eggbeater(replace(_spec(), feed="turnstile", phasing_coax=RG_62), 1.0)
+    with pytest.raises(ValueError, match="phasing_coax"):
+        _eggbeater(replace(_spec(), feed="balun4", phasing_coax=RG_62), 1.0)
+    # match_coax is meaningless for balun4 but valid for turnstile.
+    with pytest.raises(ValueError, match="match_coax"):
+        _eggbeater(replace(_spec(), feed="balun4", match_coax=RG_59), 1.0)
+    _eggbeater(replace(_spec(), feed="turnstile", match_coax=RG_59), 1.0)
+    _eggbeater(replace(_spec(), phasing_coax=RG_62, match_coax=RG_59), 1.0)
+
+
 def test_segment_count_validated():
     # Past 98 sides, loop A's tags (with the feed-gap split) would collide
     # with loop B's tag base and mis-wire the phasing line.

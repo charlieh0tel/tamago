@@ -84,7 +84,9 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   the matching transformer. Either a catalog name (`"RG-58"`, `"RG-59"`,
   `"RG-62"`) or a custom cable `{"name": ..., "z0_ohm": ..., "vf": ...}`. The
   phasing line defaults to RG-62 (93 ohm, VF 0.84); the transformer defaults to
-  the catalog cable nearest the computed transformer impedance.
+  the catalog cable nearest the computed transformer impedance. `phasing_coax`
+  applies only to the `line` feed and `match_coax` not to `balun4` (the
+  harness feeds fix their own cables); setting them elsewhere is an error.
 - `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
 - `ar_margin_db`: margin `--optimize-reflector` holds below the 3 dB
   axial-ratio budget at band center (default 0.5), so the design frequency

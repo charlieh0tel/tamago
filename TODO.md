@@ -14,8 +14,6 @@ tuned NEC decks, design doc, tests passing).
       58/93/104 deg). Tighten the seed handling and reconsider the tuning
       objective (loop quadrature or loop-terminal resonance instead of port
       reactance).
-- [ ] phasing_coax is silently ignored for turnstile and balun4, and
-      match_coax for balun4; reject or honor them.
 
 ## Optimizer
 
