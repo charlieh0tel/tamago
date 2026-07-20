@@ -64,8 +64,9 @@ FEED_BALUN4 = "balun4"
 FEEDS = (FEED_LINE, FEED_TURNSTILE, FEED_BALUN4)
 
 # Harness cables per scheme (catalog defaults). The turnstile delay line's Z0
-# is chosen near the impedance at its insertion point so it adds 90 deg
-# transparently.
+# is chosen near the impedance at its insertion point to keep its extra 90 deg
+# roughly transparent; the residual mismatch leaves the delivered inter-loop
+# phase several degrees short of quadrature (visible in phase_diff_deg).
 TURNSTILE_Q_COAX = RG_59
 TURNSTILE_DELAY_COAX = RG_58
 BALUN4_PHASING_COAX = RG_58_BALANCED
@@ -270,7 +271,9 @@ class DesignResult:
         phase_diff_deg: loop current phase difference (loop A minus loop B),
             wrapped to [-180, 180), for the delivered line connection.
         loop_balance: loop current magnitude ratio |I_B| / |I_A| (1.0 is
-            balanced; boresight axial ratio is 20*log10(max(r, 1/r)) dB).
+            balanced). Equal magnitudes are necessary but not sufficient for
+            circular polarization; the axial-ratio figures come from the NEC
+            pattern, not from this ratio.
         crossed_phasing_line: whether the phasing line is connected crossed to
             deliver the requested sense (the cut-sheet wiring instruction).
         sense: achieved polarization sense (nec2c vocabulary, e.g. RIGHT).
@@ -709,6 +712,8 @@ def _polarization_summary(result: NecResult) -> tuple[float, float, float, str]:
 
 def vswr(z: complex, reference: float = REFERENCE_IMPEDANCE_OHMS) -> float:
     """Voltage standing wave ratio of impedance z against a reference."""
+    if z == -reference:
+        return math.inf
     gamma = abs((z - reference) / (z + reference))
     if gamma >= 1.0:
         return math.inf

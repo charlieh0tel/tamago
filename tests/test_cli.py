@@ -194,6 +194,12 @@ def test_post_match_vswr_negative_resistance_is_inf():
     assert post_match_vswr(complex(-3.6, -0.1)) == math.inf
 
 
+def test_vswr_negative_reference_impedance_is_inf():
+    from awadateki.design import vswr
+
+    assert vswr(complex(-50.0, 0.0), 50.0) == math.inf
+
+
 def test_wrap_phase_deg():
     assert wrap_phase_deg(340.0) == -20.0
     assert wrap_phase_deg(-190.0) == 170.0

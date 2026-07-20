@@ -23,11 +23,6 @@ tuned NEC decks, design doc, tests passing).
       to the wrong wire, leaving loop B undriven with no error.
 - [ ] phasing_coax is silently ignored for turnstile and balun4, and
       match_coax for balun4; reject or honor them.
-- [ ] Doc fixes: schematic.py balun4 docstring says "braids grounded" (code
-      and cut sheet say not grounded); loop_balance docstring states an AR
-      formula the code never computes; report.py "(1.0 = circular)" gloss
-      conflates balance with circularity; "adds 90 deg transparently" delay
-      comment (delivered 77-83 deg). Also guard vswr() against z == -ref.
 
 ## Optimizer
 

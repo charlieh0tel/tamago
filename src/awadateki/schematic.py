@@ -411,8 +411,9 @@ def _turnstile_layout(build: dict) -> tuple[str, int, int]:
 def _balun4_layout(build: dict) -> tuple[str, int, int]:
     """Layout for the F5VIF balanced system (balun4).
 
-    Rig coax arrives at one end of the half-wave balun hairpin (braids
-    grounded); the hairpin's open ends are the 200 ohm balanced pair, which
+    Rig coax arrives at one end of the half-wave balun hairpin (the feedline
+    braid bonds to the hairpin's shield; nothing in the harness is grounded);
+    the hairpin's open ends are the 200 ohm balanced pair, which
     runs through the balanced Q-section to the junction across loop A; the
     balanced phasing line reaches loop B.
     """
