@@ -86,6 +86,10 @@ PORT_SPACING_M = 0.02
 # The loop offset must give the crossing conductors at least this many
 # equivalent conductor diameters of axis separation (1.0 = surfaces touching).
 MIN_LOOP_OFFSET_DIAMETERS = 1.5
+# NEC tag bases (100/200/300/400) are 100 apart and the feed-gap split adds
+# two wires per loop, so past this many polygon sides loop A's tags would
+# collide with loop B's and the phasing line would bind to the wrong wire.
+MAX_SEGMENTS = 98
 REFERENCE_IMPEDANCE_OHMS = 50.0
 # Residual feedpoint reactance above which a series tuning element is sized.
 MATCH_REACTANCE_WARN_OHMS = 10.0
@@ -183,7 +187,7 @@ class DesignSpec:
         ar_margin_db: margin the reflector optimizer holds below the
             AR_TARGET_DB budget at band center, keeping usable axial-ratio
             bandwidth around the design frequency.
-        segments: polygon sides per loop.
+        segments: polygon sides per loop (at most MAX_SEGMENTS).
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
         radial_droop_deg: downward tilt of the radials from horizontal.
@@ -447,6 +451,11 @@ def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool, center_z: flo
 def _eggbeater(spec: DesignSpec, factor: float):
     """Build the crossed-loop geometry for a perimeter factor; returns
     (eggbeater, wavelength)."""
+    if spec.segments > MAX_SEGMENTS:
+        raise ValueError(
+            f"segments {spec.segments} exceeds {MAX_SEGMENTS}; the loop wire"
+            " tags would collide with the next NEC tag range"
+        )
     min_offset_mm = (
         MIN_LOOP_OFFSET_DIAMETERS * 2.0e3 * spec.conductor.equivalent_radius_m
     )

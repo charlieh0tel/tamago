@@ -220,6 +220,14 @@ def test_cone_ar_dedupes_zenith():
     assert math.isclose(_cone_worst_ar_db(nec), 6.0206, abs_tol=1e-3)
 
 
+def test_segment_count_validated():
+    # Past 98 sides, loop A's tags (with the feed-gap split) would collide
+    # with loop B's tag base and mis-wire the phasing line.
+    with pytest.raises(ValueError, match="segments"):
+        _eggbeater(replace(_spec(), segments=99), 1.0)
+    _eggbeater(replace(_spec(), segments=98), 1.0)
+
+
 def test_loop_offset_clearance_validated():
     # 3 mm conductor needs at least 4.5 mm of loop offset (1.5 diameters).
     with pytest.raises(ValueError, match="loop_offset_mm"):

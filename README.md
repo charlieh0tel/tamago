@@ -89,8 +89,9 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
 - `ar_margin_db`: margin `--optimize-reflector` holds below the 3 dB
   axial-ratio budget at band center (default 0.5), so the design frequency
   keeps usable axial-ratio bandwidth on both sides.
-- `segments`: polygon sides per loop (default 36). Non-circular shapes resample
-  to equal-length sides; a multiple of 4 lands a square's corners on vertices.
+- `segments`: polygon sides per loop (default 36, maximum 98). Non-circular
+  shapes resample to equal-length sides; a multiple of 4 lands a square's
+  corners on vertices.
 - `label`: optional name for output; defaults to none.
 - `notes`: optional free-text design intent; carried through optimization.
 - `optimization`: output-only provenance, written by `--optimize-reflector` (the

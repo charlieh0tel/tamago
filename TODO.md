@@ -18,9 +18,6 @@ tuned NEC decks, design doc, tests passing).
       frequency-flat; modeling its physical length skews each 2:1 band edge
       by ~1.6-1.9 points (total width nearly unchanged). Model it as a
       half-wave line terminated in the split balanced load.
-- [ ] Validate spec.segments: at segments >= 99 (with the default feed gap)
-      loop A's tags collide with LOOP_B_TAG_BASE and the phasing line binds
-      to the wrong wire, leaving loop B undriven with no error.
 - [ ] phasing_coax is silently ignored for turnstile and balun4, and
       match_coax for balun4; reject or honor them.
 
