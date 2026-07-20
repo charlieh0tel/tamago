@@ -97,6 +97,59 @@ def _coax_section(
     return "".join(parts)
 
 
+def _coax_body(x0: float, x1: float, y: float) -> str:
+    """Shield cylinder walls and end faces around a conductor at y."""
+    r = COAX_RY
+    walls = _line(x0, y - r, x1, y - r) + _line(x0, y + r, x1, y + r)
+    ends = "".join(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r}"/>' for x in (x0, x1))
+    return walls + ends
+
+
+def _parallel_pair_section(
+    x0: float, x1: float, y_hot: float, y_ret: float, label_lines: tuple[str, ...]
+) -> str:
+    """Two coax in parallel: centre conductors jumpered together at both ends,
+    braids bonded at both ends, shields returning via pigtails."""
+    r = COAX_RY
+    y_up = y_hot - 26.0  # the second coax rides above the rail
+    x_j0, x_j1 = x0 - 12.0, x1 + 12.0  # centre-conductor jumpers
+    parts = [
+        _coax_body(x0, x1, y_hot),
+        _coax_body(x0, x1, y_up),
+        # Upper centre conductor, jumpered onto the hot rail at both ends.
+        _line(x_j0, y_up, x_j1, y_up),
+        _line(x_j0, y_hot, x_j0, y_up),
+        _line(x_j1, y_hot, x_j1, y_up),
+        _dot(x_j0, y_hot),
+        _dot(x_j1, y_hot),
+        # Braids bonded at both ends; the shields return via the pigtails.
+        _line(x0, y_up + r, x0, y_hot - r),
+        _line(x1, y_up + r, x1, y_hot - r),
+        _line(x0, y_hot + r, x0, y_ret),
+        _line(x1, y_hot + r, x1, y_ret),
+    ]
+    y = y_up - r - 12.0 - 13.0 * (len(label_lines) - 1)
+    for s in label_lines:
+        parts.append(_text((x0 + x1) / 2.0, y, s))
+        y += 13.0
+    return "".join(parts)
+
+
+def _unbalanced_section(
+    x0: float,
+    x1: float,
+    y_hot: float,
+    y_ret: float,
+    label_lines: tuple[str, ...],
+    coax: dict,
+) -> str:
+    """A coax run drawn per its construction: single cable, or a parallel
+    pair for the catalog's "2x ... (parallel)" entries."""
+    if "(parallel)" in coax["name"]:
+        return _parallel_pair_section(x0, x1, y_hot, y_ret, label_lines)
+    return _coax_section(x0, x1, y_hot, y_ret, label_lines)
+
+
 def _balanced_pair_section(
     x0: float, x1: float, y_top: float, label_lines: tuple[str, ...]
 ) -> str:
@@ -232,7 +285,7 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
         # the shield is the return path.
         _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_tl0, y_a + RAIL_GAP),
         _line(x_tl1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
-        _coax_section(x_tl0, x_tl1, y_a, y_a + RAIL_GAP, tl_label),
+        _unbalanced_section(x_tl0, x_tl1, y_a, y_a + RAIL_GAP, tl_label, tl_coax),
         # Junction: the phasing line tees off both conductors.
         _dot(x_tee_a, y_a),
         _dot(x_tee_b, y_a + RAIL_GAP),
@@ -243,7 +296,7 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
         _line(x_tee_a, y_b, x_swap0, y_b),
         _line(x_tee_b, y_b + RAIL_GAP, x_ph0, y_b + RAIL_GAP),
         _line(x_ph1, y_b + RAIL_GAP, x_swap0, y_b + RAIL_GAP),
-        _coax_section(x_ph0, x_ph1, y_b, y_b + RAIL_GAP, ph_label),
+        _unbalanced_section(x_ph0, x_ph1, y_b, y_b + RAIL_GAP, ph_label, ph_coax),
     ]
     if crossed:
         parts.append(_crossover(x_swap0, x_swap, y_b))
@@ -309,7 +362,9 @@ def _turnstile_layout(build: dict) -> tuple[str, int, int]:
         # Return rail, broken for each coax section's shield.
         _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_s0, y_a + RAIL_GAP),
         _line(x_s1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
-        _coax_section(x_s0, x_s1, y_a, y_a + RAIL_GAP, top_label),
+        _unbalanced_section(
+            x_s0, x_s1, y_a, y_a + RAIL_GAP, top_label, match["transformer_coax"]
+        ),
         _coax_section(
             x_qa0,
             x_qa1,
