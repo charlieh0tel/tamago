@@ -56,7 +56,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 0.829,
+        "elapsed_s": 0.819,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -143,7 +143,7 @@
       },
       "feed_z_kind": "feedpoint",
       "vswr_unmatched": 1.008587012933372,
-      "vswr_matched": 1.008587012933372,
+      "vswr_matched": 1.0085870129333718,
       "loop_current_phase_deg": 93.69276651058232,
       "loop_balance": 1.050763947292282,
       "sense": "RHCP",
@@ -156,7 +156,7 @@
     },
     "bandwidth": {
       "vswr_2to1_mhz": [
-        132.34804294548258,
+        131.31,
         160.49
       ],
       "axial_ratio_3db_mhz": [
@@ -222,7 +222,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 4.982,
+        "elapsed_s": 4.794,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -309,7 +309,7 @@
       },
       "feed_z_kind": "feedpoint",
       "vswr_unmatched": 1.068846769987961,
-      "vswr_matched": 1.0688467699879611,
+      "vswr_matched": 1.0688467699879607,
       "loop_current_phase_deg": 96.23265318788708,
       "loop_balance": 1.156825549437529,
       "sense": "RHCP",
@@ -323,7 +323,7 @@
     "bandwidth": {
       "vswr_2to1_mhz": [
         392.40000000000003,
-        479.6
+        479.10629561344115
       ],
       "axial_ratio_3db_mhz": [
         432.7196168029022,

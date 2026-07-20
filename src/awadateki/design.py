@@ -72,8 +72,6 @@ TURNSTILE_DELAY_COAX = RG_58
 BALUN4_PHASING_COAX = RG_58_BALANCED
 BALUN4_Q_COAX = RG_58_BALANCED
 BALUN4_BALUN_COAX = RG_58
-# Half-wave coax balun: steps the balanced Q-section side down to the radio.
-BALUN_IMPEDANCE_RATIO = 4.0
 
 # Port wires: tiny isolated segments hosting harness junctions (a NEC TL port
 # must be a wire segment). They sit at the loop centre, far from the loop
@@ -775,18 +773,36 @@ def post_match_vswr(
     return vswr(z0 * z0 / load, reference)
 
 
+def _balun4_radio_z(
+    z_junction: complex, freq_mhz: float, design_freq_mhz: float
+) -> complex:
+    """Radio-side impedance of the balun4 harness, with line dispersion.
+
+    The junction transforms through the quarter-wave balanced Q-section; the
+    balanced load then splits into half per balun terminal, and the radio at
+    terminal T1 sees that half in parallel with the other half through the
+    physical half-wave line. At the design frequency this reduces exactly to
+    the ideal 4:1 step (z_bal / 4); off design both lines drift.
+    """
+    theta_q = _quarter_wave_theta(freq_mhz, design_freq_mhz)
+    z_bal = _line_input_z(z_junction, BALUN4_Q_COAX.z0_ohm, theta_q)
+    half = z_bal / 2.0
+    z_via_line = _line_input_z(half, BALUN4_BALUN_COAX.z0_ohm, 2.0 * theta_q)
+    return half * z_via_line / (half + z_via_line)
+
+
 def matched_vswr(spec: DesignSpec, z: complex) -> float:
     """Post-match VSWR at the radio for the spec's feed scheme.
 
     The balun4 feed reaches the radio through the quarter-wave balanced
-    Q-section and the 4:1 balun; the other schemes use the
+    Q-section and the half-wave 4:1 balun; the other schemes use the
     series-element/transformer match.
     """
     if spec.feed == FEED_BALUN4:
         if z.real <= 0.0:
             return math.inf
-        q_z0 = BALUN4_Q_COAX.z0_ohm
-        return vswr(q_z0 * q_z0 / z / BALUN_IMPEDANCE_RATIO, spec.system_z_ohm)
+        z_radio = _balun4_radio_z(z, spec.freq_mhz, spec.freq_mhz)
+        return vswr(z_radio, spec.system_z_ohm)
     return post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
 
 
@@ -1013,10 +1029,7 @@ def frequency_sweep(
         nec, _ = analyze(spec, base, run_freq_mhz=freq)
         z_ant = _antenna_feed_z(nec)
         if spec.feed == FEED_BALUN4:
-            # Fixed balanced Q-section, then the (frequency-flat) 4:1 balun.
-            theta = _quarter_wave_theta(freq, design_freq)
-            z_bal = _line_input_z(z_ant, BALUN4_Q_COAX.z0_ohm, theta)
-            z_in = z_bal / BALUN_IMPEDANCE_RATIO
+            z_in = _balun4_radio_z(z_ant, freq, design_freq)
         else:
             z_in = _matched_input_z(
                 z_ant,

@@ -14,10 +14,6 @@ tuned NEC decks, design doc, tests passing).
       58/93/104 deg). Tighten the seed handling and reconsider the tuning
       objective (loop quadrature or loop-terminal resonance instead of port
       reactance).
-- [ ] balun4 match model: the half-wave 4:1 balun is treated as
-      frequency-flat; modeling its physical length skews each 2:1 band edge
-      by ~1.6-1.9 points (total width nearly unchanged). Model it as a
-      half-wave line terminated in the split balanced load.
 - [ ] phasing_coax is silently ignored for turnstile and balun4, and
       match_coax for balun4; reject or honor them.
 

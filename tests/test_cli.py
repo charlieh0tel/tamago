@@ -194,6 +194,23 @@ def test_post_match_vswr_negative_resistance_is_inf():
     assert post_match_vswr(complex(-3.6, -0.1)) == math.inf
 
 
+def test_balun4_radio_z_dispersion():
+    from awadateki.design import BALUN4_Q_COAX, _balun4_radio_z
+
+    z_junction = complex(49.6, 0.0)
+    # At the design frequency the circuit reduces to the ideal 4:1 step.
+    ideal = BALUN4_Q_COAX.z0_ohm**2 / z_junction / 4.0
+    assert abs(_balun4_radio_z(z_junction, 145.9, 145.9) - ideal) < 1e-9
+    # Off design the half-wave balun's own drift shifts the impedance beyond
+    # what the Q-section alone would (the old frequency-flat model).
+    from awadateki.design import _line_input_z, _quarter_wave_theta
+
+    theta = _quarter_wave_theta(160.0, 145.9)
+    flat = _line_input_z(z_junction, BALUN4_Q_COAX.z0_ohm, theta) / 4.0
+    dispersive = _balun4_radio_z(z_junction, 160.0, 145.9)
+    assert abs(dispersive - flat) > 1.0
+
+
 def test_vswr_negative_reference_impedance_is_inf():
     from awadateki.design import vswr
 
