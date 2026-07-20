@@ -80,9 +80,12 @@ def _spec() -> DesignSpec:
 
 
 @needs_nec2c
-def test_design_resonates():
+def test_design_tunes_to_quadrature():
     result = design(_spec())
     assert 0.8 < result.base_factor < 1.2
+    # The tuning objective: loop currents in quadrature.
+    assert abs(abs(result.phase_diff_deg) - 90.0) < 1.0
+    # Residual source reactance at quadrature stays small enough to match.
     assert abs(result.z_in.imag) < 15.0
     assert math.isfinite(result.ar_boresight_db)
 

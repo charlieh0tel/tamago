@@ -1,4 +1,4 @@
-"""Design orchestration: build geometry, drive nec2c, tune resonance and phase.
+"""Design orchestration: build geometry, drive nec2c, tune to quadrature.
 
 Two equal resonant loops are driven with their currents 90 deg apart for
 circular polarization, by one of three coax feed harnesses (spec.feed): the
@@ -105,7 +105,7 @@ FACTOR_BOUNDS = (0.70, 1.40)
 # Untuned perimeter factor used by the coarse handedness probe run.
 SENSE_PROBE_FACTOR = 1.05
 SOLVER_MAX_ITERATIONS = 40
-REACTANCE_TOLERANCE_OHMS = 0.5
+PHASE_TOLERANCE_DEG = 0.5
 # Golden-section ratio for the reflector-placement minimization.
 GOLDEN_RATIO = (math.sqrt(5.0) - 1.0) / 2.0
 # Axial ratio is optimized and reported over the high-elevation coverage cone,
@@ -273,7 +273,8 @@ class DesignResult:
 
     Fields:
         spec: the originating DesignSpec.
-        base_factor: resonant perimeter as a multiple of wavelength.
+        base_factor: tuned loop perimeter (currents in quadrature) as a
+            multiple of wavelength.
         z_in: predicted feedpoint impedance at the harness source (the
             junction or port), before the match network or balun.
         phase_diff_deg: loop current phase difference (loop A minus loop B),
@@ -595,14 +596,23 @@ def _golden_section_min(func, low: float, high: float, tolerance: float) -> floa
     return (low + high) / 2.0
 
 
-def _resonant_factor(spec: DesignSpec, flip: bool = False) -> float:
-    """Find the perimeter factor giving zero reactance at the harness source."""
+def _quadrature_factor(spec: DesignSpec, flip: bool = False) -> float:
+    """Perimeter factor putting the loop currents in quadrature.
 
-    def reactance(factor: float) -> float:
+    The inter-loop phase runs monotonically through +/-90 deg exactly once
+    across the factor range for every feed scheme, so quadrature -- the
+    circular-polarization mechanism itself -- is a well-posed tuning
+    objective. The source reactance, by contrast, can null at several
+    electrically distinct factors for the harness feeds, and its null can
+    sit far from the axial-ratio optimum; at quadrature the residual source
+    reactance stays small and the match network absorbs it.
+    """
+
+    def phase_error(factor: float) -> float:
         result, _ = analyze(spec, factor, flip=flip)
-        return result.sources[0].z_imag
+        return abs(_phase_difference(result)) - 90.0
 
-    return _secant(reactance, 1.0, 1.05, FACTOR_BOUNDS, REACTANCE_TOLERANCE_OHMS)
+    return _secant(phase_error, 1.0, 1.05, FACTOR_BOUNDS, PHASE_TOLERANCE_DEG)
 
 
 def _loop_currents(result: NecResult) -> tuple[complex, complex]:
@@ -849,7 +859,7 @@ def design(spec: DesignSpec) -> DesignResult:
     """
     natural = _natural_hand(spec)
     crossed = natural is not None and natural != spec.sense
-    base_factor = _resonant_factor(spec, flip=crossed)
+    base_factor = _quadrature_factor(spec, flip=crossed)
     result, deck = analyze(spec, base_factor, flip=crossed)
     ar_boresight, ar_worst, ar_peak, sense = _polarization_summary(result)
 

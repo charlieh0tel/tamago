@@ -7,8 +7,8 @@ Eggbeater antenna dimension generator with `nec2c` in the tuning loop.
 An eggbeater is two full-wave loops in perpendicular vertical planes, fed in
 phase quadrature to give a near-omnidirectional, circularly polarized pattern
 with good high-angle coverage (popular for working LEO satellites). This tool
-sets the geometry from closed-form formulas and then uses `nec2c` to tune
-resonance and the 90 degree phasing, finishing with a physical cut sheet.
+sets the geometry from closed-form formulas and then uses `nec2c` to tune the
+loop currents to 90 degree quadrature, finishing with a physical cut sheet.
 
 ## Requirements
 
@@ -151,8 +151,12 @@ and do not affect the loop currents, so they are sized analytically
 (junction ~50 ohm -> 200 ohm through the quarter-wave 100 ohm Q-section ->
 50 ohm through the 4:1 balun).
 
-Conductor cross-sections are reduced to a NEC equivalent radius; the resonance
-sweep then corrects for any residual error in that estimate.
+Conductor cross-sections are reduced to a NEC equivalent radius; the loop
+perimeter is then tuned until the two loop currents sit 90 degrees apart
+(quadrature -- the circular-polarization mechanism, and unlike source
+reactance a single-rooted objective for every feed scheme), which also
+corrects any residual error in that estimate. The small source reactance
+remaining at quadrature is absorbed by the match network.
 
 The junction feedpoint impedance depends on the loops and the reflector, so the
 cut sheet sizes a match to `system_z_ohm`: a series element (inductor or

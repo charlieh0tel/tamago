@@ -5,16 +5,6 @@ tool, quarter-wave line phasing via TL card, round/bar conductor, reflector
 optimizer with provenance, 4-chart HTML page, cut sheets, bandwidth sweeps,
 tuned NEC decks, design doc, tests passing).
 
-## From the adversarial review (2026-07, confirmed findings)
-
-- [ ] Resonance tuning: the secant accepts the 1.05 seed whenever its
-      reactance is inside the 0.5 ohm tolerance (6 of 8 shipped designs sit
-      at exactly 1.0500), and for harness feeds the port-reactance null is
-      multi-rooted (three zeros in an 8% factor span with quadrature
-      58/93/104 deg). Tighten the seed handling and reconsider the tuning
-      objective (loop quadrature or loop-terminal resonance instead of port
-      reactance).
-
 ## Optimizer
 
 - [ ] Warn about radial-screen resonances near the operating band. The
