@@ -5,8 +5,41 @@ tool, quarter-wave line phasing via TL card, round/bar conductor, reflector
 optimizer with provenance, 4-chart HTML page, cut sheets, bandwidth sweeps,
 tuned NEC decks, design doc, tests passing).
 
+## From the adversarial review (2026-07, confirmed findings)
+
+- [ ] Resonance tuning: the secant accepts the 1.05 seed whenever its
+      reactance is inside the 0.5 ohm tolerance (6 of 8 shipped designs sit
+      at exactly 1.0500), and for harness feeds the port-reactance null is
+      multi-rooted (three zeros in an 8% factor span with quadrature
+      58/93/104 deg). Tighten the seed handling and reconsider the tuning
+      objective (loop quadrature or loop-terminal resonance instead of port
+      reactance).
+- [ ] balun4 match model: the half-wave 4:1 balun is treated as
+      frequency-flat; modeling its physical length skews each 2:1 band edge
+      by ~1.6-1.9 points (total width nearly unchanged). Model it as a
+      half-wave line terminated in the split balanced load.
+- [ ] Validate spec.segments: at segments >= 99 (with the default feed gap)
+      loop A's tags collide with LOOP_B_TAG_BASE and the phasing line binds
+      to the wrong wire, leaving loop B undriven with no error.
+- [ ] phasing_coax is silently ignored for turnstile and balun4, and
+      match_coax for balun4; reject or honor them.
+- [ ] Doc fixes: schematic.py balun4 docstring says "braids grounded" (code
+      and cut sheet say not grounded); loop_balance docstring states an AR
+      formula the code never computes; report.py "(1.0 = circular)" gloss
+      conflates balance with circularity; "adds 90 deg transparently" delay
+      comment (delivered 77-83 deg). Also guard vswr() against z == -ref.
+
 ## Optimizer
 
+- [ ] Warn about radial-screen resonances near the operating band. The
+      balun4 70 cm design (8 radials) has a narrow radial resonance 2.7%
+      above band: peak radial current spikes to 4.4x the loop feed current
+      over ~0.3% of frequency, visibly kinking the axial-ratio sweep. It is
+      razor-sharp only because conductors are lossless; a real screen would
+      blunt and shift it, so one drifting in-band with construction
+      tolerances matters. Check the radial/feed current ratio across the
+      sweep (or +/-10%) and flag peaks; consider letting the optimizer nudge
+      radial_length_wl away from such modes.
 - [ ] (low priority) Full-azimuth figures of merit. The FoM grid samples only
       phi 0-90 deg, assuming 90 deg symmetry. Odd radial counts (e.g. 3) break
       it, but a one-time 360 deg check showed the effect is benign near zenith

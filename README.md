@@ -52,7 +52,8 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `{"kind":"strip","width_mm":w}` (equiv radius = width / 4), or
   `{"kind":"bar","width_mm":w,"thickness_mm":t}` (GMD equiv radius).
 - `sense`: `rhcp` or `lhcp` (default `rhcp`); selects the normal or crossed
-  loop B connection on the cut sheet (identical performance).
+  loop B connection, and the tool models the connection it delivers (the
+  offset loops make the two senses slightly different antennas off-axis).
 - `feed`: coax harness scheme. `line` (default): source at the junction across
   loop A, quarter-wave phasing line to loop B. `turnstile`: a quarter-wave
   Q-section per loop joined at a harness port, a quarter-wave delay line in
@@ -131,9 +132,12 @@ The model is two equal resonant loops driven with their currents 90 degrees
 apart for circular polarization. With the default `line` feed, a voltage
 source drives loop A directly across its feed gap and loop B is fed through a
 quarter-wave phasing line (a NEC transmission-line card at the phasing coax's
-impedance). Crossing a line's conductors (modelled as a negative Z0) mirrors
-the handedness with identical performance, so the requested `sense` just picks
-the normal or crossed connection on the cut sheet.
+impedance). Crossing a line's conductors (modelled as a negative Z0) reverses
+the handedness. A coarse probe run reads the natural handedness, the requested
+`sense` picks the normal or crossed connection, and the design is tuned and
+characterized with that delivered connection -- crossing is a mirror image
+only on boresight, since the vertical loop offset makes the two senses
+slightly different antennas off-axis.
 
 The `turnstile` harness models each coax leg as a NEC transmission line
 joined at a tiny isolated port wire that hosts the source (a NEC network port

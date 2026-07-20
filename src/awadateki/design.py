@@ -43,9 +43,8 @@ REFLECTOR_RADIALS = "radials"
 SENSE_RHCP = "rhcp"
 SENSE_LHCP = "lhcp"
 
-# Map nec2c's polarization sense column to a handedness constant, and back.
+# Map nec2c's polarization sense column to a handedness constant.
 NEC_SENSE_TO_HAND = {"RIGHT": SENSE_RHCP, "LEFT": SENSE_LHCP}
-HAND_TO_NEC_SENSE = {SENSE_RHCP: "RIGHT", SENSE_LHCP: "LEFT"}
 
 # Target NEC segment length along a radial, in wavelengths.
 RADIAL_SEGMENT_WL = 0.05
@@ -98,6 +97,8 @@ DEFAULT_GRID = RadiationGrid(
 
 # Bounds and convergence controls for the solvers.
 FACTOR_BOUNDS = (0.70, 1.40)
+# Untuned perimeter factor used by the coarse handedness probe run.
+SENSE_PROBE_FACTOR = 1.05
 SOLVER_MAX_ITERATIONS = 40
 REACTANCE_TOLERANCE_OHMS = 0.5
 # Golden-section ratio for the reflector-placement minimization.
@@ -356,9 +357,14 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
 
 
 def _port_wire(tag: int, segments: int, center_z: float, index: int) -> Wire:
-    """Tiny isolated wire at the loop centre hosting harness TL ports."""
+    """Tiny isolated wire at the loop centre hosting harness TL ports.
+
+    The two ports (index 0, 1) straddle the loop centre symmetrically:
+    stacking them to one side breaks the pattern's up/down symmetry enough
+    to bias the axial ratio.
+    """
     half = PORT_SEGMENT_LENGTH_M * segments / 2.0
-    z = center_z + index * PORT_SPACING_M
+    z = center_z + (index - 0.5) * PORT_SPACING_M
     return Wire(
         tag=tag,
         segments=segments,
@@ -558,11 +564,11 @@ def _golden_section_min(func, low: float, high: float, tolerance: float) -> floa
     return (low + high) / 2.0
 
 
-def _resonant_factor(spec: DesignSpec) -> float:
-    """Find the perimeter factor giving zero reactance at the junction feed."""
+def _resonant_factor(spec: DesignSpec, flip: bool = False) -> float:
+    """Find the perimeter factor giving zero reactance at the harness source."""
 
     def reactance(factor: float) -> float:
-        result, _ = analyze(spec, factor)
+        result, _ = analyze(spec, factor, flip=flip)
         return result.sources[0].z_imag
 
     return _secant(reactance, 1.0, 1.05, FACTOR_BOUNDS, REACTANCE_TOLERANCE_OHMS)
@@ -770,37 +776,37 @@ def matched_vswr(spec: DesignSpec, z: complex) -> float:
     return post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
 
 
+def _natural_hand(spec: DesignSpec) -> str | None:
+    """Handedness of the normal (uncrossed) connection, from one coarse run.
+
+    Handedness is structural -- it depends on the feed scheme and geometry
+    conventions, not on fine tuning -- so an untuned probe suffices.
+    """
+    probe, _ = analyze(spec, SENSE_PROBE_FACTOR)
+    return NEC_SENSE_TO_HAND.get(_boresight_sense(probe))
+
+
 def design(spec: DesignSpec) -> DesignResult:
     """Tune an eggbeater to the spec and return the result.
 
-    One nec2c run sizes the loops and characterizes the (mirror-symmetric)
-    pattern; the requested polarization sense is then just which way the phasing
-    line is connected (normal or crossed), with identical performance, so no
-    second run is needed -- crossing only changes the cut-sheet wiring.
+    A coarse probe run reads the natural handedness; the requested sense then
+    decides the normal or crossed loop B connection, and the whole design --
+    tuning, feedpoint, and pattern -- is modelled with that delivered
+    connection. Crossing is a mirror image only on boresight: the vertical
+    loop offset makes the two senses slightly different antennas off-axis,
+    so the delivered connection must be the one characterized.
     """
-    base_factor = _resonant_factor(spec)
-    result, deck = analyze(spec, base_factor)
-    ar_boresight, ar_worst, ar_peak, default_sense = _polarization_summary(result)
-
-    default_hand = NEC_SENSE_TO_HAND.get(default_sense)
-    if default_hand is None:
-        crossed, sense = False, default_sense
-    else:
-        crossed = default_hand != spec.sense
-        sense = HAND_TO_NEC_SENSE[spec.sense]
-    phase_diff = _phase_difference(result)
-    if crossed:
-        # Mirror image: identical performance, only the line connection changes.
-        deck = _build_deck_text(spec, base_factor, True, None, None)
-        # Crossing reverses loop B's current polarity, shifting its phase 180
-        # deg; report the phase of the delivered connection.
-        phase_diff = wrap_phase_deg(phase_diff + 180.0)
+    natural = _natural_hand(spec)
+    crossed = natural is not None and natural != spec.sense
+    base_factor = _resonant_factor(spec, flip=crossed)
+    result, deck = analyze(spec, base_factor, flip=crossed)
+    ar_boresight, ar_worst, ar_peak, sense = _polarization_summary(result)
 
     return DesignResult(
         spec=spec,
         base_factor=base_factor,
         z_in=_antenna_feed_z(result),
-        phase_diff_deg=phase_diff,
+        phase_diff_deg=_phase_difference(result),
         loop_balance=_loop_balance(result),
         crossed_phasing_line=crossed,
         sense=sense,

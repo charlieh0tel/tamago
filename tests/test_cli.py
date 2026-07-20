@@ -156,6 +156,23 @@ def test_sense_selection_flips_handedness():
     assert lhcp.sense == "LEFT"
 
 
+@needs_nec2c
+def test_crossed_design_reports_delivered_pattern():
+    from awadateki.design import _coverage_gain_db, _polarization_summary, analyze
+
+    # Turnstile's natural sense is RHCP, so LHCP forces the crossed connection;
+    # the reported metrics must come from the crossed (delivered) run.
+    spec = replace(_spec(), reflector="ground", feed="turnstile", sense="lhcp")
+    result = design(spec)
+    assert result.crossed_phasing_line
+    assert result.sense == "LEFT"
+    nec, _ = analyze(spec, result.base_factor, flip=True)
+    ar_mean, ar_worst, _, _ = _polarization_summary(nec)
+    assert math.isclose(result.ar_boresight_db, ar_mean, abs_tol=1e-9)
+    assert math.isclose(result.ar_cone_worst_db, ar_worst, abs_tol=1e-9)
+    assert math.isclose(result.coverage_gain_db, _coverage_gain_db(nec), abs_tol=1e-9)
+
+
 def test_post_match_vswr_ideal():
     # 112.5 ohm transforms through a 75 ohm quarter wave to exactly 50 ohm.
     assert math.isclose(post_match_vswr(complex(112.5, 0.0)), 1.0, abs_tol=1e-6)

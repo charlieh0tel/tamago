@@ -56,7 +56,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 1.312,
+        "elapsed_s": 1.825,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -141,11 +141,11 @@
     "performance": {
       "feed_z_ohm": {
         "real": 25.279,
-        "imag": 0.0067056
+        "imag": 0.0067049
       },
       "feed_z_kind": "feedpoint",
-      "vswr_unmatched": 1.9779263898139574,
-      "vswr_matched": 1.112583896541623,
+      "vswr_unmatched": 1.97792638980398,
+      "vswr_matched": 1.1125838964729058,
       "loop_current_phase_deg": 93.32003264491209,
       "loop_balance": 1.075979383805838,
       "sense": "RHCP",
@@ -224,7 +224,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by a turnstile harness (a Q-section per loop, delay line in loop B's leg, 1:1 current choke), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 2.37,
+        "elapsed_s": 2.927,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -265,8 +265,8 @@
         "droop_deg": 23.935688187389587
       },
       "loop": {
-        "perimeter_mm": 727.7378804839974,
-        "width_mm": 231.64616190849426
+        "perimeter_mm": 727.7377402355137,
+        "width_mm": 231.64611726601535
       },
       "loop_offset_mm": 10.0,
       "feed_gap_mm": 10.0,
@@ -309,17 +309,17 @@
     "performance": {
       "feed_z_ohm": {
         "real": 26.308,
-        "imag": 0.49972
+        "imag": 0.49975
       },
       "feed_z_kind": "feedpoint",
-      "vswr_unmatched": 1.9008250735135208,
-      "vswr_matched": 1.0717197139484171,
-      "loop_current_phase_deg": 90.08132748638525,
-      "loop_balance": 0.8722726040744425,
+      "vswr_unmatched": 1.9008251050312905,
+      "vswr_matched": 1.0717200272067917,
+      "loop_current_phase_deg": 90.08060324183896,
+      "loop_balance": 0.8722725892197651,
       "sense": "RHCP",
       "sense_requested": "RHCP",
       "sense_achieved": true,
-      "axial_ratio_cone_db": 1.6318257185517562,
+      "axial_ratio_cone_db": 1.6317826237347766,
       "axial_ratio_cone_worst_db": 3.3077715855462566,
       "axial_ratio_peak_db": 0.8679882357364663,
       "coverage_gain_dbi": -0.27
@@ -330,8 +330,8 @@
         479.6
       ],
       "axial_ratio_3db_mhz": [
-        421.41662555008395,
-        443.5945929261306
+        421.41719916291277,
+        443.5947419093328
       ]
     }
   }
