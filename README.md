@@ -275,6 +275,8 @@ make -j4        # regenerate the worked examples in designs/ (needs jq)
 
 Tests that drive `nec2c` are skipped automatically when it is not installed.
 
+A web front end is planned; its UX design is in `docs/web-ux.md`.
+
 ## License
 
 GNU General Public License v3.0 or later (GPLv3+); see `LICENSE`.
