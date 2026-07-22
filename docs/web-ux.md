@@ -1,8 +1,9 @@
 # Web front end: UX design
 
 Status: design settled (2026-07); implementation not started. A clickable
-mockup with canned data was built to converge on this design; this document
-is the contract it converged to.
+mockup with canned data was built to converge on this design
+(`docs/web-ux-mockup.html` -- self-contained, open in any browser); this
+document is the contract it converged to.
 
 ## Scope and principles
 

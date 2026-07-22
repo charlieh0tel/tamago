@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>tamago designer — UX mockup</title>
+<style>
+:root {
+  --ground:#F3F5F4; --panel:#FFFFFF; --ink:#16211F; --muted:#5A6B67;
+  --line:#C9D3D0; --teal:#0E7C86; --teal-soft:#0E7C8618; --amber:#C8881C;
+  --limit:#B23A48; --ok:#357960;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ground:#111917; --panel:#1A2421; --ink:#E6EDEA; --muted:#8FA29C;
+    --line:#2E3B37; --teal:#4FB3B9; --teal-soft:#4FB3B926; --amber:#D9A04B;
+    --limit:#D2717E; --ok:#5FA98B; }
+}
+:root[data-theme="light"] { --ground:#F3F5F4; --panel:#FFFFFF; --ink:#16211F;
+  --muted:#5A6B67; --line:#C9D3D0; --teal:#0E7C86; --teal-soft:#0E7C8618;
+  --amber:#C8881C; --limit:#B23A48; --ok:#357960; }
+:root[data-theme="dark"] { --ground:#111917; --panel:#1A2421; --ink:#E6EDEA;
+  --muted:#8FA29C; --line:#2E3B37; --teal:#4FB3B9; --teal-soft:#4FB3B926;
+  --amber:#D9A04B; --limit:#D2717E; --ok:#5FA98B; }
+
+body { margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:14px; line-height:1.45;
+  -webkit-font-smoothing:antialiased; }
+.app { max-width:1240px; margin:0 auto; padding:0 16px 40px; }
+
+/* header */
+header { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding:18px 2px 14px; border-bottom:1px solid var(--line); }
+.brand { font-family:var(--mono); font-size:17px; font-weight:700; }
+.brand .jp { color:var(--muted); font-weight:500; margin-left:6px; }
+.mocknote { font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--amber); border:1px solid var(--amber);
+  border-radius:999px; padding:2px 10px; }
+header .spacer { flex:1; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font-family:var(--mono); font-size:11.5px; padding:3px 10px;
+  border-radius:999px; border:1px solid var(--line); background:var(--panel);
+  color:var(--muted); white-space:nowrap; }
+.chip b { color:var(--ok); font-weight:600; }
+.chip.repo { color:var(--teal); text-decoration:none; }
+.chip.repo:hover { border-color:var(--teal); }
+.chip.ver { color:var(--muted); }
+.chip.tuning b { color:var(--amber); }
+.linkbtn { font-family:var(--mono); font-size:11.5px; padding:3px 12px;
+  border-radius:999px; border:1px solid var(--teal); background:none;
+  color:var(--teal); cursor:pointer; }
+.linkbtn:hover { background:var(--teal-soft); }
+
+/* two panes */
+.panes { display:grid; grid-template-columns:308px 1fr; gap:18px;
+  align-items:start; padding-top:16px; }
+@media (max-width:860px) { .panes { grid-template-columns:1fr; } }
+
+/* spec rail */
+.rail { position:sticky; top:12px; display:flex; flex-direction:column; gap:10px; }
+.group { background:var(--panel); border:1px solid var(--line); border-radius:6px; }
+.group > summary { list-style:none; cursor:pointer; padding:9px 12px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--teal); user-select:none;
+  display:flex; justify-content:space-between; }
+.group > summary::after { content:"+"; color:var(--muted); }
+.group[open] > summary::after { content:"−"; }
+.group > summary::-webkit-details-marker { display:none; }
+.gbody { padding:2px 12px 12px; display:flex; flex-direction:column; gap:10px; }
+.field { display:flex; flex-direction:column; gap:4px; }
+.field label { font-size:12px; color:var(--muted); }
+.prov { font-family:var(--mono); font-size:9.5px; letter-spacing:.08em;
+  text-transform:uppercase; border:1px solid var(--line); border-radius:3px;
+  padding:0 4px; color:var(--muted); margin-left:4px; }
+.prov[data-v="opt"] { color:var(--teal); border-color:var(--teal); }
+.prov[data-v="user"] { color:var(--amber); border-color:var(--amber); }
+.prov[data-stale="1"] { opacity:.6; border-style:dashed; }
+@keyframes provflash { 0% { background:var(--teal-soft); } 100% { background:var(--ground); } }
+.flash { animation:provflash 1.4s ease-out; }
+.field .unit { color:var(--muted); font-family:var(--mono); font-size:11.5px; }
+input[type=number], input[type=text], select {
+  font-family:var(--mono); font-size:13.5px; color:var(--ink);
+  background:var(--ground); border:1px solid var(--line); border-radius:4px;
+  padding:6px 8px; width:100%; box-sizing:border-box; }
+input:focus, select:focus, button:focus-visible, .tab:focus-visible,
+.feedcard:focus-visible { outline:2px solid var(--teal); outline-offset:1px; }
+.inline { display:flex; gap:8px; }
+.inline .field { flex:1; }
+.seg { display:flex; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+.seg button { flex:1; border:0; background:var(--ground); color:var(--muted);
+  font-family:var(--mono); font-size:12.5px; padding:6px 0; cursor:pointer; }
+.seg button.on { background:var(--teal); color:var(--panel); }
+
+/* feed picker cards */
+.feedcards { display:flex; flex-direction:column; gap:8px; }
+.feedcard { border:1px solid var(--line); border-radius:6px; background:var(--ground);
+  padding:8px 10px 6px; cursor:pointer; }
+.feedcard.on { border-color:var(--teal); box-shadow:0 0 0 1px var(--teal); }
+.feedcard .fc-head { display:flex; justify-content:space-between; align-items:baseline; }
+.feedcard .fc-name { font-family:var(--mono); font-size:12.5px; font-weight:700; }
+.feedcard .fc-tag { font-size:11px; color:var(--muted); }
+.feedcard svg { width:100%; height:44px; margin-top:4px; }
+.feedcard .sch { pointer-events:none; }
+
+/* optimize */
+.applybtn { font-family:var(--mono); font-size:13px; font-weight:600;
+  background:var(--teal); color:var(--panel); border:0; border-radius:6px;
+  padding:10px 12px; cursor:pointer; }
+.applybtn:disabled { opacity:.45; cursor:default; }
+.optbtn { font-family:var(--mono); font-size:13px; font-weight:600;
+  background:var(--amber); color:#fff; border:0; border-radius:6px;
+  padding:10px 12px; cursor:pointer; }
+:root[data-theme="dark"] .optbtn, .optbtn { color:#151009; }
+.optbtn:disabled { opacity:.55; cursor:default; }
+.optnote { font-size:11.5px; color:var(--muted); text-align:center; margin-top:-4px; }
+.optpanel { border:1px solid var(--amber); border-radius:6px; background:var(--panel);
+  padding:10px 12px; font-family:var(--mono); font-size:12px; display:none; }
+.optpanel.show { display:block; }
+.optpanel .bar { height:4px; background:var(--line); border-radius:2px; margin:8px 0; }
+.optpanel .bar i { display:block; height:100%; width:0%; background:var(--amber);
+  border-radius:2px; transition:width .4s; }
+.optpanel .cancel { background:none; border:1px solid var(--line); color:var(--muted);
+  border-radius:4px; font-family:var(--mono); font-size:11px; padding:2px 8px;
+  cursor:pointer; }
+.diff { border:1px solid var(--amber); border-radius:6px; background:var(--panel);
+  padding:10px 12px; display:none; }
+.diff.show { display:block; }
+.diff h4 { margin:0 0 6px; font-family:var(--mono); font-size:11px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--amber); }
+.diff table { width:100%; border-collapse:collapse; font-family:var(--mono);
+  font-size:12px; font-variant-numeric:tabular-nums; }
+.diff td { padding:3px 4px; border-bottom:1px solid var(--line); }
+.diff td:last-child { text-align:right; }
+.diff .better { color:var(--ok); }
+.diff .actions { display:flex; gap:8px; margin-top:8px; }
+.diff .actions button { flex:1; font-family:var(--mono); font-size:12px;
+  border-radius:4px; padding:6px 0; cursor:pointer; }
+.diff .apply { background:var(--teal); color:var(--panel); border:0; }
+.diff .discard { background:none; color:var(--muted); border:1px solid var(--line); }
+
+/* results pane */
+.results { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  min-height:560px; display:flex; flex-direction:column; }
+.tabs { display:flex; gap:2px; padding:8px 10px 0; border-bottom:1px solid var(--line);
+  overflow-x:auto; }
+.tab { font-family:var(--mono); font-size:12.5px; color:var(--muted);
+  background:none; border:1px solid transparent; border-bottom:0;
+  border-radius:6px 6px 0 0; padding:7px 13px; cursor:pointer; white-space:nowrap; }
+.tab.on { color:var(--ink); background:var(--panel); border-color:var(--line);
+  position:relative; top:1px; }
+.tabbody { padding:16px 18px 20px; }
+.pane { display:none; }
+.pane.on { display:block; }
+.tuning-veil { transition:opacity .25s; }
+.tuning .tuning-veil { opacity:.35; }
+
+/* cut sheet */
+pre.cut { margin:0; font-family:var(--mono); font-size:12.5px; line-height:1.5;
+  white-space:pre; overflow-x:auto; color:var(--ink); }
+.cutbar { display:flex; gap:10px; margin-bottom:12px; }
+.mini { font-family:var(--mono); font-size:11.5px; color:var(--teal);
+  background:none; border:1px solid var(--line); border-radius:4px;
+  padding:4px 10px; cursor:pointer; }
+.mini:hover { border-color:var(--teal); }
+
+/* charts */
+.chartrow { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:1020px) { .chartrow { grid-template-columns:1fr; } }
+figure.chart { margin:0; border:1px solid var(--line); border-radius:6px;
+  padding:10px 10px 4px; background:var(--panel); }
+figure.chart figcaption { font-size:13px; font-weight:600; margin:0 2px 4px; }
+figure.chart .note { font-size:11.5px; color:var(--muted); margin:4px 2px 6px; }
+.chart svg { width:100%; height:auto; display:block; }
+.tick { font-family:var(--mono); font-size:10px; fill:var(--muted); }
+.axis { font-family:var(--mono); font-size:10px; fill:var(--muted); letter-spacing:.05em; }
+.limitlbl { font-family:var(--mono); font-size:10px; fill:var(--limit); font-weight:600; }
+.tip { position:fixed; pointer-events:none; background:var(--ink); color:var(--ground);
+  font-family:var(--mono); font-size:11px; padding:4px 8px; border-radius:4px;
+  transform:translate(-50%,-130%); display:none; z-index:9; white-space:nowrap; }
+
+/* schematic */
+.sch line, .sch path, .sch circle, .sch ellipse { stroke:var(--ink); fill:none;
+  stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+.sch .dot { fill:var(--ink); stroke:none; }
+.sch text { font-family:var(--mono); font-size:11px; fill:var(--ink); stroke:none; }
+.schwrap svg { width:100%; max-width:820px; height:auto; }
+.feedcard .sch text { display:none; }
+
+/* placeholders */
+.ph { border:1px dashed var(--line); border-radius:6px; color:var(--muted);
+  padding:36px 20px; text-align:center; font-size:13px; }
+.polar { display:flex; gap:20px; flex-wrap:wrap; }
+
+/* files */
+.filelist { display:flex; flex-direction:column; gap:8px; max-width:520px; }
+.filerow { display:flex; align-items:center; gap:10px; border:1px solid var(--line);
+  border-radius:6px; padding:9px 12px; background:var(--ground); }
+.filerow .fname { font-family:var(--mono); font-size:12.5px; flex:1; }
+.filerow .fdesc { font-size:11.5px; color:var(--muted); }
+.filerow button { font-family:var(--mono); font-size:11.5px; color:var(--teal);
+  border:1px solid var(--teal); background:none; border-radius:4px;
+  padding:3px 10px; cursor:pointer; }
+
+/* toast */
+.toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:var(--ground); font-family:var(--mono);
+  font-size:12px; padding:8px 16px; border-radius:6px; opacity:0;
+  transition:opacity .25s; z-index:10; }
+.toast.show { opacity:1; }
+/* report / print view */
+.report { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  margin-top:16px; padding:22px 26px 30px; }
+.report-tools { display:flex; gap:10px; align-items:center; margin-bottom:14px; }
+.rtitle { font-family:var(--mono); font-size:20px; margin:0 0 2px; }
+.rmeta { font-family:var(--mono); font-size:11.5px; color:var(--muted);
+  margin-bottom:4px; }
+.rmeta b { color:var(--ink); font-weight:600; }
+.rmeta:last-of-type { margin-bottom:18px; }
+.report section { margin:0 0 22px; }
+.report h2 { font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--teal); margin:0 0 8px;
+  border-bottom:1px solid var(--line); padding-bottom:4px; }
+body.reporting header, body.reporting .panes { display:none; }
+@media print {
+  body { background:#fff; }
+  body:not(.reporting) .panes, body:not(.reporting) header { display:none; }
+  header, .panes, .report-tools, .toast, .tip { display:none !important; }
+  .report { display:block !important; border:0; margin:0; padding:0; }
+  .report[hidden] { display:none !important; }
+  .report section { break-inside:avoid; }
+  pre.cut { font-size:10.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition:none !important; animation:none !important; }
+}
+</style>
+
+<div class="app">
+<header>
+  <span class="brand">tamago<span class="jp" lang="ja">卵泡立て器</span></span>
+  <a class="chip repo" href="https://github.com/charlieh0tel/tamago" target="_blank" rel="noopener">charlieh0tel/tamago</a>
+  <span class="chip ver" title="tool version">v0.1.0 &middot; 7af9063</span>
+  <span class="mocknote">UX mockup — canned data</span>
+  <span class="spacer"></span>
+  <span class="chips">
+    <span class="chip" id="chipTune">tuned <b>✓ quadrature +89.9°</b></span>
+    <span class="chip">sense <b>RHCP achieved</b></span>
+    <span class="chip">normal line to loop B</span>
+  </span>
+  <button class="linkbtn" onclick="toast('link copied — #spec=eyJmcmVxX21oeiI6MTQ1LjksLi4ufQ')">copy design link</button>
+</header>
+
+<div class="panes">
+  <!-- ============ spec rail ============ -->
+  <div class="rail">
+    <details class="group" open>
+      <summary>Basics</summary>
+      <div class="gbody">
+        <div class="inline">
+          <div class="field"><label for="freq">Frequency <span class="unit">MHz</span></label>
+            <input id="freq" type="number" value="145.9" step="0.1" onchange="freqEdited()"></div>
+          <div class="field"><label for="label">Label</label>
+            <input id="label" type="text" value="2 m"></div>
+        </div>
+        <div class="field"><label>Conductor</label>
+          <div class="seg" role="group" aria-label="conductor kind">
+            <button class="on">round</button><button>strip</button><button>bar</button>
+          </div></div>
+        <div class="field"><label for="dia">Diameter <span class="unit">mm</span></label>
+          <input id="dia" type="number" value="5.0" step="0.5" onchange="retune()"></div>
+        <div class="field">
+          <label for="perim">Loop perimeter <span class="unit">mm</span>
+            <span class="prov" id="provPerim">opt</span></label>
+          <div class="inline" style="align-items:stretch">
+            <input id="perim" type="number" value="2161.3" step="0.5"
+              onchange="perimEdited()" style="flex:1">
+            <button class="mini" style="white-space:nowrap"
+              onclick="estimate()" title="closed-form full-wave estimate">&#8634; estimate</button>
+          </div></div>
+        <div class="field"><label>Loop shape</label>
+          <div class="seg" role="group" aria-label="loop shape">
+            <button class="on">circle</button><button>square</button><button>squircle</button>
+          </div></div>
+        <div class="field"><label>Polarization sense</label>
+          <div class="seg" role="group" aria-label="sense">
+            <button class="on">RHCP</button><button>LHCP</button>
+          </div></div>
+      </div>
+    </details>
+
+    <details class="group" open>
+      <summary>Feed</summary>
+      <div class="gbody">
+        <div class="feedcards" role="radiogroup" aria-label="feed scheme">
+          <div class="feedcard on" tabindex="0" role="radio" aria-checked="true" onclick="pickFeed(this,'line')">
+            <div class="fc-head"><span class="fc-name">Phasing line</span>
+              <span class="fc-tag">line · simplest, one coax</span></div>
+            <svg class="sch" viewBox="0 0 790 320" role="img" aria-label="Feed and match schematic"><text x="24" y="190" text-anchor="start">to rig (50 &#8486;)</text><circle cx="48.0" cy="120.0" r="3.5"/><circle cx="48.0" cy="160.0" r="3.5"/><line x1="51.5" y1="120.0" x2="280.0" y2="120.0"/><line x1="280.0" y1="120.0" x2="336.0" y2="120.0"/><line x1="336.0" y1="120.0" x2="470.0" y2="120.0"/><line x1="51.5" y1="160.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="160.0" x2="470.0" y2="160.0"/><line x1="90.0" y1="112.0" x2="250.0" y2="112.0"/><line x1="90.0" y1="128.0" x2="250.0" y2="128.0"/><circle cx="90.0" cy="120.0" r="8.0"/><circle cx="250.0" cy="120.0" r="8.0"/><line x1="90.0" y1="128.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="128.0" x2="250.0" y2="160.0"/><text x="170" y="87" text-anchor="middle">TL1  RG-58 (50 &#8486;)</text><text x="170" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="382.0" cy="120.0" r="3.0"/><circle class="dot" cx="398.0" cy="160.0" r="3.0"/><path d="M382.0,120.0 V153.0 A7.0,7.0 0 0 1 382.0,167.0 V230.0"/><line x1="398.0" y1="160.0" x2="398.0" y2="270.0"/><line x1="470.0" y1="120.0" x2="491.9" y2="122.3"/><line x1="470.0" y1="160.0" x2="491.9" y2="157.7"/><path d="M491.9,122.3 A42.0,42.0 0 1 1 491.9,157.7"/><text x="530" y="144" text-anchor="middle">LOOP A</text><line x1="382.0" y1="230.0" x2="610.0" y2="230.0"/><line x1="398.0" y1="270.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="270.0" x2="610.0" y2="270.0"/><line x1="440.0" y1="222.0" x2="600.0" y2="222.0"/><line x1="440.0" y1="238.0" x2="600.0" y2="238.0"/><circle cx="440.0" cy="230.0" r="8.0"/><circle cx="600.0" cy="230.0" r="8.0"/><line x1="440.0" y1="238.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="238.0" x2="600.0" y2="270.0"/><text x="520" y="197" text-anchor="middle">TL2  RG-62 (93 &#8486;)</text><text x="520" y="210" text-anchor="middle">1/4 wave  432 mm</text><line x1="610.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="610.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="634.0" y1="230.0" x2="657.9" y2="232.3"/><line x1="634.0" y1="270.0" x2="657.9" y2="267.7"/><path d="M657.9,232.3 A42.0,42.0 0 1 1 657.9,267.7"/><text x="696" y="254" text-anchor="middle">LOOP B</text></svg>
+          </div>
+          <div class="feedcard" tabindex="0" role="radio" aria-checked="false" onclick="pickFeed(this,'turnstile')">
+            <div class="fc-head"><span class="fc-name">Turnstile</span>
+              <span class="fc-tag">turnstile · best current balance</span></div>
+            <svg class="sch" viewBox="0 0 810 320" role="img" aria-label="Feed and match schematic"><text x="24" y="190" text-anchor="start">to rig (50 &#8486;, 1:1 choke)</text><circle cx="48.0" cy="120.0" r="3.5"/><circle cx="48.0" cy="160.0" r="3.5"/><line x1="51.5" y1="120.0" x2="268.0" y2="120.0"/><line x1="268.0" y1="120.0" x2="320.0" y2="120.0"/><line x1="320.0" y1="120.0" x2="560.0" y2="120.0"/><line x1="51.5" y1="160.0" x2="96.0" y2="160.0"/><line x1="244.0" y1="160.0" x2="560.0" y2="160.0"/><line x1="96.0" y1="112.0" x2="244.0" y2="112.0"/><line x1="96.0" y1="128.0" x2="244.0" y2="128.0"/><circle cx="96.0" cy="120.0" r="8.0"/><circle cx="244.0" cy="120.0" r="8.0"/><line x1="96.0" y1="86.0" x2="244.0" y2="86.0"/><line x1="96.0" y1="102.0" x2="244.0" y2="102.0"/><circle cx="96.0" cy="94.0" r="8.0"/><circle cx="244.0" cy="94.0" r="8.0"/><line x1="84.0" y1="94.0" x2="256.0" y2="94.0"/><line x1="84.0" y1="120.0" x2="84.0" y2="94.0"/><line x1="256.0" y1="120.0" x2="256.0" y2="94.0"/><circle class="dot" cx="84.0" cy="120.0" r="3.0"/><circle class="dot" cx="256.0" cy="120.0" r="3.0"/><line x1="96.0" y1="102.0" x2="96.0" y2="112.0"/><line x1="244.0" y1="102.0" x2="244.0" y2="112.0"/><line x1="96.0" y1="128.0" x2="96.0" y2="160.0"/><line x1="244.0" y1="128.0" x2="244.0" y2="160.0"/><text x="170" y="61" text-anchor="middle">TL1  2x RG-59 (parallel) (37.5 &#8486;)</text><text x="170" y="74" text-anchor="middle">1/4 wave  339 mm</text><line x1="404.0" y1="112.0" x2="524.0" y2="112.0"/><line x1="404.0" y1="128.0" x2="524.0" y2="128.0"/><circle cx="404.0" cy="120.0" r="8.0"/><circle cx="524.0" cy="120.0" r="8.0"/><line x1="404.0" y1="128.0" x2="404.0" y2="160.0"/><line x1="524.0" y1="128.0" x2="524.0" y2="160.0"/><text x="464" y="87" text-anchor="middle">Q1  RG-59 (75 &#8486;)</text><text x="464" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="348.0" cy="120.0" r="3.0"/><circle class="dot" cx="364.0" cy="160.0" r="3.0"/><path d="M348.0,120.0 V153.0 A7.0,7.0 0 0 1 348.0,167.0 V230.0"/><line x1="364.0" y1="160.0" x2="364.0" y2="270.0"/><line x1="560.0" y1="120.0" x2="581.9" y2="122.3"/><line x1="560.0" y1="160.0" x2="581.9" y2="157.7"/><path d="M581.9,122.3 A42.0,42.0 0 1 1 581.9,157.7"/><text x="620" y="144" text-anchor="middle">LOOP A</text><line x1="348.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="364.0" y1="270.0" x2="404.0" y2="270.0"/><line x1="500.0" y1="270.0" x2="528.0" y2="270.0"/><line x1="624.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="404.0" y1="222.0" x2="500.0" y2="222.0"/><line x1="404.0" y1="238.0" x2="500.0" y2="238.0"/><circle cx="404.0" cy="230.0" r="8.0"/><circle cx="500.0" cy="230.0" r="8.0"/><line x1="404.0" y1="238.0" x2="404.0" y2="270.0"/><line x1="500.0" y1="238.0" x2="500.0" y2="270.0"/><text x="452" y="197" text-anchor="middle">DL1  RG-58 (50 &#8486;)</text><text x="452" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="528.0" y1="222.0" x2="624.0" y2="222.0"/><line x1="528.0" y1="238.0" x2="624.0" y2="238.0"/><circle cx="528.0" cy="230.0" r="8.0"/><circle cx="624.0" cy="230.0" r="8.0"/><line x1="528.0" y1="238.0" x2="528.0" y2="270.0"/><line x1="624.0" y1="238.0" x2="624.0" y2="270.0"/><text x="576" y="197" text-anchor="middle">Q2  RG-59 (75 &#8486;)</text><text x="576" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="634.0" y1="230.0" x2="658.0" y2="230.0"/><line x1="634.0" y1="270.0" x2="658.0" y2="270.0"/><line x1="658.0" y1="230.0" x2="681.9" y2="232.3"/><line x1="658.0" y1="270.0" x2="681.9" y2="267.7"/><path d="M681.9,232.3 A42.0,42.0 0 1 1 681.9,267.7"/><text x="720" y="254" text-anchor="middle">LOOP B</text></svg>
+          </div>
+          <div class="feedcard" tabindex="0" role="radio" aria-checked="false" onclick="pickFeed(this,'balun4')">
+            <div class="fc-head"><span class="fc-name">4:1 balun</span>
+              <span class="fc-tag">balun4 · balanced feed (F5VIF)</span></div>
+            <svg class="sch" viewBox="0 0 780 330" role="img" aria-label="Feed and match schematic"><circle cx="40.0" cy="120.0" r="3.5"/><circle cx="40.0" cy="160.0" r="3.5"/><line x1="43.5" y1="120.0" x2="124.0" y2="120.0"/><line x1="43.5" y1="160.0" x2="104.4" y2="160.0"/><circle class="dot" cx="104.4" cy="160.0" r="3.0"/><path d="M124.0,120.0 A20.0,20.0 0 0 0 124.0,160.0"/><path d="M124.0,112.0 A28.0,28.0 0 0 0 124.0,168.0"/><path d="M124.0,128.0 A12.0,12.0 0 0 0 124.0,152.0"/><circle cx="124.0" cy="120.0" r="8.0"/><circle cx="124.0" cy="160.0" r="8.0"/><circle class="dot" cx="124.0" cy="120.0" r="3.0"/><circle class="dot" cx="124.0" cy="160.0" r="3.0"/><text x="20" y="202" text-anchor="start">BL1  RG-58 4:1 balun</text><text x="20" y="215" text-anchor="start">1/2 wave  678 mm</text><text x="20" y="238" text-anchor="start">to rig (50 &#8486;)</text><line x1="124.0" y1="120.0" x2="470.0" y2="120.0"/><line x1="124.0" y1="160.0" x2="470.0" y2="160.0"/><line x1="180.0" y1="112.0" x2="320.0" y2="112.0"/><line x1="180.0" y1="128.0" x2="320.0" y2="128.0"/><circle cx="180.0" cy="120.0" r="8.0"/><circle cx="320.0" cy="120.0" r="8.0"/><line x1="180.0" y1="152.0" x2="320.0" y2="152.0"/><line x1="180.0" y1="168.0" x2="320.0" y2="168.0"/><circle cx="180.0" cy="160.0" r="8.0"/><circle cx="320.0" cy="160.0" r="8.0"/><line x1="180.0" y1="128.0" x2="180.0" y2="152.0"/><line x1="320.0" y1="128.0" x2="320.0" y2="152.0"/><text x="250" y="87" text-anchor="middle">Q1  2x RG-58 (balanced) (100 &#8486;)</text><text x="250" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="382.0" cy="120.0" r="3.0"/><circle class="dot" cx="398.0" cy="160.0" r="3.0"/><path d="M382.0,120.0 V153.0 A7.0,7.0 0 0 1 382.0,167.0 V230.0"/><line x1="398.0" y1="160.0" x2="398.0" y2="270.0"/><line x1="470.0" y1="120.0" x2="491.9" y2="122.3"/><line x1="470.0" y1="160.0" x2="491.9" y2="157.7"/><path d="M491.9,122.3 A42.0,42.0 0 1 1 491.9,157.7"/><text x="530" y="144" text-anchor="middle">LOOP A</text><line x1="382.0" y1="230.0" x2="610.0" y2="230.0"/><line x1="398.0" y1="270.0" x2="610.0" y2="270.0"/><line x1="440.0" y1="222.0" x2="600.0" y2="222.0"/><line x1="440.0" y1="238.0" x2="600.0" y2="238.0"/><circle cx="440.0" cy="230.0" r="8.0"/><circle cx="600.0" cy="230.0" r="8.0"/><line x1="440.0" y1="262.0" x2="600.0" y2="262.0"/><line x1="440.0" y1="278.0" x2="600.0" y2="278.0"/><circle cx="440.0" cy="270.0" r="8.0"/><circle cx="600.0" cy="270.0" r="8.0"/><line x1="440.0" y1="238.0" x2="440.0" y2="262.0"/><line x1="600.0" y1="238.0" x2="600.0" y2="262.0"/><text x="520" y="197" text-anchor="middle">PL1  2x RG-58 (balanced) (100 &#8486;)</text><text x="520" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="610.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="610.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="634.0" y1="230.0" x2="657.9" y2="232.3"/><line x1="634.0" y1="270.0" x2="657.9" y2="267.7"/><path d="M657.9,232.3 A42.0,42.0 0 1 1 657.9,267.7"/><text x="696" y="254" text-anchor="middle">LOOP B</text></svg>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details class="group" open>
+      <summary>Reflector</summary>
+      <div class="gbody">
+        <div class="field"><label>Type</label>
+          <div class="seg" role="group" aria-label="reflector">
+            <button>none</button><button>ground</button><button class="on">radials</button>
+          </div></div>
+        <div class="inline">
+          <div class="field"><label for="spacing">Spacing <span class="unit">wl</span> <span class="prov" id="provSpacing">opt</span></label>
+            <input id="spacing" type="number" value="0.216" step="0.005" onchange="fieldEdited('spacing')"></div>
+          <div class="field"><label for="count">Radials</label>
+            <select id="count"><option>3</option><option>4</option><option>6</option><option>8</option></select></div>
+        </div>
+        <div class="field"><label for="droop">Droop <span class="unit">deg</span> <span class="prov" id="provDroop">opt</span></label>
+          <input id="droop" type="number" value="29.5" step="1" onchange="fieldEdited('droop')"></div>
+      </div>
+    </details>
+
+    <details class="group">
+      <summary>Advanced</summary>
+      <div class="gbody">
+        <div class="inline">
+          <div class="field"><label>Loop offset <span class="unit">mm</span></label>
+            <input type="number" value="10" onchange="retune()"></div>
+          <div class="field"><label>Feed gap <span class="unit">mm</span></label>
+            <input type="number" value="10" onchange="retune()"></div>
+        </div>
+        <div class="inline">
+          <div class="field"><label>Segments</label>
+            <input type="number" value="36" onchange="retune()"></div>
+          <div class="field"><label>System Z <span class="unit">Ω</span></label>
+            <select><option>50</option><option>75</option></select></div>
+        </div>
+        <div class="field"><label>AR margin <span class="unit">dB</span></label>
+          <input type="number" value="0.5" step="0.1"></div>
+        <div class="field"><label>Spec as JSON</label>
+          <button class="mini" onclick="toast('JSON editor would open here')">edit raw spec…</button></div>
+      </div>
+    </details>
+
+    <button class="applybtn" id="applyBtn" onclick="applyChanges()" disabled>Analyze</button>
+    <div class="optnote" id="applyNote">one nec2c evaluation of the spec as-is &middot; ~1 s</div>
+    <button class="optbtn" id="optBtn" onclick="optimize()">Optimize</button>
+    <div class="optnote">tunes perimeter to quadrature; searches reflector &middot; ~2 min with radials</div>
+
+    <div class="optpanel" id="optPanel">
+      <div style="display:flex; justify-content:space-between">
+        <span id="optStage">radials 3 — spacing sweep…</span>
+        <button class="cancel" onclick="cancelOpt()">cancel</button>
+      </div>
+      <div class="bar"><i id="optBar"></i></div>
+      <span id="optDetail" style="color:var(--muted)">spacing 0.28 wl · cost 1.62</span>
+    </div>
+
+  </div>
+
+  <!-- ============ results ============ -->
+  <div class="results">
+    <div class="tabs" role="tablist">
+      <button class="tab on" role="tab" onclick="tab(this,'cut')">Cut sheet</button>
+      <button class="tab" role="tab" onclick="tab(this,'sch')">Schematic</button>
+      <button class="tab" role="tab" onclick="tab(this,'charts')">Charts</button>
+      <button class="tab" role="tab" onclick="tab(this,'sky')">Sky maps</button>
+      <button class="tab" role="tab" onclick="tab(this,'3d')">3-D model</button>
+      <button class="tab" role="tab" onclick="tab(this,'files')">Files</button>
+    </div>
+    <div class="tabbody tuning-veil" id="veil">
+
+      <div class="pane on" id="pane-cut">
+        <div class="cutbar">
+          <button class="mini" onclick="openReport()">print view</button>
+          <button class="mini" onclick="toast('copied cut sheet text')">copy text</button>
+        </div>
+        <pre class="cut">Eggbeater cut sheet: 2 m
+========================================
+Frequency           : 145.9 MHz
+Wavelength          : 2054.8 mm
+Conductor           : round, 5 mm dia
+  equivalent radius : 2.5 mm
+Loop shape          : circle
+Reflector           : radials
+  loop-center height: 0.216 wl (443.8 mm)
+  radials           : 3 x 554.8 mm, 29.5085 deg droop
+----------------------------------------
+Both loops          : 2161.3 mm perimeter, 688.0 mm dia
+Loop offset         : 10 mm (loop A below, loop B above)
+Feed gap            : 10 mm at each loop bottom
+Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
+Feed                : feedline (via match) to junction across loop A; normal line to loop B
+----------------------------------------
+Match to 50 ohm:
+  1/4-wave Z0       : 47.9 ohms (use RG-58, 50 ohm)
+  1/4-wave length   : 339.0 mm (VF 0.66)
+----------------------------------------
+Predicted performance:
+  feedpoint Z      : 45.8 -0.0j ohms
+  VSWR (unmatched) : 1.09
+  loop current phase: +89.9 deg (target +/-90)
+  loop balance     : 1.060 |Ib/Ia| (1.0 = equal drive)
+  polarization sense: RHCP
+  axial ratio (cone): 1.54 dB mean, 3.83 dB worst (&lt;= 30 deg from zenith)
+  axial ratio (peak): 0.53 dB
+  coverage gain     : 1.12 dBi (worst case &lt;= 60 deg from zenith)</pre>
+      </div>
+
+      <div class="pane" id="pane-sch">
+        <p style="margin:0 0 10px; color:var(--muted); font-size:12.5px">
+          Feed and match — <span id="schName">line</span> scheme. The crossed/normal
+          loop B connection shown is the one the tool delivers.</p>
+        <div class="schwrap" id="schFull"><svg class="sch" viewBox="0 0 790 320" role="img" aria-label="Feed and match schematic"><text x="24" y="190" text-anchor="start">to rig (50 &#8486;)</text><circle cx="48.0" cy="120.0" r="3.5"/><circle cx="48.0" cy="160.0" r="3.5"/><line x1="51.5" y1="120.0" x2="280.0" y2="120.0"/><line x1="280.0" y1="120.0" x2="336.0" y2="120.0"/><line x1="336.0" y1="120.0" x2="470.0" y2="120.0"/><line x1="51.5" y1="160.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="160.0" x2="470.0" y2="160.0"/><line x1="90.0" y1="112.0" x2="250.0" y2="112.0"/><line x1="90.0" y1="128.0" x2="250.0" y2="128.0"/><circle cx="90.0" cy="120.0" r="8.0"/><circle cx="250.0" cy="120.0" r="8.0"/><line x1="90.0" y1="128.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="128.0" x2="250.0" y2="160.0"/><text x="170" y="87" text-anchor="middle">TL1  RG-58 (50 &#8486;)</text><text x="170" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="382.0" cy="120.0" r="3.0"/><circle class="dot" cx="398.0" cy="160.0" r="3.0"/><path d="M382.0,120.0 V153.0 A7.0,7.0 0 0 1 382.0,167.0 V230.0"/><line x1="398.0" y1="160.0" x2="398.0" y2="270.0"/><line x1="470.0" y1="120.0" x2="491.9" y2="122.3"/><line x1="470.0" y1="160.0" x2="491.9" y2="157.7"/><path d="M491.9,122.3 A42.0,42.0 0 1 1 491.9,157.7"/><text x="530" y="144" text-anchor="middle">LOOP A</text><line x1="382.0" y1="230.0" x2="610.0" y2="230.0"/><line x1="398.0" y1="270.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="270.0" x2="610.0" y2="270.0"/><line x1="440.0" y1="222.0" x2="600.0" y2="222.0"/><line x1="440.0" y1="238.0" x2="600.0" y2="238.0"/><circle cx="440.0" cy="230.0" r="8.0"/><circle cx="600.0" cy="230.0" r="8.0"/><line x1="440.0" y1="238.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="238.0" x2="600.0" y2="270.0"/><text x="520" y="197" text-anchor="middle">TL2  RG-62 (93 &#8486;)</text><text x="520" y="210" text-anchor="middle">1/4 wave  432 mm</text><line x1="610.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="610.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="634.0" y1="230.0" x2="657.9" y2="232.3"/><line x1="634.0" y1="270.0" x2="657.9" y2="267.7"/><path d="M657.9,232.3 A42.0,42.0 0 1 1 657.9,267.7"/><text x="696" y="254" text-anchor="middle">LOOP B</text></svg></div>
+      </div>
+
+      <div class="pane" id="pane-charts">
+        <div class="chartrow">
+          <figure class="chart">
+            <figcaption>VSWR vs frequency</figcaption>
+            <div id="vswrChart"></div>
+            <p class="note">Matched VSWR; dashed line marks 2:1. Band 143.7–152.9 MHz.</p>
+          </figure>
+          <figure class="chart">
+            <figcaption>Axial ratio vs frequency</figcaption>
+            <div id="arChart"></div>
+            <p class="note">Cone-mean AR; 3 dB crossings bound usable CP coverage. Band 143.4–150.3 MHz.</p>
+          </figure>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-sky">
+        <div class="polar">
+          <figure class="chart" style="flex:1; min-width:260px">
+            <figcaption>Gain over the sky</figcaption>
+            <div class="ph" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center">
+              polar az-el heatmap<br>(as on current plot pages)</div>
+          </figure>
+          <figure class="chart" style="flex:1; min-width:260px">
+            <figcaption>Axial ratio over the sky</figcaption>
+            <div class="ph" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center">
+              polar az-el heatmap<br>(as on current plot pages)</div>
+          </figure>
+        </div>
+      </div>
+
+      <div class="pane" id="pane-3d">
+        <div class="ph" style="min-height:380px; display:flex; align-items:center; justify-content:center">
+          interactive wire model — drag to orbit, scroll to zoom<br>
+          (viewer.js as on current plot pages)</div>
+      </div>
+
+      <div class="pane" id="pane-files">
+        <div class="filelist">
+          <div class="filerow"><span class="fname">2m.json</span>
+            <span class="fdesc">design spec</span>
+            <button onclick="toast('downloaded 2m.json')">download</button></div>
+          <div class="filerow"><span class="fname">2m.result.json</span>
+            <span class="fdesc">cut list + performance + bandwidths</span>
+            <button onclick="toast('downloaded 2m.result.json')">download</button></div>
+          <div class="filerow"><span class="fname">2m.nec</span>
+            <span class="fdesc">tuned NEC deck</span>
+            <button onclick="toast('downloaded 2m.nec')">download</button></div>
+          <div class="filerow"><span class="fname">open deck in AntennaSim</span>
+            <span class="fdesc">interactive explorer (external)</span>
+            <button onclick="toast('would open AntennaSim with this deck')">open ↗</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ print/report view ============ -->
+<div class="report" id="report" hidden>
+  <div class="report-tools">
+    <button class="mini" onclick="closeReport()">&#8592; back to designer</button>
+    <button class="mini" onclick="window.print()">print</button>
+    <span style="color:var(--muted); font-size:11.5px">or use the browser's Print (Ctrl+P)</span>
+  </div>
+  <h1 class="rtitle">Eggbeater design &mdash; 2 m</h1>
+  <div class="rmeta">tamago <span lang="ja">&#21365;&#27874;&#31435;&#12390;&#22120;</span>
+    &middot; 145.9 MHz &middot; RHCP &middot; generated 2026-07-22</div>
+  <div class="rmeta">tool <b>v0.1.0 (7af9063)</b> &middot; github.com/charlieh0tel/tamago &middot; design link: #spec=eyJmcmVxX21o&hellip;</div>
+  <section><h2>Cut sheet</h2>
+    <pre class="cut">Eggbeater cut sheet: 2 m
+========================================
+Frequency           : 145.9 MHz
+Wavelength          : 2054.8 mm
+Conductor           : round, 5 mm dia
+  equivalent radius : 2.5 mm
+Loop shape          : circle
+Reflector           : radials
+  loop-center height: 0.216 wl (443.8 mm)
+  radials           : 3 x 554.8 mm, 29.5085 deg droop
+----------------------------------------
+Both loops          : 2161.3 mm perimeter, 688.0 mm dia
+Loop offset         : 10 mm (loop A below, loop B above)
+Feed gap            : 10 mm at each loop bottom
+Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
+Feed                : feedline (via match) to junction across loop A; normal line to loop B
+----------------------------------------
+Match to 50 ohm:
+  1/4-wave Z0       : 47.9 ohms (use RG-58, 50 ohm)
+  1/4-wave length   : 339.0 mm (VF 0.66)
+----------------------------------------
+Predicted performance:
+  feedpoint Z      : 45.8 -0.0j ohms
+  VSWR (unmatched) : 1.09
+  loop current phase: +89.9 deg (target +/-90)
+  loop balance     : 1.060 |Ib/Ia| (1.0 = equal drive)
+  polarization sense: RHCP
+  axial ratio (cone): 1.54 dB mean, 3.83 dB worst (&lt;= 30 deg from zenith)
+  axial ratio (peak): 0.53 dB
+  coverage gain     : 1.12 dBi (worst case &lt;= 60 deg from zenith)</pre></section>
+  <section><h2>Feed and match</h2>
+    <div class="schwrap" id="repSch"></div></section>
+  <section class="rcharts"><h2>Performance</h2>
+    <div class="chartrow" id="repCharts"></div></section>
+  <section><h2>Sky maps</h2>
+    <div class="polar">
+      <div class="ph" style="flex:1; min-width:220px; aspect-ratio:1.6">gain az-el map</div>
+      <div class="ph" style="flex:1; min-width:220px; aspect-ratio:1.6">axial-ratio az-el map</div>
+    </div></section>
+</div>
+</div>
+
+<template id="tpl-line"><svg class="sch" viewBox="0 0 790 320" role="img" aria-label="Feed and match schematic"><text x="24" y="190" text-anchor="start">to rig (50 &#8486;)</text><circle cx="48.0" cy="120.0" r="3.5"/><circle cx="48.0" cy="160.0" r="3.5"/><line x1="51.5" y1="120.0" x2="280.0" y2="120.0"/><line x1="280.0" y1="120.0" x2="336.0" y2="120.0"/><line x1="336.0" y1="120.0" x2="470.0" y2="120.0"/><line x1="51.5" y1="160.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="160.0" x2="470.0" y2="160.0"/><line x1="90.0" y1="112.0" x2="250.0" y2="112.0"/><line x1="90.0" y1="128.0" x2="250.0" y2="128.0"/><circle cx="90.0" cy="120.0" r="8.0"/><circle cx="250.0" cy="120.0" r="8.0"/><line x1="90.0" y1="128.0" x2="90.0" y2="160.0"/><line x1="250.0" y1="128.0" x2="250.0" y2="160.0"/><text x="170" y="87" text-anchor="middle">TL1  RG-58 (50 &#8486;)</text><text x="170" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="382.0" cy="120.0" r="3.0"/><circle class="dot" cx="398.0" cy="160.0" r="3.0"/><path d="M382.0,120.0 V153.0 A7.0,7.0 0 0 1 382.0,167.0 V230.0"/><line x1="398.0" y1="160.0" x2="398.0" y2="270.0"/><line x1="470.0" y1="120.0" x2="491.9" y2="122.3"/><line x1="470.0" y1="160.0" x2="491.9" y2="157.7"/><path d="M491.9,122.3 A42.0,42.0 0 1 1 491.9,157.7"/><text x="530" y="144" text-anchor="middle">LOOP A</text><line x1="382.0" y1="230.0" x2="610.0" y2="230.0"/><line x1="398.0" y1="270.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="270.0" x2="610.0" y2="270.0"/><line x1="440.0" y1="222.0" x2="600.0" y2="222.0"/><line x1="440.0" y1="238.0" x2="600.0" y2="238.0"/><circle cx="440.0" cy="230.0" r="8.0"/><circle cx="600.0" cy="230.0" r="8.0"/><line x1="440.0" y1="238.0" x2="440.0" y2="270.0"/><line x1="600.0" y1="238.0" x2="600.0" y2="270.0"/><text x="520" y="197" text-anchor="middle">TL2  RG-62 (93 &#8486;)</text><text x="520" y="210" text-anchor="middle">1/4 wave  432 mm</text><line x1="610.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="610.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="634.0" y1="230.0" x2="657.9" y2="232.3"/><line x1="634.0" y1="270.0" x2="657.9" y2="267.7"/><path d="M657.9,232.3 A42.0,42.0 0 1 1 657.9,267.7"/><text x="696" y="254" text-anchor="middle">LOOP B</text></svg></template><template id="tpl-turnstile"><svg class="sch" viewBox="0 0 810 320" role="img" aria-label="Feed and match schematic"><text x="24" y="190" text-anchor="start">to rig (50 &#8486;, 1:1 choke)</text><circle cx="48.0" cy="120.0" r="3.5"/><circle cx="48.0" cy="160.0" r="3.5"/><line x1="51.5" y1="120.0" x2="268.0" y2="120.0"/><line x1="268.0" y1="120.0" x2="320.0" y2="120.0"/><line x1="320.0" y1="120.0" x2="560.0" y2="120.0"/><line x1="51.5" y1="160.0" x2="96.0" y2="160.0"/><line x1="244.0" y1="160.0" x2="560.0" y2="160.0"/><line x1="96.0" y1="112.0" x2="244.0" y2="112.0"/><line x1="96.0" y1="128.0" x2="244.0" y2="128.0"/><circle cx="96.0" cy="120.0" r="8.0"/><circle cx="244.0" cy="120.0" r="8.0"/><line x1="96.0" y1="86.0" x2="244.0" y2="86.0"/><line x1="96.0" y1="102.0" x2="244.0" y2="102.0"/><circle cx="96.0" cy="94.0" r="8.0"/><circle cx="244.0" cy="94.0" r="8.0"/><line x1="84.0" y1="94.0" x2="256.0" y2="94.0"/><line x1="84.0" y1="120.0" x2="84.0" y2="94.0"/><line x1="256.0" y1="120.0" x2="256.0" y2="94.0"/><circle class="dot" cx="84.0" cy="120.0" r="3.0"/><circle class="dot" cx="256.0" cy="120.0" r="3.0"/><line x1="96.0" y1="102.0" x2="96.0" y2="112.0"/><line x1="244.0" y1="102.0" x2="244.0" y2="112.0"/><line x1="96.0" y1="128.0" x2="96.0" y2="160.0"/><line x1="244.0" y1="128.0" x2="244.0" y2="160.0"/><text x="170" y="61" text-anchor="middle">TL1  2x RG-59 (parallel) (37.5 &#8486;)</text><text x="170" y="74" text-anchor="middle">1/4 wave  339 mm</text><line x1="404.0" y1="112.0" x2="524.0" y2="112.0"/><line x1="404.0" y1="128.0" x2="524.0" y2="128.0"/><circle cx="404.0" cy="120.0" r="8.0"/><circle cx="524.0" cy="120.0" r="8.0"/><line x1="404.0" y1="128.0" x2="404.0" y2="160.0"/><line x1="524.0" y1="128.0" x2="524.0" y2="160.0"/><text x="464" y="87" text-anchor="middle">Q1  RG-59 (75 &#8486;)</text><text x="464" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="348.0" cy="120.0" r="3.0"/><circle class="dot" cx="364.0" cy="160.0" r="3.0"/><path d="M348.0,120.0 V153.0 A7.0,7.0 0 0 1 348.0,167.0 V230.0"/><line x1="364.0" y1="160.0" x2="364.0" y2="270.0"/><line x1="560.0" y1="120.0" x2="581.9" y2="122.3"/><line x1="560.0" y1="160.0" x2="581.9" y2="157.7"/><path d="M581.9,122.3 A42.0,42.0 0 1 1 581.9,157.7"/><text x="620" y="144" text-anchor="middle">LOOP A</text><line x1="348.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="364.0" y1="270.0" x2="404.0" y2="270.0"/><line x1="500.0" y1="270.0" x2="528.0" y2="270.0"/><line x1="624.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="404.0" y1="222.0" x2="500.0" y2="222.0"/><line x1="404.0" y1="238.0" x2="500.0" y2="238.0"/><circle cx="404.0" cy="230.0" r="8.0"/><circle cx="500.0" cy="230.0" r="8.0"/><line x1="404.0" y1="238.0" x2="404.0" y2="270.0"/><line x1="500.0" y1="238.0" x2="500.0" y2="270.0"/><text x="452" y="197" text-anchor="middle">DL1  RG-58 (50 &#8486;)</text><text x="452" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="528.0" y1="222.0" x2="624.0" y2="222.0"/><line x1="528.0" y1="238.0" x2="624.0" y2="238.0"/><circle cx="528.0" cy="230.0" r="8.0"/><circle cx="624.0" cy="230.0" r="8.0"/><line x1="528.0" y1="238.0" x2="528.0" y2="270.0"/><line x1="624.0" y1="238.0" x2="624.0" y2="270.0"/><text x="576" y="197" text-anchor="middle">Q2  RG-59 (75 &#8486;)</text><text x="576" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="634.0" y1="230.0" x2="658.0" y2="230.0"/><line x1="634.0" y1="270.0" x2="658.0" y2="270.0"/><line x1="658.0" y1="230.0" x2="681.9" y2="232.3"/><line x1="658.0" y1="270.0" x2="681.9" y2="267.7"/><path d="M681.9,232.3 A42.0,42.0 0 1 1 681.9,267.7"/><text x="720" y="254" text-anchor="middle">LOOP B</text></svg></template><template id="tpl-balun4"><svg class="sch" viewBox="0 0 780 330" role="img" aria-label="Feed and match schematic"><circle cx="40.0" cy="120.0" r="3.5"/><circle cx="40.0" cy="160.0" r="3.5"/><line x1="43.5" y1="120.0" x2="124.0" y2="120.0"/><line x1="43.5" y1="160.0" x2="104.4" y2="160.0"/><circle class="dot" cx="104.4" cy="160.0" r="3.0"/><path d="M124.0,120.0 A20.0,20.0 0 0 0 124.0,160.0"/><path d="M124.0,112.0 A28.0,28.0 0 0 0 124.0,168.0"/><path d="M124.0,128.0 A12.0,12.0 0 0 0 124.0,152.0"/><circle cx="124.0" cy="120.0" r="8.0"/><circle cx="124.0" cy="160.0" r="8.0"/><circle class="dot" cx="124.0" cy="120.0" r="3.0"/><circle class="dot" cx="124.0" cy="160.0" r="3.0"/><text x="20" y="202" text-anchor="start">BL1  RG-58 4:1 balun</text><text x="20" y="215" text-anchor="start">1/2 wave  678 mm</text><text x="20" y="238" text-anchor="start">to rig (50 &#8486;)</text><line x1="124.0" y1="120.0" x2="470.0" y2="120.0"/><line x1="124.0" y1="160.0" x2="470.0" y2="160.0"/><line x1="180.0" y1="112.0" x2="320.0" y2="112.0"/><line x1="180.0" y1="128.0" x2="320.0" y2="128.0"/><circle cx="180.0" cy="120.0" r="8.0"/><circle cx="320.0" cy="120.0" r="8.0"/><line x1="180.0" y1="152.0" x2="320.0" y2="152.0"/><line x1="180.0" y1="168.0" x2="320.0" y2="168.0"/><circle cx="180.0" cy="160.0" r="8.0"/><circle cx="320.0" cy="160.0" r="8.0"/><line x1="180.0" y1="128.0" x2="180.0" y2="152.0"/><line x1="320.0" y1="128.0" x2="320.0" y2="152.0"/><text x="250" y="87" text-anchor="middle">Q1  2x RG-58 (balanced) (100 &#8486;)</text><text x="250" y="100" text-anchor="middle">1/4 wave  339 mm</text><circle class="dot" cx="382.0" cy="120.0" r="3.0"/><circle class="dot" cx="398.0" cy="160.0" r="3.0"/><path d="M382.0,120.0 V153.0 A7.0,7.0 0 0 1 382.0,167.0 V230.0"/><line x1="398.0" y1="160.0" x2="398.0" y2="270.0"/><line x1="470.0" y1="120.0" x2="491.9" y2="122.3"/><line x1="470.0" y1="160.0" x2="491.9" y2="157.7"/><path d="M491.9,122.3 A42.0,42.0 0 1 1 491.9,157.7"/><text x="530" y="144" text-anchor="middle">LOOP A</text><line x1="382.0" y1="230.0" x2="610.0" y2="230.0"/><line x1="398.0" y1="270.0" x2="610.0" y2="270.0"/><line x1="440.0" y1="222.0" x2="600.0" y2="222.0"/><line x1="440.0" y1="238.0" x2="600.0" y2="238.0"/><circle cx="440.0" cy="230.0" r="8.0"/><circle cx="600.0" cy="230.0" r="8.0"/><line x1="440.0" y1="262.0" x2="600.0" y2="262.0"/><line x1="440.0" y1="278.0" x2="600.0" y2="278.0"/><circle cx="440.0" cy="270.0" r="8.0"/><circle cx="600.0" cy="270.0" r="8.0"/><line x1="440.0" y1="238.0" x2="440.0" y2="262.0"/><line x1="600.0" y1="238.0" x2="600.0" y2="262.0"/><text x="520" y="197" text-anchor="middle">PL1  2x RG-58 (balanced) (100 &#8486;)</text><text x="520" y="210" text-anchor="middle">1/4 wave  339 mm</text><line x1="610.0" y1="230.0" x2="634.0" y2="230.0"/><line x1="610.0" y1="270.0" x2="634.0" y2="270.0"/><line x1="634.0" y1="230.0" x2="657.9" y2="232.3"/><line x1="634.0" y1="270.0" x2="657.9" y2="267.7"/><path d="M657.9,232.3 A42.0,42.0 0 1 1 657.9,267.7"/><text x="696" y="254" text-anchor="middle">LOOP B</text></svg></template>
+<div class="toast" id="toast"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"), 2200); }
+
+function openReport(){
+  document.body.classList.add("reporting");
+  const rep=$("report"); rep.hidden=false;
+  $("repSch").innerHTML=SCH[document.querySelector(".feedcard.on .fc-tag").textContent.split(" ")[0]]||SCH.line;
+  $("repCharts").innerHTML="";
+  document.querySelectorAll("#pane-charts figure.chart").forEach(f=>{
+    $("repCharts").appendChild(f.cloneNode(true)); });
+  window.scrollTo(0,0);
+}
+function closeReport(){
+  document.body.classList.remove("reporting"); $("report").hidden=true;
+}
+if(location.hash==="#report"){ addEventListener("load",()=>openReport()); }
+
+function tab(btn, name){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  document.querySelectorAll(".pane").forEach(p=>p.classList.remove("on"));
+  $("pane-"+name).classList.add("on");
+}
+
+/* provenance: who chose each value; staleness: one global flag */
+let tuneTimer=null, optStale=false;
+const prov={perim:"opt", spacing:"opt", droop:"opt"};
+function refreshProv(){
+  for(const which in prov){
+    const el=$("prov"+which[0].toUpperCase()+which.slice(1));
+    const stale = prov[which]==="opt" && optStale;
+    el.textContent = prov[which] + (stale ? "*" : "");
+    el.dataset.v = prov[which];
+    el.dataset.stale = stale ? "1" : "0";
+    el.title = stale ? "optimizer value, but inputs changed since that run"
+      : {opt:"chosen by the optimizer", est:"closed-form estimate (tracks inputs)",
+         user:"set by you"}[prov[which]];
+  }
+}
+function setProv(which, v){ prov[which]=v; refreshProv(); }
+function estValue(){ return (1.05*299792.458/parseFloat($("freq").value||145.9)).toFixed(1); }
+function flash(id){ const el=$(id); el.classList.add("flash");
+  setTimeout(()=>el.classList.remove("flash"), 1400); }
+function markEdited(){
+  optStale=true; refreshProv();
+  // EST is a live formula: re-derive estimate-bound fields from current inputs.
+  if(prov.perim==="est" && $("perim").value!==estValue()){
+    $("perim").value=estValue(); flash("perim");
+  }
+  const chip=$("chipTune");
+  chip.classList.add("tuning");
+  chip.innerHTML="edited — <b>not analyzed</b>";
+  $("applyBtn").disabled=false;
+  $("applyNote").textContent="press Analyze (~1 s)";
+}
+function retune(){ markEdited(); }
+function freqEdited(){ markEdited(); }
+function fieldEdited(which){ setProv(which,"user"); markEdited(); }
+function perimEdited(){ fieldEdited("perim"); }
+function estimate(){
+  setProv("perim","est");
+  $("perim").value=estValue(); flash("perim");
+  markEdited();
+  toast("estimate: 1.05 × wavelength = "+estValue()+" mm (tracks frequency)");
+}
+function applyChanges(){
+  const chip=$("chipTune"), veil=$("veil");
+  $("applyBtn").disabled=true;
+  chip.innerHTML="analyzing…";
+  veil.parentElement.classList.add("tuning");
+  clearTimeout(tuneTimer);
+  tuneTimer=setTimeout(()=>{
+    veil.parentElement.classList.remove("tuning");
+    $("applyNote").textContent="analysis is current";
+    if(prov.perim==="opt" && !optStale){
+      chip.classList.remove("tuning");
+      chip.innerHTML="tuned <b>✓ quadrature +89.9°</b>";
+      toast("analyzed in 0.9 s (mock)");
+    } else {
+      chip.classList.add("tuning");
+      chip.innerHTML="analyzed — <b>phase +84.1°, not tuned</b>";
+      toast("analyzed in 0.9 s — press Optimize to tune (mock)");
+    }
+  }, 900);
+}
+/* feed picker */
+const SCH={}; ["line","turnstile","balun4"].forEach(n=>{SCH[n]=document.getElementById("tpl-"+n).innerHTML;});
+function pickFeed(card, name){
+  document.querySelectorAll(".feedcard").forEach(c=>{
+    c.classList.remove("on"); c.setAttribute("aria-checked","false"); });
+  card.classList.add("on"); card.setAttribute("aria-checked","true");
+  $("schFull").innerHTML=SCH[name];
+  $("schName").textContent=name;
+  markEdited();
+}
+
+/* optimizer demo */
+let optTimer=null;
+const STAGES=[
+  [6,  "tuning perimeter to quadrature…", "factor 1.052 · phase +89.9°"],
+  [22, "radials 3 — spacing sweep…", "spacing 0.28 wl · cost 1.62"],
+  [40, "radials 3 — spacing sweep…", "spacing 0.22 wl · cost 1.31"],
+  [58, "radials 3 — droop sweep…",   "droop 18° · cost 1.22"],
+  [76, "radials 3 — droop sweep…",   "droop 29° · cost 1.11"],
+  [92, "radials 3 — refine pass 2…", "spacing 0.216 wl · cost 1.09"],
+  [100,"done — 3 radials feasible",  "AR 1.54 dB · VSWR 1.09"]];
+function optimize(){
+  $("optBtn").disabled=true; $("applyBtn").disabled=true;
+  $("optPanel").classList.add("show");
+  let i=0;
+  function step(){
+    const [pct,stage,detail]=STAGES[i];
+    $("optBar").style.width=pct+"%";
+    $("optStage").textContent=stage; $("optDetail").textContent=detail;
+    i++;
+    if(i<STAGES.length){ optTimer=setTimeout(step, 800); }
+    else { optTimer=setTimeout(finishOpt, 700); }
+  }
+  step();
+}
+function finishOpt(){
+  optStale=false;
+  $("optPanel").classList.remove("show");
+  $("optBtn").disabled=false;
+  for(const [id,val,which] of [["perim","2161.3","perim"],
+      ["spacing","0.216","spacing"], ["droop","29.5","droop"]]){
+    const el=$(id); el.value=val; el.classList.add("flash");
+    setTimeout(()=>el.classList.remove("flash"), 1400);
+    setProv(which,"opt");
+  }
+  const chip=$("chipTune");
+  chip.classList.remove("tuning");
+  chip.innerHTML="tuned <b>✓ quadrature +89.9°</b>";
+  $("applyBtn").disabled=true;
+  $("applyNote").textContent="analysis is current";
+  toast("optimized — perimeter and reflector written to the form (undo via estimate/manual edit)");
+}
+function cancelOpt(){ clearTimeout(optTimer); $("optPanel").classList.remove("show");
+  $("optBtn").disabled=false; $("applyBtn").disabled=false;
+  toast("optimization cancelled — form unchanged"); }
+
+/* ---- charts (canned data, real shapes) ---- */
+function makeChart(el, pts, ymin, ymax, yticks, limit, limitText, fmt){
+  const W=440, H=250, ML=44, MR=12, MT=12, MB=34;
+  const sx=x=>ML+(x+10)/20*(W-ML-MR);
+  const sy=y=>(H-MB)-(y-ymin)/(ymax-ymin)*(H-MT-MB);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  for(const ty of yticks){
+    s+=`<line x1="${ML}" y1="${sy(ty)}" x2="${W-MR}" y2="${sy(ty)}" stroke="var(--line)" stroke-width="1"/>`;
+    s+=`<text class="tick" x="${ML-6}" y="${sy(ty)+3}" text-anchor="end">${ty}</text>`;
+  }
+  for(const tx of [-10,-5,0,5,10]){
+    s+=`<text class="tick" x="${sx(tx)}" y="${H-MB+14}" text-anchor="middle">${tx>0?"+"+tx:tx}</text>`;
+  }
+  s+=`<line x1="${ML}" y1="${sy(limit)}" x2="${W-MR}" y2="${sy(limit)}" stroke="var(--limit)" stroke-width="1.3" stroke-dasharray="5 4"/>`;
+  s+=`<text class="limitlbl" x="${W-MR-4}" y="${sy(limit)-5}" text-anchor="end">${limitText}</text>`;
+  s+=`<rect x="${ML}" y="${MT}" width="${W-ML-MR}" height="${H-MT-MB}" fill="none" stroke="var(--line)" stroke-width="1.1"/>`;
+  const poly=pts.map(p=>`${sx(p[0]).toFixed(1)},${sy(Math.min(p[1],ymax)).toFixed(1)}`).join(" ");
+  s+=`<polyline points="${poly}" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s+=`<text class="axis" x="${(ML+W-MR)/2}" y="${H-4}" text-anchor="middle">frequency offset (%)</text>`;
+  s+=`<rect x="${ML}" y="${MT}" width="${W-ML-MR}" height="${H-MT-MB}" fill="transparent" class="hover"/>`;
+  s+="</svg>";
+  el.innerHTML=s;
+  const svg=el.querySelector("svg"), tip=$("tip");
+  svg.addEventListener("mousemove",ev=>{
+    const r=svg.getBoundingClientRect();
+    const fx=((ev.clientX-r.left)/r.width*W-ML)/(W-ML-MR)*20-10;
+    if(fx<-10||fx>10){ tip.style.display="none"; return; }
+    let best=pts[0]; for(const p of pts) if(Math.abs(p[0]-fx)<Math.abs(best[0]-fx)) best=p;
+    tip.style.display="block"; tip.style.left=ev.clientX+"px"; tip.style.top=ev.clientY+"px";
+    tip.textContent=`${best[0]>0?"+":""}${best[0].toFixed(1)}%  ·  ${fmt(best[1])}`;
+  });
+  svg.addEventListener("mouseleave",()=>{ tip.style.display="none"; });
+}
+const vswrPts=[], arPts=[];
+for(let i=-10;i<=10;i+=0.5){
+  vswrPts.push([i, 1.09+0.018*i*i+0.004*Math.abs(i)*i]);
+  arPts.push([i, Math.min(10, 1.54+0.10*(i-0.5)*(i-0.5)+(i<0?0.05*i*i:0))]);
+}
+refreshProv();
+makeChart($("vswrChart"), vswrPts, 1, 3, [1,1.5,2,2.5,3], 2.0, "2:1", v=>"VSWR "+v.toFixed(2));
+makeChart($("arChart"), arPts, 0, 10, [0,2,4,6,8,10], 3.0, "3 dB", v=>v.toFixed(2)+" dB");
+</script>
+
+</body>
+</html>
