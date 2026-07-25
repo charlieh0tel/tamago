@@ -5,7 +5,7 @@
 
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { antennaSimDeck, design } from "../src/engine/design";
+import { antennaSimDeck, antennaSimJson, design } from "../src/engine/design";
 import { parseOutput } from "../src/engine/nec";
 import { type DesignSpec, specFromDict } from "../src/engine/spec";
 import { runNec } from "../wasm/runner.mjs";
@@ -50,6 +50,23 @@ describe("antennaSimDeck", () => {
       // Ideal-quadrature drive can only improve on the harness's phase error;
       // allow a little slack for the loops' mutual coupling.
       expect(exported.arDb).toBeLessThan(Math.max(harness.arDb + 0.5, 1.0));
+
+      // Native project JSON: same sources, AntennaSim's export field shape.
+      const project = JSON.parse(antennaSimJson(result));
+      expect(project.version).toBe(1);
+      expect(project.wires.length).toBeGreaterThan(0);
+      for (const w of project.wires) {
+        expect(w).toMatchObject({
+          tag: expect.any(Number),
+          segments: expect.any(Number),
+        });
+        expect(w.radius).toBeGreaterThan(0.0);
+      }
+      expect(project.excitations).toHaveLength(2);
+      const vB = project.excitations[1];
+      expect(Math.hypot(vB.voltage_real, vB.voltage_imag)).toBeCloseTo(1.0, 9);
+      expect(Math.abs(vB.voltage_imag)).toBeGreaterThan(0.9);
+      expect(project.ground.type).toMatch(/^(free_space|perfect)$/);
     });
   }
 });

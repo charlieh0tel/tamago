@@ -158,11 +158,12 @@ the golden files.
   `skyData` with its own React SVG components (Charts, SkyMaps) instead.
 - **`cli.py`**: argument parsing and the emit-spec/emit-result/deck entry points
   (the browser equivalent is the UI).
-- **AntennaSim deck export**: their .nec importer silently discards TL cards
-  (and ignores EK), so the tuned deck cannot import faithfully. The Files tab
-  instead offers `antennaSimDeck` (engine `design.ts`): the same geometry with
-  the harness replaced by quadrature voltage sources on the loop feeds, driven
-  at the delivered phase. Verified equivalent at boresight
+- **AntennaSim export**: their .nec importer silently discards TL cards (and
+  ignores EK), so the tuned deck cannot import faithfully. The Files tab
+  instead offers `antennaSimJson` (engine `design.ts`): their native project
+  JSON with the harness replaced by quadrature voltage sources on the loop
+  feeds, driven at the delivered phase. The equivalent deck (`antennaSimDeck`)
+  is verified against the harness deck at boresight via nec2c
   (`test/antennasim-deck.test.ts`).
 - **Optimizer progress detail**: the worker surfaces the coarse stage plus a
   running nec2c-run count and elapsed time; per-candidate cost/spacing is not

@@ -795,12 +795,15 @@ export function tunedGeometry(result: DesignResult): {
   return { wires, feeds };
 }
 
-// AntennaSim's .nec importer keeps GW/GN/EX/FR but silently discards TL cards,
-// so the harness cannot survive an import there. Emit an import-safe deck that
-// replaces the harness with a voltage source on each loop feed segment, loop B
-// driven at the phase the tuned harness actually delivers. Geometry and
-// pattern carry over; feed-point impedance and match detail do not.
-export function antennaSimDeck(result: DesignResult): string {
+// AntennaSim cannot represent the TL harness (its .nec importer silently
+// discards TL cards), so exports for it replace the harness with a voltage
+// source on each loop feed segment, loop B driven at the phase the tuned
+// harness actually delivers. Geometry and pattern carry over; feed-point
+// impedance and match detail do not.
+function antennaSimModel(result: DesignResult): {
+  wires: Wire[];
+  sources: Source[];
+} {
   const spec = result.spec;
   const { egg, wavelength } = buildEggbeater(spec, result.baseFactor);
   const wires = [...egg.wires, ...reflectorWires(spec, wavelength)];
@@ -820,6 +823,12 @@ export function antennaSimDeck(result: DesignResult): string {
       vImag: Math.sin(phase),
     },
   ];
+  return { wires, sources };
+}
+
+export function antennaSimDeck(result: DesignResult): string {
+  const spec = result.spec;
+  const { wires, sources } = antennaSimModel(result);
   return buildDeck(
     [
       ...commentLines(spec),
@@ -831,6 +840,46 @@ export function antennaSimDeck(result: DesignResult): string {
     spec.freqMhz,
     DEFAULT_GRID,
   );
+}
+
+// AntennaSim native project JSON (the shape its own Export JSON writes):
+// wires in metres, excitations with complex voltages, ground, and a small
+// frequency sweep centred on the design frequency.
+export function antennaSimJson(result: DesignResult): string {
+  const spec = result.spec;
+  const { wires, sources } = antennaSimModel(result);
+  const data = {
+    version: 1,
+    title: spec.label !== null ? spec.label : "tamago eggbeater",
+    wires: wires.map((w) => ({
+      tag: w.tag,
+      segments: w.segments,
+      x1: w.x1,
+      y1: w.y1,
+      z1: w.z1,
+      x2: w.x2,
+      y2: w.y2,
+      z2: w.z2,
+      radius: w.radiusM,
+    })),
+    excitations: sources.map((s) => ({
+      wire_tag: s.tag,
+      segment: s.segment,
+      voltage_real: s.vReal,
+      voltage_imag: s.vImag,
+    })),
+    loads: [],
+    transmission_lines: [],
+    ground: {
+      type: spec.reflector === REFLECTOR_GROUND ? "perfect" : "free_space",
+    },
+    frequency: {
+      start_mhz: spec.freqMhz * 0.95,
+      stop_mhz: spec.freqMhz * 1.05,
+      steps: 11,
+    },
+  };
+  return `${JSON.stringify(data, null, 2)}\n`;
 }
 
 // --- Reflector optimizer. ---
