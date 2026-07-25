@@ -1,0 +1,81 @@
+{
+  "spec": {
+    "freq_mhz": 145.9,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "line",
+    "loop_shape": "circle",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "radials",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 16,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 145.9,
+    "wavelength_mm": 2054.7803838245377,
+    "loop_shape": "circle",
+    "reflector": "radials",
+    "loop_center_height_wl": 0.25,
+    "loop_center_height_mm": 513.6950959561344,
+    "radials": {
+      "count": 8,
+      "length_mm": 554.7907036326252,
+      "droop_deg": 0.0
+    },
+    "loop": {
+      "perimeter_mm": 2157.5194030157645,
+      "width_mm": 686.7597556132681
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "line",
+    "phasing_line": {
+      "coax": {
+        "name": "RG-62",
+        "z0_ohm": 93.0,
+        "vf": 0.84
+      },
+      "length_mm": 431.5038806031529,
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "series_element": null,
+      "transformer_z0_ohm": 47.60042016621282,
+      "transformer_coax": {
+        "name": "RG-58",
+        "z0_ohm": 50.0,
+        "vf": 0.66
+      },
+      "transformer_length_mm": 339.0387633310487
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 45.316,
+      "imag": 0.088077
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 1.1033822207525636,
+    "vswr_matched": 1.1033822207525634,
+    "loop_current_phase_deg": 90.38989015808221,
+    "loop_balance": 0.8369851745953772,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 1.961058683816163,
+    "axial_ratio_cone_worst_db": 3.861484462325363,
+    "axial_ratio_peak_db": 1.5257961120687444,
+    "coverage_gain_dbi": 2.92
+  }
+}

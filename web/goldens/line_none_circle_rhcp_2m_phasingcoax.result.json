@@ -1,0 +1,79 @@
+{
+  "spec": {
+    "freq_mhz": 145.9,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "line",
+    "loop_shape": "circle",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "phasing_coax": {
+      "name": "RG-58",
+      "z0_ohm": 50.0,
+      "vf": 0.66
+    },
+    "system_z_ohm": 50.0,
+    "reflector": "none",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 16,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 145.9,
+    "wavelength_mm": 2054.7803838245377,
+    "loop_shape": "circle",
+    "reflector": "none",
+    "loop": {
+      "perimeter_mm": 2213.994271335393,
+      "width_mm": 704.7362645203334
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "line",
+    "phasing_line": {
+      "coax": {
+        "name": "RG-58",
+        "z0_ohm": 50.0,
+        "vf": 0.66
+      },
+      "length_mm": 339.0387633310487,
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "series_element": null,
+      "transformer_z0_ohm": 32.739883933819925,
+      "transformer_coax": {
+        "name": "2x RG-59 (parallel)",
+        "z0_ohm": 37.5,
+        "vf": 0.66
+      },
+      "transformer_length_mm": 339.0387633310487
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 21.438,
+      "imag": -0.017724
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 2.3323074772813963,
+    "vswr_matched": 1.3119239974781598,
+    "loop_current_phase_deg": 89.90792105098808,
+    "loop_balance": 1.7660023340073234,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 5.057155853735757,
+    "axial_ratio_cone_worst_db": 7.842325112860202,
+    "axial_ratio_peak_db": 38.56235985387749,
+    "coverage_gain_dbi": -0.63
+  }
+}

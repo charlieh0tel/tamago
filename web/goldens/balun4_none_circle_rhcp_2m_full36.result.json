@@ -1,0 +1,86 @@
+{
+  "spec": {
+    "freq_mhz": 145.9,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "balun4",
+    "loop_shape": "circle",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "none",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 36,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 145.9,
+    "wavelength_mm": 2054.7803838245377,
+    "loop_shape": "circle",
+    "reflector": "none",
+    "loop": {
+      "perimeter_mm": 2196.566693412304,
+      "width_mm": 699.1888941751761
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "balun4",
+    "harness": {
+      "phasing_line": {
+        "coax": {
+          "name": "2x RG-58 (balanced)",
+          "z0_ohm": 100.0,
+          "vf": 0.66
+        },
+        "length_mm": 339.0387633310487
+      },
+      "q_section": {
+        "coax": {
+          "name": "2x RG-58 (balanced)",
+          "z0_ohm": 100.0,
+          "vf": 0.66
+        },
+        "length_mm": 339.0387633310487
+      },
+      "balun": {
+        "kind": "half-wave 4:1",
+        "coax": {
+          "name": "RG-58",
+          "z0_ohm": 50.0,
+          "vf": 0.66
+        },
+        "length_mm": 678.0775266620974
+      },
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "network": "harness"
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 49.497,
+      "imag": -0.0032276
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 1.010162442320028,
+    "vswr_matched": 1.010162442320028,
+    "loop_current_phase_deg": 89.97359349848779,
+    "loop_balance": 1.1530965429596363,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 1.8041271512214285,
+    "axial_ratio_cone_worst_db": 4.153567272968529,
+    "axial_ratio_peak_db": 35.089746643717,
+    "coverage_gain_dbi": -0.24
+  }
+}

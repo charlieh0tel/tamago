@@ -1,0 +1,21 @@
+{
+  "freq_mhz": 145.9,
+  "conductor": {
+    "kind": "round",
+    "diameter_mm": 5.0
+  },
+  "sense": "lhcp",
+  "feed": "balun4",
+  "loop_shape": "circle",
+  "corner_radius_wl": 0.05,
+  "loop_offset_mm": 10.0,
+  "feed_gap_mm": 10.0,
+  "system_z_ohm": 50.0,
+  "reflector": "none",
+  "reflector_spacing_wl": 0.25,
+  "ar_margin_db": 0.5,
+  "segments": 16,
+  "radial_count": 8,
+  "radial_length_wl": 0.27,
+  "radial_droop_deg": 0.0
+}

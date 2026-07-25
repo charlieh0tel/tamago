@@ -1,0 +1,90 @@
+{
+  "spec": {
+    "freq_mhz": 436.0,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "turnstile",
+    "loop_shape": "square",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "ground",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 16,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 436.0,
+    "wavelength_mm": 687.597380733945,
+    "loop_shape": "square",
+    "reflector": "ground",
+    "loop_center_height_wl": 0.25,
+    "loop_center_height_mm": 171.89934518348625,
+    "loop": {
+      "perimeter_mm": 792.7685951441921,
+      "width_mm": 198.19214878604825
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "turnstile",
+    "harness": {
+      "q_section": {
+        "coax": {
+          "name": "RG-59",
+          "z0_ohm": 75.0,
+          "vf": 0.66
+        },
+        "length_mm": 113.45356782110092,
+        "count": 2
+      },
+      "delay_line": {
+        "coax": {
+          "name": "RG-58",
+          "z0_ohm": 50.0,
+          "vf": 0.66
+        },
+        "length_mm": 113.45356782110092
+      },
+      "balun": {
+        "kind": "1:1 current choke"
+      },
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "series_element": null,
+      "transformer_z0_ohm": 36.033317915507034,
+      "transformer_coax": {
+        "name": "2x RG-59 (parallel)",
+        "z0_ohm": 37.5,
+        "vf": 0.66
+      },
+      "transformer_length_mm": 113.45356782110092
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 25.968,
+      "imag": -0.35054
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 1.9255762947609922,
+    "vswr_matched": 1.0841975308727245,
+    "loop_current_phase_deg": 89.5614815719079,
+    "loop_balance": 1.020655861466905,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 1.1353914955615036,
+    "axial_ratio_cone_worst_db": 2.6318139337008004,
+    "axial_ratio_peak_db": 1.3302542430258912,
+    "coverage_gain_dbi": 3.65
+  }
+}

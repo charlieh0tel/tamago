@@ -1,0 +1,28 @@
+Eggbeater cut sheet
+========================================
+Frequency           : 145.9 MHz
+Wavelength          : 2054.8 mm
+Conductor           : round, 5 mm dia
+  equivalent radius : 2.5 mm
+Loop shape          : circle
+Reflector           : none
+----------------------------------------
+Both loops          : 2214.0 mm perimeter, 704.7 mm dia
+Loop offset         : 10 mm (loop A below, loop B above)
+Feed gap            : 10 mm at each loop bottom
+Phasing line        : 339.0 mm (RG-58, 50 ohm, 1/4 wave, VF 0.66)
+Feed                : feedline (via match) to junction across loop A; normal line to loop B
+----------------------------------------
+Match to 50 ohm:
+  1/4-wave Z0       : 32.7 ohms (use 2x RG-59 (parallel), 37.5 ohm)
+  1/4-wave length   : 339.0 mm (VF 0.66)
+----------------------------------------
+Predicted performance:
+  feedpoint Z      : 21.4 -0.0j ohms
+  VSWR (unmatched) : 2.33
+  loop current phase: +89.9 deg (target +/-90)
+  loop balance     : 1.766 |Ib/Ia| (1.0 = equal drive)
+  polarization sense: RHCP
+  axial ratio (cone): 5.06 dB mean, 7.84 dB worst (<= 30 deg from zenith)
+  axial ratio (peak): 38.56 dB
+  coverage gain     : -0.63 dBi (worst case <= 60 deg from zenith)

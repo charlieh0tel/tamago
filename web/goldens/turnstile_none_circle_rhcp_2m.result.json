@@ -1,0 +1,88 @@
+{
+  "spec": {
+    "freq_mhz": 145.9,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "turnstile",
+    "loop_shape": "circle",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "none",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 16,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 145.9,
+    "wavelength_mm": 2054.7803838245377,
+    "loop_shape": "circle",
+    "reflector": "none",
+    "loop": {
+      "perimeter_mm": 2213.708746994295,
+      "width_mm": 704.6453792998159
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "turnstile",
+    "harness": {
+      "q_section": {
+        "coax": {
+          "name": "RG-59",
+          "z0_ohm": 75.0,
+          "vf": 0.66
+        },
+        "length_mm": 339.0387633310487,
+        "count": 2
+      },
+      "delay_line": {
+        "coax": {
+          "name": "RG-58",
+          "z0_ohm": 50.0,
+          "vf": 0.66
+        },
+        "length_mm": 339.0387633310487
+      },
+      "balun": {
+        "kind": "1:1 current choke"
+      },
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "series_element": null,
+      "transformer_z0_ohm": 34.84393777976307,
+      "transformer_coax": {
+        "name": "2x RG-59 (parallel)",
+        "z0_ohm": 37.5,
+        "vf": 0.66
+      },
+      "transformer_length_mm": 339.0387633310487
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 24.282,
+      "imag": 0.0090305
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 2.0591385443697083,
+    "vswr_matched": 1.158265850762789,
+    "loop_current_phase_deg": 90.09153091699596,
+    "loop_balance": 1.2745833955521613,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 2.438165615357477,
+    "axial_ratio_cone_worst_db": 5.008365302688816,
+    "axial_ratio_peak_db": 35.65032111572187,
+    "coverage_gain_dbi": 0.73
+  }
+}

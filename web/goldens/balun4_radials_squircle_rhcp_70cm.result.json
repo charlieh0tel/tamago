@@ -1,0 +1,95 @@
+{
+  "spec": {
+    "freq_mhz": 436.0,
+    "conductor": {
+      "kind": "bar",
+      "width_mm": 6.0,
+      "thickness_mm": 3.0
+    },
+    "sense": "rhcp",
+    "feed": "balun4",
+    "loop_shape": "squircle",
+    "corner_radius_wl": 0.08,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "radials",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "segments": 16,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 436.0,
+    "wavelength_mm": 687.597380733945,
+    "loop_shape": "squircle",
+    "reflector": "radials",
+    "loop_center_height_wl": 0.25,
+    "loop_center_height_mm": 171.89934518348625,
+    "radials": {
+      "count": 8,
+      "length_mm": 185.65129279816514,
+      "droop_deg": 0.0
+    },
+    "corner_radius_mm": 55.0077904587156,
+    "loop": {
+      "perimeter_mm": 740.0295962099793,
+      "width_mm": 208.6169447722722
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "balun4",
+    "harness": {
+      "phasing_line": {
+        "coax": {
+          "name": "2x RG-58 (balanced)",
+          "z0_ohm": 100.0,
+          "vf": 0.66
+        },
+        "length_mm": 113.45356782110092
+      },
+      "q_section": {
+        "coax": {
+          "name": "2x RG-58 (balanced)",
+          "z0_ohm": 100.0,
+          "vf": 0.66
+        },
+        "length_mm": 113.45356782110092
+      },
+      "balun": {
+        "kind": "half-wave 4:1",
+        "coax": {
+          "name": "RG-58",
+          "z0_ohm": 50.0,
+          "vf": 0.66
+        },
+        "length_mm": 226.90713564220184
+      },
+      "connection": "normal"
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "network": "harness"
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 47.922,
+      "imag": 0.84117
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 1.0468584229516331,
+    "vswr_matched": 1.0468584229516327,
+    "loop_current_phase_deg": 89.97471437637626,
+    "loop_balance": 1.0501774001509552,
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 1.334370811703578,
+    "axial_ratio_cone_worst_db": 3.0436130540952133,
+    "axial_ratio_peak_db": 0.49964004734234485,
+    "coverage_gain_dbi": 1.8
+  }
+}
