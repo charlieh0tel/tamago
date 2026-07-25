@@ -3,7 +3,7 @@
 // (the harness feeding loop B), so that variant swaps the harness for
 // quadrature voltage sources (antennaSimDeck).
 
-import { antennaSimDeck, type DesignResult, specsToJson } from "../../engine/index";
+import { type DesignResult, antennaSimDeck, specsToJson } from "../../engine/index";
 
 function download(name: string, text: string, mime: string): void {
   const blob = new Blob([text], { type: mime });
