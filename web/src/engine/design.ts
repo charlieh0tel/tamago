@@ -795,6 +795,44 @@ export function tunedGeometry(result: DesignResult): {
   return { wires, feeds };
 }
 
+// AntennaSim's .nec importer keeps GW/GN/EX/FR but silently discards TL cards,
+// so the harness cannot survive an import there. Emit an import-safe deck that
+// replaces the harness with a voltage source on each loop feed segment, loop B
+// driven at the phase the tuned harness actually delivers. Geometry and
+// pattern carry over; feed-point impedance and match detail do not.
+export function antennaSimDeck(result: DesignResult): string {
+  const spec = result.spec;
+  const { egg, wavelength } = buildEggbeater(spec, result.baseFactor);
+  const wires = [...egg.wires, ...reflectorWires(spec, wavelength)];
+  // phaseDiffDeg is loop A minus loop B, so loop B is driven at its negative.
+  const phase = (-result.phaseDiffDeg * Math.PI) / 180.0;
+  const sources: Source[] = [
+    {
+      tag: egg.loopA.feedTag,
+      segment: egg.loopA.feedSegment,
+      vReal: 1.0,
+      vImag: 0.0,
+    },
+    {
+      tag: egg.loopB.feedTag,
+      segment: egg.loopB.feedSegment,
+      vReal: Math.cos(phase),
+      vImag: Math.sin(phase),
+    },
+  ];
+  return buildDeck(
+    [
+      ...commentLines(spec),
+      "AntennaSim export: harness replaced by quadrature voltage sources",
+    ],
+    wires,
+    sources,
+    spec.reflector === REFLECTOR_GROUND,
+    spec.freqMhz,
+    DEFAULT_GRID,
+  );
+}
+
 // --- Reflector optimizer. ---
 
 function reflectorCost(result: DesignResult): number {

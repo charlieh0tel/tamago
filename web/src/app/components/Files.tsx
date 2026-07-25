@@ -1,9 +1,9 @@
-// Files tab: download spec.json / result.json / deck.nec as blobs.
-// No AntennaSim link: its .nec importer silently drops TL cards, and the
-// phasing line feeding loop B is a TL card, so an import would model a
-// single-fed loop with no quadrature.
+// Files tab: download spec.json / result.json / deck.nec as blobs, plus an
+// AntennaSim-importable deck. AntennaSim's importer silently drops TL cards
+// (the harness feeding loop B), so that variant swaps the harness for
+// quadrature voltage sources (antennaSimDeck).
 
-import { type DesignResult, specsToJson } from "../../engine/index";
+import { antennaSimDeck, type DesignResult, specsToJson } from "../../engine/index";
 
 function download(name: string, text: string, mime: string): void {
   const blob = new Blob([text], { type: mime });
@@ -53,6 +53,12 @@ export function Files({
       name: `${base}.nec`,
       desc: "tuned NEC deck",
       make: () => download(`${base}.nec`, result.deck, "text/plain"),
+    },
+    {
+      name: `${base}.antennasim.nec`,
+      desc: "AntennaSim import (harness as quadrature sources)",
+      make: () =>
+        download(`${base}.antennasim.nec`, antennaSimDeck(result), "text/plain"),
     },
   ];
   return (
