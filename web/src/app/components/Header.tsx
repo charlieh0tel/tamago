@@ -62,6 +62,7 @@ export function Header({
         <span className="jp" lang="ja">
           卵泡立て器
         </span>
+        <span className="jp">Egg Beater</span>
       </span>
       <a
         className="chip repo"
