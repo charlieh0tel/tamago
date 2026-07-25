@@ -1,5 +1,7 @@
-// Files tab: download spec.json / result.json / deck.nec as blobs, plus the
-// AntennaSim link placeholder (pending a TL-card compatibility check).
+// Files tab: download spec.json / result.json / deck.nec as blobs.
+// No AntennaSim link: its .nec importer silently drops TL cards, and the
+// phasing line feeding loop B is a TL card, so an import would model a
+// single-fed loop with no quadrature.
 
 import { type DesignResult, specsToJson } from "../../engine/index";
 
@@ -70,19 +72,6 @@ export function Files({
           </button>
         </div>
       ))}
-      <div className="filerow">
-        <span className="fname">open deck in AntennaSim</span>
-        <span className="fdesc">interactive explorer (external)</span>
-        <button
-          type="button"
-          title="pending a TL-card compatibility check"
-          onClick={() =>
-            onToast("AntennaSim export pending a TL-card compatibility check")
-          }
-        >
-          open ↗
-        </button>
-      </div>
     </div>
   );
 }

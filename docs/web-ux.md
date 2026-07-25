@@ -103,8 +103,8 @@ state after edits. The cut sheet is always current with the last Analyze.
   lines and hover crosshair.
 - Sky maps and 3-D model: the existing plot-page components (polar az-el
   heatmaps; orbit viewer).
-- Files: download spec JSON, result JSON, tuned NEC deck; link to open the
-  deck in AntennaSim (pending a TL-card compatibility check).
+- Files: download spec JSON, result JSON, tuned NEC deck. (No AntennaSim
+  link: its importer silently drops TL cards, and the phasing line is one.)
 
 ## Print / report view
 
@@ -138,6 +138,5 @@ result.
 - Implementation path: Pyodide (reuse the Python verbatim) vs a TypeScript
   migration (Python deprecated afterward). Owner leaning toward deprecating
   Python; decision parked.
-- AntennaSim deck compatibility (TL/EK/GN cards) untested.
 - Units: mm only for now; an inches toggle for cut lengths is undecided.
 - Whether multi-design lists should eventually leave the CLI too; parked.
