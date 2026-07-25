@@ -12,6 +12,12 @@ const pkg = JSON.parse(
   readFileSync(fileURLToPath(new URL("./package.json", import.meta.url)), "utf8"),
 ) as { version: string };
 function gitHash(): string {
+  // TAMAGO_GIT_HASH lets CI rebuild with the hash stamped into a committed
+  // bundle, making the prebuilts drift check byte-exact.
+  const pinned = process.env.TAMAGO_GIT_HASH;
+  if (pinned) {
+    return pinned;
+  }
   try {
     return execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] })
       .toString()
@@ -20,15 +26,30 @@ function gitHash(): string {
     return "dev";
   }
 }
+const hash = gitHash();
 
 // The production bundle is published into the GitHub Pages prebuilts tree.
 // emptyOutDir is intentional: the app owns that directory at release time.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      // version.json records the stamped hash so CI can reproduce the bundle.
+      name: "stamp-version",
+      apply: "build",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "version.json",
+          source: `${JSON.stringify({ version: pkg.version, hash })}\n`,
+        });
+      },
+    },
+  ],
   base: "./",
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
-    __GIT_HASH__: JSON.stringify(gitHash()),
+    __GIT_HASH__: JSON.stringify(hash),
   },
   worker: {
     format: "es",

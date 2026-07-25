@@ -36,3 +36,39 @@ jobs:
 
       - name: Tests
         run: uv run python -m pytest -q
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      # Rebuild with the hash recorded at publish time so the output is
+      # byte-comparable to the committed bundle.
+      - name: Rebuild the app bundle
+        run: >
+          TAMAGO_GIT_HASH=$(node -p
+          'JSON.parse(require("fs").readFileSync("../prebuilts/app/version.json","utf8")).hash')
+          npm run build
+
+      - name: Check prebuilts/app matches web/src
+        run: |
+          git status --porcelain -- ../prebuilts/app
+          test -z "$(git status --porcelain -- ../prebuilts/app)"

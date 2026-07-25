@@ -17,6 +17,11 @@ shell. The clickable design contract is `docs/web-ux.md` (mockup:
 - Production build output goes to `../prebuilts/app/` (`build.outDir`,
   `emptyOutDir: true`) for the GitHub Pages site. `base: "./"` keeps asset URLs
   relative so the bundle works under the Pages subpath.
+- The build stamps the git hash into the bundle and records it in
+  `../prebuilts/app/version.json`. CI (the `web` job in
+  `.github/workflows/ci.yml`) lints, tests, then rebuilds with that recorded
+  hash (`TAMAGO_GIT_HASH`) and fails if the committed bundle differs from
+  `src/` -- rebuild and commit `prebuilts/app` when changing the app.
 
 ## Layout
 
