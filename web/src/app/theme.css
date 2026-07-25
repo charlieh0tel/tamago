@@ -211,15 +211,18 @@ header .spacer {
   color: var(--muted);
 }
 .prov {
+  display: inline-block;
   font-family: var(--mono);
   font-size: 9.5px;
+  line-height: 1.4;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   border: 1px solid var(--line);
   border-radius: 3px;
-  padding: 0 4px;
+  padding: 0.5px 4px;
   color: var(--muted);
   margin-left: 4px;
+  vertical-align: 0.5px;
 }
 .prov[data-v="opt"] {
   color: var(--teal);
