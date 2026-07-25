@@ -10,6 +10,9 @@ with good high-angle coverage (popular for working LEO satellites). This tool
 sets the geometry from closed-form formulas and then uses `nec2c` to tune the
 loop currents to 90 degree quadrature, finishing with a physical cut sheet.
 
+A browser-based designer (TypeScript engine, nec2c as WebAssembly) runs at
+<https://charlieh0tel.github.io/tamago/>; see `web/README.md`.
+
 ## Requirements
 
 - `nec2c` on `PATH` (Debian/Ubuntu: `apt install nec2c`).
