@@ -13,7 +13,9 @@ import { runNec } from "../wasm/runner.mjs";
 const GOLDENS = new URL("../goldens/", import.meta.url);
 
 function loadSpec(name: string): DesignSpec {
-  return specFromDict(JSON.parse(readFileSync(new URL(`${name}.spec.json`, GOLDENS), "utf8")));
+  return specFromDict(
+    JSON.parse(readFileSync(new URL(`${name}.spec.json`, GOLDENS), "utf8")),
+  );
 }
 
 // One case per feed scheme.
