@@ -24,7 +24,6 @@ produces byte-identical output (verified by running twice and diffing).
 import json
 import subprocess
 import sys
-from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
@@ -287,16 +286,13 @@ CASES: list[tuple[str, DesignSpec, bool]] = [
 
 
 def _git_short_hash() -> str:
-    return (
-        subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=Path(__file__).resolve().parents[2],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        .stdout.strip()
-    )
+    return subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=Path(__file__).resolve().parents[2],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
 
 
 def _write_json(path: Path, data: dict) -> None:
