@@ -58,7 +58,7 @@ export function Header({
   return (
     <header>
       <span className="brand">
-        tamago
+        tamago awadateki
         <span className="jp" lang="ja">
           卵泡立て器
         </span>
