@@ -294,76 +294,74 @@ export function SpecRail({
             onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { reflector: v } })}
           />
           {spec.reflector !== REFLECTOR_NONE && (
+            <div className="field">
+              <label htmlFor="spacing">
+                Loop-to-reflector <span className="unit">&lambda;</span>
+                <ProvTag field="spacing" prov={prov} optStale={optStale} />
+              </label>
+              <input
+                id="spacing"
+                className={flash("spacing").trim()}
+                title="loop centre down to the reflector plane; for radials, the hub at the top of the radials"
+                type="number"
+                step="0.005"
+                value={Number(spec.reflectorSpacingWl.toFixed(4))}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_REFLECTOR_FIELD",
+                    field: "spacing",
+                    value: num(e.target.value, spec.reflectorSpacingWl),
+                  })
+                }
+              />
+            </div>
+          )}
+          {spec.reflector === REFLECTOR_RADIALS && (
             <div className="inline">
               <div className="field">
-                <label htmlFor="spacing">
-                  Loop-to-reflector <span className="unit">&lambda;</span>
-                  <ProvTag field="spacing" prov={prov} optStale={optStale} />
+                <label htmlFor="count">
+                  # Radials
+                  <ProvTag field="count" prov={prov} optStale={optStale} />
                 </label>
-                <input
-                  id="spacing"
-                  className={flash("spacing").trim()}
-                  title="loop centre down to the reflector plane; for radials, the hub at the top of the radials"
-                  type="number"
-                  step="0.005"
-                  value={spec.reflectorSpacingWl}
+                <select
+                  id="count"
+                  className={flash("count").trim()}
+                  value={spec.radialCount}
                   onChange={(e) =>
                     dispatch({
                       type: "SET_REFLECTOR_FIELD",
-                      field: "spacing",
-                      value: num(e.target.value, spec.reflectorSpacingWl),
+                      field: "count",
+                      value: num(e.target.value, spec.radialCount),
+                    })
+                  }
+                >
+                  {[3, 4, 6, 8].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="droop">
+                  Droop <span className="unit">deg</span>
+                  <ProvTag field="droop" prov={prov} optStale={optStale} />
+                </label>
+                <input
+                  id="droop"
+                  className={flash("droop").trim()}
+                  type="number"
+                  step="1"
+                  value={Number(spec.radialDroopDeg.toFixed(1))}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_REFLECTOR_FIELD",
+                      field: "droop",
+                      value: num(e.target.value, spec.radialDroopDeg),
                     })
                   }
                 />
               </div>
-              {spec.reflector === REFLECTOR_RADIALS && (
-                <div className="field">
-                  <label htmlFor="count">
-                    # Radials
-                    <ProvTag field="count" prov={prov} optStale={optStale} />
-                  </label>
-                  <select
-                    id="count"
-                    className={flash("count").trim()}
-                    value={spec.radialCount}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_REFLECTOR_FIELD",
-                        field: "count",
-                        value: num(e.target.value, spec.radialCount),
-                      })
-                    }
-                  >
-                    {[3, 4, 6, 8].map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-          {spec.reflector === REFLECTOR_RADIALS && (
-            <div className="field">
-              <label htmlFor="droop">
-                Droop <span className="unit">deg</span>
-                <ProvTag field="droop" prov={prov} optStale={optStale} />
-              </label>
-              <input
-                id="droop"
-                className={flash("droop").trim()}
-                type="number"
-                step="1"
-                value={spec.radialDroopDeg}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_REFLECTOR_FIELD",
-                    field: "droop",
-                    value: num(e.target.value, spec.radialDroopDeg),
-                  })
-                }
-              />
             </div>
           )}
         </div>
