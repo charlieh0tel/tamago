@@ -319,7 +319,7 @@ export function SpecRail({
               {spec.reflector === REFLECTOR_RADIALS && (
                 <div className="field">
                   <label htmlFor="count">
-                    Radials
+                    # Radials
                     <ProvTag field="count" prov={prov} optStale={optStale} />
                   </label>
                   <select
