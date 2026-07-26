@@ -103,10 +103,9 @@ state after edits. The cut sheet is always current with the last Analyze.
   lines and hover crosshair.
 - Sky maps and 3-D model: the existing plot-page components (polar az-el
   heatmaps; orbit viewer).
-- Files: download spec JSON, result JSON, tuned NEC deck, and an
-  AntennaSim native project JSON (AntennaSim cannot represent the TL
-  harness, so it is replaced by quadrature voltage sources on the loop
-  feeds).
+- Files: download spec JSON, result JSON, tuned NEC deck. (No AntennaSim
+  export: its import keeps only one real-voltage feed, so the phased dual
+  feed cannot survive -- see web/README.md.)
 
 ## Print / report view
 

@@ -1,9 +1,9 @@
-// Files tab: download spec.json / result.json / deck.nec as blobs, plus an
-// AntennaSim native project JSON. AntennaSim cannot represent the TL harness
-// feeding loop B, so that export swaps the harness for quadrature voltage
-// sources (antennaSimJson).
+// Files tab: download spec.json / result.json / deck.nec as blobs.
+// No AntennaSim export: its import (both .nec and .json) keeps only a single
+// real-voltage excitation, so the eggbeater's phased dual feed collapses to a
+// single-fed loop -- geometry survives, the quadrature does not.
 
-import { type DesignResult, antennaSimJson, specsToJson } from "../../engine/index";
+import { type DesignResult, specsToJson } from "../../engine/index";
 
 function download(name: string, text: string, mime: string): void {
   const blob = new Blob([text], { type: mime });
@@ -53,12 +53,6 @@ export function Files({
       name: `${base}.nec`,
       desc: "tuned NEC deck",
       make: () => download(`${base}.nec`, result.deck, "text/plain"),
-    },
-    {
-      name: `${base}.antennasim.json`,
-      desc: "AntennaSim project (harness as quadrature sources)",
-      make: () =>
-        download(`${base}.antennasim.json`, antennaSimJson(result), "application/json"),
     },
   ];
   return (
