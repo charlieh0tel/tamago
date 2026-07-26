@@ -14,6 +14,7 @@ import {
   REFLECTOR_RADIALS,
   SENSE_LHCP,
   SENSE_RHCP,
+  SHAPE_SQUIRCLE,
 } from "../../engine/index";
 import type { Action, ProvField, ProvenanceMap, UiState } from "../state/types";
 import { buildConductor } from "../state/uiSpec";
@@ -242,6 +243,26 @@ export function SpecRail({
             value={spec.loopShape}
             onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { loopShape: v } })}
           />
+          {spec.loopShape === SHAPE_SQUIRCLE && (
+            <div className="field">
+              <label htmlFor="corner">
+                Corner radius <span className="unit">wl</span>
+              </label>
+              <input
+                id="corner"
+                type="number"
+                step="0.005"
+                min="0"
+                value={spec.cornerRadiusWl}
+                onChange={(e) =>
+                  dispatch({
+                    type: "PATCH_SPEC",
+                    patch: { cornerRadiusWl: num(e.target.value, spec.cornerRadiusWl) },
+                  })
+                }
+              />
+            </div>
+          )}
           <Seg
             label="Polarization sense"
             options={[SENSE_RHCP, SENSE_LHCP]}

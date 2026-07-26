@@ -28,8 +28,9 @@ Two panes under a header strip.
   button.
 - Left rail (sticky): the spec editor in collapsible groups mirroring the
   spec's progressive disclosure -- Basics (frequency, label, conductor, loop
-  perimeter, shape, sense), Feed, Reflector, Advanced (offset, gap,
-  segments, system Z, AR margin, raw JSON). Action buttons at the bottom.
+  perimeter, shape, corner radius when shape is squircle, sense), Feed,
+  Reflector, Advanced (offset, gap, segments, system Z, AR margin, raw JSON).
+  Action buttons at the bottom.
 - Right pane: results tabs -- Cut sheet, Schematic, Charts, Sky maps,
   3-D model, Files.
 - Narrow screens stack the rail above the results; the cut sheet must read
