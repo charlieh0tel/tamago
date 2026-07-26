@@ -39,18 +39,67 @@ function syntheticResult(feed: string, zReal: number): DesignResult {
   };
 }
 
-// Thumbnail treatment: drop the text labels and crop the label whitespace.
-function cardArt(feed: string, zReal: number, cropY: number, cropH: number): string {
-  const svg = renderFeedSchematic(syntheticResult(feed, zReal));
+// Padding (in drawing units) kept above and below the content when cropping a
+// schematic down to card art.
+const CARD_ART_PADDING = 12;
+
+// Vertical extent [minY, maxY] of the drawn geometry, in viewBox units. Bounds
+// circles (cy +/- r), lines (y1, y2), and paths -- both their literal
+// coordinates and, for the full-circle loop arcs (large-arc flag set), the
+// centre +/- radius the endpoints alone understate. This is what lets the crop
+// track the actual drawing instead of hand-tuned per-feed numbers.
+function contentYExtent(svg: string): [number, number] {
+  let lo = Number.POSITIVE_INFINITY;
+  let hi = Number.NEGATIVE_INFINITY;
+  const add = (y: number): void => {
+    if (y < lo) lo = y;
+    if (y > hi) hi = y;
+  };
+  for (const m of svg.matchAll(/<circle\b[^>]*?\bcy="([\d.]+)"[^>]*?\br="([\d.]+)"/g)) {
+    const cy = Number(m[1]);
+    const r = Number(m[2]);
+    add(cy - r);
+    add(cy + r);
+  }
+  for (const m of svg.matchAll(/<line\b[^>]*?\by1="([\d.]+)"[^>]*?\by2="([\d.]+)"/g)) {
+    add(Number(m[1]));
+    add(Number(m[2]));
+  }
+  for (const m of svg.matchAll(/<path\b[^>]*?\bd="([^"]*)"/g)) {
+    const d = m[1] ?? "";
+    for (const c of d.matchAll(/[,V]([\d.]+)/g)) {
+      add(Number(c[1]));
+    }
+    // Full-circle loop symbols reach centre +/- radius past their gap endpoints.
+    const loop = d.match(/M[\d.]+,([\d.]+) A([\d.]+),[\d.]+ 0 1 [01] [\d.]+,([\d.]+)/);
+    if (loop) {
+      const cy = (Number(loop[1]) + Number(loop[3])) / 2;
+      const r = Number(loop[2]);
+      add(cy - r);
+      add(cy + r);
+    }
+  }
+  return [lo, hi];
+}
+
+// Thumbnail treatment: drop the text labels and crop to the drawn content so
+// the loops are never clipped, with no per-feed magic numbers.
+function cardArt(feed: string, zReal: number): string {
+  const svg = renderFeedSchematic(syntheticResult(feed, zReal)).replace(
+    /<text[^>]*>[^<]*<\/text>/g,
+    "",
+  );
+  const [lo, hi] = contentYExtent(svg);
+  const y = Math.floor(lo - CARD_ART_PADDING);
+  const h = Math.ceil(hi - lo + 2 * CARD_ART_PADDING);
   return svg
-    .replace(/<text[^>]*>[^<]*<\/text>/g, "")
-    .replace(/viewBox="0 0 (\d+) \d+"/, `viewBox="0 ${cropY} $1 ${cropH}"`)
+    .replace(/viewBox="0 0 (\d+) \d+"/, `viewBox="0 ${y} $1 ${h}"`)
     .replace('role="img"', 'role="img" aria-hidden="true"');
 }
 
-const LINE_ART = cardArt(FEED_LINE, 45.8, 100, 200);
-const TURNSTILE_ART = cardArt(FEED_TURNSTILE, 25.3, 78, 222);
-const BALUN4_ART = cardArt(FEED_BALUN4, 49.6, 102, 200);
+const LINE_ART = cardArt(FEED_LINE, 45.8);
+const TURNSTILE_ART = cardArt(FEED_TURNSTILE, 25.3);
+const BALUN4_ART = cardArt(FEED_BALUN4, 49.6);
 
 const OPTIONS: FeedOption[] = [
   {
