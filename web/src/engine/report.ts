@@ -83,7 +83,7 @@ function headerLines(result: DesignResult, build: JsonObject): string[] {
   }
   if ("loop_center_height_mm" in build) {
     lines.push(
-      `  loop-center height: ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
+      `  loop-to-reflector : ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
         `(${f(num(build, "loop_center_height_mm"), 1)} mm)`,
     );
   }

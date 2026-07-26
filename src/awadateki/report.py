@@ -48,7 +48,7 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
         lines.append(f"  corner radius     : {build['corner_radius_mm']:.1f} mm")
     if "loop_center_height_mm" in build:
         lines.append(
-            f"  loop-center height: {build['loop_center_height_wl']:.3g} wl "
+            f"  loop-to-reflector : {build['loop_center_height_wl']:.3g} wl "
             f"({build['loop_center_height_mm']:.1f} mm)"
         )
     if "radials" in build:

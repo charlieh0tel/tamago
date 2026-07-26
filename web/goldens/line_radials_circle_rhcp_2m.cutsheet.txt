@@ -6,7 +6,7 @@ Conductor           : round, 5 mm dia
   equivalent radius : 2.5 mm
 Loop shape          : circle
 Reflector           : radials
-  loop-center height: 0.25 wl (513.7 mm)
+  loop-to-reflector : 0.25 wl (513.7 mm)
   radials           : 8 x 554.8 mm, 0 deg droop
 ----------------------------------------
 Both loops          : 2157.5 mm perimeter, 686.8 mm dia

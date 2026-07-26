@@ -246,7 +246,7 @@ export function SpecRail({
           {spec.loopShape === SHAPE_SQUIRCLE && (
             <div className="field">
               <label htmlFor="corner">
-                Corner radius <span className="unit">wl</span>
+                Corner radius <span className="unit">&lambda;</span>
               </label>
               <input
                 id="corner"
@@ -297,12 +297,13 @@ export function SpecRail({
             <div className="inline">
               <div className="field">
                 <label htmlFor="spacing">
-                  Spacing <span className="unit">wl</span>
+                  Loop-to-reflector <span className="unit">&lambda;</span>
                   <ProvTag field="spacing" prov={prov} optStale={optStale} />
                 </label>
                 <input
                   id="spacing"
                   className={flash("spacing").trim()}
+                  title="loop centre down to the reflector plane; for radials, the hub at the top of the radials"
                   type="number"
                   step="0.005"
                   value={spec.reflectorSpacingWl}
