@@ -41,7 +41,7 @@ export interface TierSlot<T> {
 
 export interface UiState {
   spec: DesignSpec;
-  // The literal loop perimeter shown in the field, in millimetres. Mirrors
+  // The literal loop perimeter shown in the field, in millimeters. Mirrors
   // spec.loopPerimeterMm but is always populated for display; provenance says
   // how it was set.
   perimeterMm: number;

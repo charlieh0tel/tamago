@@ -38,9 +38,9 @@ export function wavelengthM(freqMhz: number): number {
 // One straight NEC wire (GW card).
 //   tag: NEC tag number.
 //   segments: number of NEC segments along the wire.
-//   x1, y1, z1: first endpoint, metres.
-//   x2, y2, z2: second endpoint, metres.
-//   radiusM: conductor radius, metres.
+//   x1, y1, z1: first endpoint, meters.
+//   x2, y2, z2: second endpoint, meters.
+//   radiusM: conductor radius, meters.
 export interface Wire {
   tag: number;
   segments: number;
@@ -173,11 +173,11 @@ export function roundedSquareSide(perimeterM: number, cornerRadiusM: number): nu
   return (perimeterM + (8.0 - 2.0 * Math.PI) * cornerRadiusM) / 4.0;
 }
 
-// Dense (across, up) outline of a rounded square centred at the origin, starting
-// at the bottom-centre so the feed lands at the bottom.
+// Dense (across, up) outline of a rounded square centered at the origin, starting
+// at the bottom-center so the feed lands at the bottom.
 function roundedSquareOutline(sideM: number, radiusM: number): Point2[] {
   const half = sideM / 2.0;
-  const c = half - radiusM; // corner-arc centre offset from the origin on each axis
+  const c = half - radiusM; // corner-arc center offset from the origin on each axis
   const points: Point2[] = [[0.0, -half]];
   // Four corners, counter-clockwise from bottom-right; each is a quarter arc
   // preceded by the straight run leading into it.
@@ -222,7 +222,7 @@ export function loopExtentM(
   return (2.0 * perimeterM) / unit;
 }
 
-// Loop outline vertices (across, up) in metres, feed side at the bottom.
+// Loop outline vertices (across, up) in meters, feed side at the bottom.
 function loopOutlinePoints(
   shape: string,
   perimeterM: number,
@@ -255,7 +255,7 @@ function loopOutlinePoints(
 // Build one polygonal loop of the given outline in the "xz" or "yz" plane.
 //
 // The bottom side carries the feed. When feedGapM > 0 and fits within that
-// side, the side is split into a short feed segment of that length centred on
+// side, the side is split into a short feed segment of that length centered on
 // the bottom (where the line connects) flanked by two approach segments, so the
 // segment lengths step gently into the gap (NEC's segment-grading rule). The
 // feed wire keeps tagBase; the remaining wires take the following tags.
@@ -346,7 +346,7 @@ function makeLoop(
 // equivalent circle radius (perimeter / 2*pi), past which no straight side
 // remains and the shape would be a circle.
 //
-// loopOffsetM vertically separates the two loop centres (loop A below, loop B
+// loopOffsetM vertically separates the two loop centers (loop A below, loop B
 // above, each by half the offset) so the crossed conductors clear at the top
 // and bottom crossings; the mean height stays at centerZM.
 //

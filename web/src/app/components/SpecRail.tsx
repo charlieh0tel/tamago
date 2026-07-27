@@ -327,7 +327,7 @@ export function SpecRail({
               <input
                 id="spacing"
                 className={flash("spacing").trim()}
-                title="loop centre down to the reflector plane; for radials, the hub at the top of the radials"
+                title="loop center down to the reflector plane; for radials, the hub at the top of the radials"
                 type="number"
                 step="0.005"
                 value={Number(spec.reflectorSpacingWl.toFixed(4))}

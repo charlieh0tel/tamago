@@ -3,7 +3,7 @@
 //
 // Classic two-conductor schematic drawing (handbook style): open-circle
 // terminals, inductor humps / capacitor plates, coax sections drawn as a
-// shield cylinder with circular end faces around the centre conductor (shield
+// shield cylinder with circular end faces around the center conductor (shield
 // pigtails to the return at each end), filled junction dots, a hop where
 // conductors cross without connecting, and full-wave loops drawn as a circle
 // broken at the feed gap. A crossed phasing line is drawn as an actual
@@ -22,7 +22,7 @@ const RAIL_GAP = 40.0;
 // Half-angle of the feed-gap break in a loop symbol, degrees.
 const LOOP_GAP_DEG = 25.0;
 const LOOP_RADIUS = 42.0;
-// Coax shield cylinder: half-height around the centre conductor, and the
+// Coax shield cylinder: half-height around the center conductor, and the
 // radius of the circular end faces.
 const COAX_RY = 8.0;
 const TERMINAL_RADIUS = 3.5;
@@ -85,10 +85,10 @@ function capacitor(x0: number, x1: number, y: number): string {
   );
 }
 
-// Coax section: the shield drawn as a cylinder around the centre conductor,
+// Coax section: the shield drawn as a cylinder around the center conductor,
 // with a pigtail from each end of the shield down to the return conductor.
 //
-// The centre conductor itself is the caller's hot rail passing through; the
+// The center conductor itself is the caller's hot rail passing through; the
 // return conductor stops at the pigtails (inside the run, the shield is the
 // return path).
 function coaxSection(
@@ -125,7 +125,7 @@ function coaxBody(x0: number, x1: number, y: number): string {
   return walls + ends;
 }
 
-// Two coax in parallel: centre conductors jumpered together at both ends,
+// Two coax in parallel: center conductors jumpered together at both ends,
 // braids bonded at both ends, shields returning via pigtails.
 function parallelPairSection(
   x0: number,
@@ -137,11 +137,11 @@ function parallelPairSection(
   const r = COAX_RY;
   const yUp = yHot - 26.0; // the second coax rides above the rail
   const xJ0 = x0 - 12.0;
-  const xJ1 = x1 + 12.0; // centre-conductor jumpers
+  const xJ1 = x1 + 12.0; // center-conductor jumpers
   const parts = [
     coaxBody(x0, x1, yHot),
     coaxBody(x0, x1, yUp),
-    // Upper centre conductor, jumpered onto the hot rail at both ends.
+    // Upper center conductor, jumpered onto the hot rail at both ends.
     line(xJ0, yUp, xJ1, yUp),
     line(xJ0, yHot, xJ0, yUp),
     line(xJ1, yHot, xJ1, yUp),
@@ -211,11 +211,11 @@ function balancedPairSection(
   return parts.join("");
 }
 
-// Half-wave coax balun: a shielded hairpin (coax U) whose centre-conductor
+// Half-wave coax balun: a shielded hairpin (coax U) whose center-conductor
 // ends are the balanced pair. Returns [svg, x where the outer shield wall
 // crosses the return-rail height, for the feed line's braid bond].
 function balunHairpin(x: number, yTop: number): [string, number] {
-  const rC = RAIL_GAP / 2.0; // centre conductor
+  const rC = RAIL_GAP / 2.0; // center conductor
   const rO = rC + COAX_RY; // shield, outer wall
   const rI = rC - COAX_RY; // shield, inner wall
   const yBot = yTop + RAIL_GAP;
@@ -324,7 +324,7 @@ function linePhased(build: JsonObject): [string, number, number] {
   const parts = [
     text(xTerm - 24.0, yA + RAIL_GAP + 30.0, rig, "start"),
     terminalPair(xTerm, yA),
-    // Hot rail (the centre conductor): terminal, through the transformer
+    // Hot rail (the center conductor): terminal, through the transformer
     // shield, series element, on to the loop A leads.
     line(xTerm + TERMINAL_RADIUS, yA, xSer0, yA),
     seriesElement(match.series_element as JsonObject | null, xSer0, xSer1, yA),
@@ -507,7 +507,7 @@ function balun4Layout(build: JsonObject): [string, number, number] {
   const [hairpin, bondX] = balunHairpin(xBalun, yA);
   const parts = [
     terminalPair(xTerm, yA),
-    // Feedline: centre conductor to the hairpin's near end, braid bonded onto
+    // Feedline: center conductor to the hairpin's near end, braid bonded onto
     // the hairpin's shield (there is no ground in this harness).
     line(xTerm + TERMINAL_RADIUS, yA, xBalun, yA),
     line(xTerm + TERMINAL_RADIUS, yBot, bondX, yBot),

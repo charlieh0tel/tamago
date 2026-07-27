@@ -22,7 +22,7 @@ export const RG_62: Coax = { name: "RG-62", z0Ohm: 93.0, vf: 0.84 };
 // construction for low transformer impedances.
 export const RG_58_PAIR: Coax = { name: "2x RG-58 (parallel)", z0Ohm: 25.0, vf: 0.66 };
 export const RG_59_PAIR: Coax = { name: "2x RG-59 (parallel)", z0Ohm: 37.5, vf: 0.66 };
-// Two lengths side by side with braids bonded, the centre conductors used as a
+// Two lengths side by side with braids bonded, the center conductors used as a
 // shielded balanced pair: differential impedance is the sum. Not in the catalog
 // (it is a balanced line, not a transformer suggestion).
 export const RG_58_BALANCED: Coax = {

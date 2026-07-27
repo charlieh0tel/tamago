@@ -76,7 +76,7 @@ BALUN4_Q_COAX = RG_58_BALANCED
 BALUN4_BALUN_COAX = RG_58
 
 # Port wires: tiny isolated segments hosting harness junctions (a NEC TL port
-# must be a wire segment). They sit at the loop centre, far from the loop
+# must be a wire segment). They sit at the loop center, far from the loop
 # conductors, and are short and thin so they radiate negligibly.
 PORT_TAG_BASE = 400
 PORT_SEGMENT_LENGTH_M = 0.002
@@ -161,7 +161,7 @@ class DesignSpec:
         freq_mhz: design frequency.
         conductor: conductor cross-section.
         reflector: REFLECTOR_NONE, REFLECTOR_GROUND, or REFLECTOR_RADIALS.
-        reflector_spacing_wl: loop-centre height above the reflector, wavelengths.
+        reflector_spacing_wl: loop-center height above the reflector, wavelengths.
         feed: FEED_LINE (source at the junction, quarter-wave line to loop B),
             FEED_TURNSTILE (a Q-section per loop paralleled at a port, delay
             line in loop B's leg, quarter-wave transformer and 1:1 choke to the
@@ -181,7 +181,7 @@ class DesignSpec:
         loop_shape: loop outline, SHAPE_CIRCLE, SHAPE_SQUARE, or SHAPE_SQUIRCLE.
         corner_radius_wl: rounded-corner radius for the squircle shape, in
             wavelengths (ignored for circle and square).
-        loop_offset_mm: vertical gap between the two loop centres (loop A below,
+        loop_offset_mm: vertical gap between the two loop centers (loop A below,
             loop B above) so the crossed conductors clear at the top and bottom.
             Must be at least MIN_LOOP_OFFSET_DIAMETERS equivalent conductor
             diameters.
@@ -317,7 +317,7 @@ class DesignResult:
 
 def _center_z_m(spec: DesignSpec, wavelength: float, perimeter_m: float) -> float:
     if spec.reflector in (REFLECTOR_GROUND, REFLECTOR_RADIALS):
-        # Loop centre sits the given spacing above the reflector plane (z = 0).
+        # Loop center sits the given spacing above the reflector plane (z = 0).
         return spec.reflector_spacing_wl * wavelength
     # In free space the absolute height is irrelevant; keep the loop above the
     # origin for readable coordinates.
@@ -380,9 +380,9 @@ def phasing_line_coax(spec: DesignSpec) -> Coax:
 
 
 def _port_wire(tag: int, segments: int, center_z: float, index: int) -> Wire:
-    """Tiny isolated wire at the loop centre hosting harness TL ports.
+    """Tiny isolated wire at the loop center hosting harness TL ports.
 
-    The two ports (index 0, 1) straddle the loop centre symmetrically:
+    The two ports (index 0, 1) straddle the loop center symmetrically:
     stacking them to one side breaks the pattern's up/down symmetry enough
     to bias the axial ratio.
     """
@@ -556,7 +556,7 @@ def tuned_geometry(
 
     Built from the same geometry call as analyze(), so a 3-D view matches the
     deck without parsing it. Returns the loop and reflector wires and the feed
-    points (midpoint of each loop's bottom feed wire), in metres.
+    points (midpoint of each loop's bottom feed wire), in meters.
     """
     egg, wavelength = _eggbeater(result.spec, result.base_factor)
     wires = egg.wires + _reflector_wires(result.spec, wavelength)
@@ -904,7 +904,7 @@ def design(spec: DesignSpec, with_loop_z: bool = True) -> DesignResult:
 
     A coarse probe run reads the natural handedness; the requested sense then
     decides the normal or crossed loop B connection, and the whole design --
-    tuning, feedpoint, and pattern -- is modelled with that delivered
+    tuning, feedpoint, and pattern -- is modeled with that delivered
     connection. Crossing is a mirror image only on boresight: the vertical
     loop offset makes the two senses slightly different antennas off-axis,
     so the delivered connection must be the one characterized.
@@ -1141,10 +1141,10 @@ def frequency_sweep(
 def bandwidth_within(
     pairs: list[tuple[float, float]], limit: float
 ) -> tuple[float, float] | None:
-    """Contiguous frequency band around the centre where value <= limit.
+    """Contiguous frequency band around the center where value <= limit.
 
     Each pair is (freq_mhz, value). Edges are linearly interpolated between
-    samples. Returns (low, high) MHz, or None if the centre already exceeds the
+    samples. Returns (low, high) MHz, or None if the center already exceeds the
     limit.
     """
     center = len(pairs) // 2

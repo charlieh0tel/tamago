@@ -45,9 +45,9 @@ class Wire:
     Fields:
         tag: NEC tag number.
         segments: number of NEC segments along the wire.
-        x1, y1, z1: first endpoint, metres.
-        x2, y2, z2: second endpoint, metres.
-        radius_m: conductor radius, metres.
+        x1, y1, z1: first endpoint, meters.
+        x2, y2, z2: second endpoint, meters.
+        radius_m: conductor radius, meters.
     """
 
     tag: int
@@ -149,10 +149,10 @@ def rounded_square_side(perimeter_m: float, corner_radius_m: float) -> float:
 def _rounded_square_outline(
     side_m: float, radius_m: float
 ) -> tuple[tuple[float, float], ...]:
-    """Dense (across, up) outline of a rounded square centred at the origin,
-    starting at the bottom-centre so the feed lands at the bottom."""
+    """Dense (across, up) outline of a rounded square centered at the origin,
+    starting at the bottom-center so the feed lands at the bottom."""
     half = side_m / 2.0
-    c = half - radius_m  # corner-arc centre offset from the origin on each axis
+    c = half - radius_m  # corner-arc center offset from the origin on each axis
     points = [(0.0, -half)]
     # Four corners, counter-clockwise from bottom-right; each is a quarter arc
     # preceded by the straight run leading into it.
@@ -192,7 +192,7 @@ def _square_unit_perimeter() -> float:
 def _loop_outline_points(
     shape: str, perimeter_m: float, corner_radius_m: float, segments: int
 ) -> list[tuple[float, float]]:
-    """Loop outline vertices (across, up) in metres, feed side at the bottom."""
+    """Loop outline vertices (across, up) in meters, feed side at the bottom."""
     if shape == SHAPE_CIRCLE:
         radius = loop_radius_m(perimeter_m)
         step = 2.0 * math.pi / segments
@@ -225,7 +225,7 @@ def _make_loop(
     """Build one polygonal loop of the given outline in the 'xz' or 'yz' plane.
 
     The bottom side carries the feed.  When feed_gap_m > 0 and fits within that
-    side, the side is split into a short feed segment of that length centred on
+    side, the side is split into a short feed segment of that length centered on
     the bottom (where the line connects) flanked by two approach segments, so the
     segment lengths step gently into the gap (NEC's segment-grading rule).  The
     feed wire keeps tag_base; the remaining wires take the following tags.
@@ -238,7 +238,7 @@ def _make_loop(
         points.append((across, 0.0, up) if plane == "xz" else (0.0, across, up))
     points.append(points[0])
 
-    a, b = points[0], points[1]  # the bottom side, centred on the loop bottom
+    a, b = points[0], points[1]  # the bottom side, centered on the loop bottom
     dx, dy, dz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
     side_len = math.sqrt(dx * dx + dy * dy + dz * dz)
     segs: list[tuple[int, tuple, tuple]] = []
@@ -292,7 +292,7 @@ def make_eggbeater(
     equivalent circle radius (perimeter / 2*pi), past which no straight side
     remains and the shape would be a circle.
 
-    loop_offset_m vertically separates the two loop centres (loop A below, loop B
+    loop_offset_m vertically separates the two loop centers (loop A below, loop B
     above, each by half the offset) so the crossed conductors clear at the top
     and bottom crossings; the mean height stays at center_z_m.
 

@@ -231,7 +231,7 @@ export function SkyMaps({
             vmax={gmax}
             cmap={GAIN_CMAP}
             barLabel="dBi"
-            name={`Gain over the sky, polar plot: zenith at centre, horizon at rim, peak ${gmax} dBi`}
+            name={`Gain over the sky, polar plot: zenith at center, horizon at rim, peak ${gmax} dBi`}
           />
         </figure>
         <figure className="chart" style={{ flex: 1, minWidth: 260 }}>
@@ -244,12 +244,12 @@ export function SkyMaps({
             vmax={AR_MAP_MAX_DB}
             cmap={AR_CMAP}
             barLabel="dB"
-            name="Axial ratio over the sky, polar plot: zenith at centre, horizon at rim"
+            name="Axial ratio over the sky, polar plot: zenith at center, horizon at rim"
           />
         </figure>
       </div>
       <p className="polar-note">
-        Centre = zenith (overhead); outer ring = horizon. Rings mark zenith angle
+        Center = zenith (overhead); outer ring = horizon. Rings mark zenith angle
         (0–90°); azimuth 0° at top, increasing clockwise.
       </p>
     </>

@@ -48,7 +48,7 @@ const CARD_ART_PADDING = 12;
 // Vertical extent [minY, maxY] of the drawn geometry, in viewBox units. Bounds
 // circles (cy +/- r), lines (y1, y2), and paths -- both their literal
 // coordinates and, for the full-circle loop arcs (large-arc flag set), the
-// centre +/- radius the endpoints alone understate. This is what lets the crop
+// center +/- radius the endpoints alone understate. This is what lets the crop
 // track the actual drawing instead of hand-tuned per-feed numbers.
 function contentYExtent(svg: string): [number, number] {
   let lo = Number.POSITIVE_INFINITY;
@@ -72,7 +72,7 @@ function contentYExtent(svg: string): [number, number] {
     for (const c of d.matchAll(/[,V]([\d.]+)/g)) {
       add(Number(c[1]));
     }
-    // Full-circle loop symbols reach centre +/- radius past their gap endpoints.
+    // Full-circle loop symbols reach center +/- radius past their gap endpoints.
     const loop = d.match(/M[\d.]+,([\d.]+) A([\d.]+),[\d.]+ 0 1 [01] [\d.]+,([\d.]+)/);
     if (loop) {
       const cy = (Number(loop[1]) + Number(loop[3])) / 2;

@@ -3,7 +3,7 @@
 // Self-contained, no library. Each <canvas class="viewer" id="geomN"> has a
 // sibling <script type="application/json" id="geomN-data"> holding the tuned
 // geometry: { wires: [[x1,y1,z1,x2,y2,z2,colorIndex], ...], feeds: [[x,y,z]] }
-// in metres. Drag orbits (yaw/pitch); the wheel zooms. Orthographic, z up.
+// in meters. Drag orbits (yaw/pitch); the wheel zooms. Orthographic, z up.
 (function () {
   // Color per wire colorIndex: 0 = loop A, 1 = loop B, 2 = reflector radial.
   var COLORS = ["#0E7C86", "#6D4AA7", "#8A9A96"];

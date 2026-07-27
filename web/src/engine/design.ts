@@ -202,7 +202,7 @@ export function pyRound(x: number): number {
 
 function centerZM(spec: DesignSpec, wavelength: number, perimeterM: number): number {
   if (spec.reflector === REFLECTOR_GROUND || spec.reflector === REFLECTOR_RADIALS) {
-    // Loop centre sits the given spacing above the reflector plane (z = 0).
+    // Loop center sits the given spacing above the reflector plane (z = 0).
     return spec.reflectorSpacingWl * wavelength;
   }
   // In free space the absolute height is irrelevant; keep the loop above the
@@ -242,8 +242,8 @@ export function phasingLineCoax(spec: DesignSpec): Coax {
   return spec.phasingCoax ?? LINE_PHASING_COAX;
 }
 
-// Tiny isolated wire at the loop centre hosting harness TL ports. The two ports
-// (index 0, 1) straddle the loop centre symmetrically.
+// Tiny isolated wire at the loop center hosting harness TL ports. The two ports
+// (index 0, 1) straddle the loop center symmetrically.
 function portWire(tag: number, segments: number, cz: number, index: number): Wire {
   const half = (PORT_SEGMENT_LENGTH_M * segments) / 2.0;
   const z = cz + (index - 0.5) * PORT_SPACING_M;
@@ -839,7 +839,7 @@ function feedWire(loop: { wires: Wire[]; feedTag: number }): Wire {
 //
 // Built from the same geometry call as analyze(), so a 3-D view matches the
 // deck without parsing it. Returns the loop and reflector wires and the feed
-// points (midpoint of each loop's bottom feed wire), in metres.
+// points (midpoint of each loop's bottom feed wire), in meters.
 export function tunedGeometry(result: DesignResult): {
   wires: Wire[];
   feeds: Array<[number, number, number]>;
@@ -1011,8 +1011,8 @@ export async function frequencySweep(
   return sweep;
 }
 
-// Contiguous frequency band around the centre where value <= limit, edges
-// linearly interpolated; null if the centre already exceeds the limit.
+// Contiguous frequency band around the center where value <= limit, edges
+// linearly interpolated; null if the center already exceeds the limit.
 export function bandwidthWithin(
   pairs: Array<[number, number]>,
   limit: number,

@@ -2,7 +2,7 @@
 
 Classic two-conductor schematic drawing (handbook style): open-circle
 terminals, inductor humps / capacitor plates, coax sections drawn as a shield
-cylinder with circular end faces around the centre conductor (shield pigtails
+cylinder with circular end faces around the center conductor (shield pigtails
 to the return at each end), filled junction dots, a hop where conductors cross
 without connecting, and full-wave loops drawn as a circle broken at the feed
 gap. A crossed phasing line is drawn as an actual conductor swap.
@@ -24,7 +24,7 @@ RAIL_GAP = 40.0
 # Half-angle of the feed-gap break in a loop symbol, degrees.
 LOOP_GAP_DEG = 25.0
 LOOP_RADIUS = 42.0
-# Coax shield cylinder: half-height around the centre conductor, and the
+# Coax shield cylinder: half-height around the center conductor, and the
 # radius of the circular end faces.
 COAX_RY = 8.0
 TERMINAL_RADIUS = 3.5
@@ -76,16 +76,16 @@ def _capacitor(x0: float, x1: float, y: float) -> str:
 def _coax_section(
     x0: float, x1: float, y_hot: float, y_ret: float, label_lines: tuple[str, ...]
 ) -> str:
-    """Coax section: the shield drawn as a cylinder around the centre conductor,
+    """Coax section: the shield drawn as a cylinder around the center conductor,
     with a pigtail from each end of the shield down to the return conductor.
 
-    The centre conductor itself is the caller's hot rail passing through; the
+    The center conductor itself is the caller's hot rail passing through; the
     return conductor stops at the pigtails (inside the run, the shield is the
     return path).
     """
     r = COAX_RY
     # Shield drawn as a cylinder: parallel walls with the circular end faces
-    # visible, the centre conductor entering through each end's centre.
+    # visible, the center conductor entering through each end's center.
     walls = _line(x0, y_hot - r, x1, y_hot - r) + _line(x0, y_hot + r, x1, y_hot + r)
     ends = "".join(f'<circle cx="{x:.1f}" cy="{y_hot:.1f}" r="{r}"/>' for x in (x0, x1))
     pigtails = _line(x0, y_hot + r, x0, y_ret) + _line(x1, y_hot + r, x1, y_ret)
@@ -108,15 +108,15 @@ def _coax_body(x0: float, x1: float, y: float) -> str:
 def _parallel_pair_section(
     x0: float, x1: float, y_hot: float, y_ret: float, label_lines: tuple[str, ...]
 ) -> str:
-    """Two coax in parallel: centre conductors jumpered together at both ends,
+    """Two coax in parallel: center conductors jumpered together at both ends,
     braids bonded at both ends, shields returning via pigtails."""
     r = COAX_RY
     y_up = y_hot - 26.0  # the second coax rides above the rail
-    x_j0, x_j1 = x0 - 12.0, x1 + 12.0  # centre-conductor jumpers
+    x_j0, x_j1 = x0 - 12.0, x1 + 12.0  # center-conductor jumpers
     parts = [
         _coax_body(x0, x1, y_hot),
         _coax_body(x0, x1, y_up),
-        # Upper centre conductor, jumpered onto the hot rail at both ends.
+        # Upper center conductor, jumpered onto the hot rail at both ends.
         _line(x_j0, y_up, x_j1, y_up),
         _line(x_j0, y_hot, x_j0, y_up),
         _line(x_j1, y_hot, x_j1, y_up),
@@ -174,10 +174,10 @@ def _balanced_pair_section(
 
 
 def _balun_hairpin(x: float, y_top: float) -> tuple[str, float]:
-    """Half-wave coax balun: a shielded hairpin (coax U) whose centre-conductor
+    """Half-wave coax balun: a shielded hairpin (coax U) whose center-conductor
     ends are the balanced pair. Returns (svg, x where the outer shield wall
     crosses the return-rail height, for the feed line's braid bond)."""
-    r_c = RAIL_GAP / 2.0  # centre conductor
+    r_c = RAIL_GAP / 2.0  # center conductor
     r_o = r_c + COAX_RY  # shield, outer wall
     r_i = r_c - COAX_RY  # shield, inner wall
     y_bot = y_top + RAIL_GAP
@@ -276,7 +276,7 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
     parts = [
         _text(x_term - 24.0, y_a + RAIL_GAP + 30.0, rig, "start"),
         _terminal_pair(x_term, y_a),
-        # Hot rail (the centre conductor): terminal, through the transformer
+        # Hot rail (the center conductor): terminal, through the transformer
         # shield, series element, on to the loop A leads.
         _line(x_term + TERMINAL_RADIUS, y_a, x_ser0, y_a),
         _series_element(match["series_element"], x_ser0, x_ser1, y_a),
@@ -441,7 +441,7 @@ def _balun4_layout(build: dict) -> tuple[str, int, int]:
     hairpin, bond_x = _balun_hairpin(x_balun, y_a)
     parts = [
         _terminal_pair(x_term, y_a),
-        # Feedline: centre conductor to the hairpin's near end, braid bonded
+        # Feedline: center conductor to the hairpin's near end, braid bonded
         # onto the hairpin's shield (there is no ground in this harness).
         _line(x_term + TERMINAL_RADIUS, y_a, x_balun, y_a),
         _line(x_term + TERMINAL_RADIUS, y_bot, bond_x, y_bot),

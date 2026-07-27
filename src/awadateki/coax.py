@@ -31,7 +31,7 @@ RG_62 = Coax("RG-62", 93.0, 0.84)
 # construction for low transformer impedances.
 RG_58_PAIR = Coax("2x RG-58 (parallel)", 25.0, 0.66)
 RG_59_PAIR = Coax("2x RG-59 (parallel)", 37.5, 0.66)
-# Two lengths side by side with braids bonded, the centre conductors used as
+# Two lengths side by side with braids bonded, the center conductors used as
 # a shielded balanced pair: differential impedance is the sum. Not in the
 # catalog (it is a balanced line, not a transformer suggestion).
 RG_58_BALANCED = Coax("2x RG-58 (balanced)", 100.0, 0.66)

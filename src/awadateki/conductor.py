@@ -31,11 +31,11 @@ class Conductor:
 
     Fields:
         kind: KIND_ROUND, KIND_STRIP, or KIND_BAR.
-        dimensions_mm: shape dimensions in millimetres -- round: (diameter,);
+        dimensions_mm: shape dimensions in millimeters -- round: (diameter,);
             strip: (width,); bar: (width, thickness). Retained so the conductor
             can be serialized back to its construction parameters.
         description: human-readable stock description for decks and cut sheets.
-        equivalent_radius_mm: radius of the equivalent round wire, millimetres.
+        equivalent_radius_mm: radius of the equivalent round wire, millimeters.
     """
 
     kind: str

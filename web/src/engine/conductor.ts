@@ -27,11 +27,11 @@ export type ConductorKind = typeof KIND_ROUND | typeof KIND_STRIP | typeof KIND_
 
 // A conductor reduced to its NEC equivalent radius.
 //   kind: KIND_ROUND, KIND_STRIP, or KIND_BAR.
-//   dimensionsMm: shape dimensions in millimetres -- round: [diameter];
+//   dimensionsMm: shape dimensions in millimeters -- round: [diameter];
 //     strip: [width]; bar: [width, thickness]. Retained so the conductor can be
 //     serialized back to its construction parameters.
 //   description: human-readable stock description for decks and cut sheets.
-//   equivalentRadiusMm: radius of the equivalent round wire, millimetres.
+//   equivalentRadiusMm: radius of the equivalent round wire, millimeters.
 export interface Conductor {
   kind: ConductorKind;
   dimensionsMm: number[];

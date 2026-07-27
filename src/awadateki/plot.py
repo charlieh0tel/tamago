@@ -248,7 +248,7 @@ def _hemisphere(result: DesignResult):
 
 
 def _polar_xy(cx, cy, radius, theta, phi):
-    """Project (theta from zenith, phi azimuth) to screen: zenith at the centre,
+    """Project (theta from zenith, phi azimuth) to screen: zenith at the center,
     phi = 0 at the top increasing clockwise."""
     r = radius * theta / 90.0
     a = math.radians(phi)
@@ -259,7 +259,7 @@ def _sector_path(cx, cy, radius, t0, t1, p0, p1):
     xo0, yo0 = _polar_xy(cx, cy, radius, t1, p0)
     xo1, yo1 = _polar_xy(cx, cy, radius, t1, p1)
     r1 = radius * t1 / 90.0
-    if t0 <= 0.0:  # innermost ring is a pie slice from the centre
+    if t0 <= 0.0:  # innermost ring is a pie slice from the center
         return (
             f"M{cx:.1f},{cy:.1f} L{xo0:.1f},{yo0:.1f} "
             f"A{r1:.1f},{r1:.1f} 0 0 1 {xo1:.1f},{yo1:.1f} Z"
@@ -275,7 +275,7 @@ def _sector_path(cx, cy, radius, t0, t1, p0, p1):
 
 
 def _polar_heatmap(values, vmin, vmax, cmap, bar_label):
-    """Polar az-el heatmap: zenith at the centre, horizon at the rim."""
+    """Polar az-el heatmap: zenith at the center, horizon at the rim."""
     cx, cy, radius = 150.0, 150.0, 120.0
     parts = [
         '<svg viewBox="0 0 360 300" role="img" preserveAspectRatio="xMidYMid meet">'
@@ -355,7 +355,7 @@ def _wire_color_index(tag):
 def _wireframe(result: DesignResult, index: int):
     """Interactive 3-D wire model: a canvas plus its geometry as inline JSON.
 
-    The tuned wires (each [x1,y1,z1,x2,y2,z2,color_index], metres) and feed points
+    The tuned wires (each [x1,y1,z1,x2,y2,z2,color_index], meters) and feed points
     are emitted as data; the shared viewer script (see _VIEWER_SCRIPT) orbits and
     zooms them on the client. No deck parsing and no 3-D library.
     """
@@ -408,7 +408,7 @@ def _spatial(results: list[DesignResult]) -> str:
             )
             + _figure(
                 "Gain over the sky",
-                "Total gain by azimuth and elevation; centre is overhead, rim "
+                "Total gain by azimuth and elevation; center is overhead, rim "
                 "the horizon. Rings mark zenith angle.",
                 gain_svg,
             )
@@ -709,7 +709,7 @@ _TEMPLATE = """<!doctype html>
 
   <p class="eyebrow" style="margin-top:38px">Geometry and sky coverage</p>
   <p class="lede">The wire model and the gain and axial-ratio maps over the whole
-  upper hemisphere for each design. The maps are polar: overhead at the centre,
+  upper hemisphere for each design. The maps are polar: overhead at the center,
   the horizon at the rim, azimuth around. Near-omnidirectional designs read as
   smooth rings; reflector asymmetry shows up as azimuth ripple.</p>
   {spatial}
