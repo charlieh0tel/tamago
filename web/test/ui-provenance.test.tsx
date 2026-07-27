@@ -12,7 +12,8 @@ beforeEach(() => {
 });
 
 function perimProv(container: HTMLElement): string {
-  return container.querySelector(".prov")?.textContent ?? "";
+  // Scope to field tags; the always-on legend also uses .prov.
+  return container.querySelector(".gbody .prov")?.textContent ?? "";
 }
 
 describe("spec-rail provenance", () => {

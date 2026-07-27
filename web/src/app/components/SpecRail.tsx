@@ -50,6 +50,30 @@ function ProvTag({
   );
 }
 
+// Always-visible key for the field tags (their meaning is otherwise only in a
+// hover title, which is invisible on touch). Renders the real .prov styles.
+const LEGEND: Array<{ v: string; stale?: boolean; text: string; label: string }> = [
+  { v: "est", text: "est", label: "estimate, tracks frequency" },
+  { v: "user", text: "user", label: "entered by you" },
+  { v: "opt", text: "opt", label: "from Optimize" },
+  { v: "opt", stale: true, text: "opt*", label: "stale, re-run" },
+];
+
+function ProvLegend(): JSX.Element {
+  return (
+    <div className="prov-legend">
+      {LEGEND.map((e) => (
+        <span className="prov-legend-item" key={e.text}>
+          <span className="prov" data-v={e.v} data-stale={e.stale ? "1" : "0"}>
+            {e.text}
+          </span>
+          {e.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // -- segmented control --
 function Seg({
   label,
@@ -124,6 +148,7 @@ export function SpecRail({
 
   return (
     <div className="rail">
+      <ProvLegend />
       <details className="group" open>
         <summary>Basics</summary>
         <div className="gbody">

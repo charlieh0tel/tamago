@@ -210,6 +210,27 @@ header .spacer {
   font-size: 12px;
   color: var(--muted);
 }
+.prov-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: var(--ground);
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.prov-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.prov-legend .prov {
+  margin-left: 0;
+  min-width: 34px;
+  text-align: center;
+}
 .prov {
   display: inline-block;
   font-family: var(--mono);
