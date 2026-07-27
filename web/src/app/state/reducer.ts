@@ -4,8 +4,21 @@
 
 import type { DesignSpec } from "../../engine/index";
 import { estimatePerimeterMm } from "../engineExtras";
+import { analysisFingerprint } from "../hash";
 import type { Action, TierSlot, UiState } from "./types";
 import { defaultSpec, isTuned, perimeterForSpec, provenanceForSpec } from "./uiSpec";
+
+// Results are stale when the current spec would no longer produce the analysis
+// on screen (label/notes edits are ignored -- see analysisFingerprint).
+export function resultsStale(
+  state: Pick<UiState, "analysis" | "analyzedFingerprint" | "spec">,
+): boolean {
+  return (
+    state.analysis !== null &&
+    state.analyzedFingerprint !== null &&
+    analysisFingerprint(state.spec) !== state.analyzedFingerprint
+  );
+}
 
 export function initialState(spec: DesignSpec = defaultSpec()): UiState {
   const prov = provenanceForSpec(spec);
@@ -16,6 +29,7 @@ export function initialState(spec: DesignSpec = defaultSpec()): UiState {
     optStale: false,
     status: "fresh",
     analysis: null,
+    analyzedFingerprint: null,
     charts: { state: "idle", data: null },
     sky: { state: "idle", data: null },
     activeTab: "cut",
@@ -119,6 +133,7 @@ export function reducer(state: UiState, action: Action): UiState {
       return {
         ...state,
         analysis,
+        analyzedFingerprint: analysisFingerprint(state.spec),
         status: settledStatus({ ...state, analysis }),
         charts: stale(state.charts),
         sky: stale(state.sky),
@@ -151,6 +166,7 @@ export function reducer(state: UiState, action: Action): UiState {
         prov,
         optStale: false,
         analysis: action.bundle,
+        analyzedFingerprint: analysisFingerprint(spec),
         status: "tuned",
         optProgress: null,
         flashFields: ["perim", "spacing", "droop", "count"],

@@ -51,6 +51,10 @@ export interface UiState {
   optStale: boolean;
   status: TuneStatus;
   analysis: AnalysisBundle | null;
+  // Analysis fingerprint of the spec that produced `analysis` (see
+  // analysisFingerprint). Results are stale when it differs from the current
+  // spec's fingerprint. Null when nothing has been analyzed.
+  analyzedFingerprint: string | null;
   charts: TierSlot<ChartData>;
   sky: TierSlot<SkyData>;
   activeTab: TabId;

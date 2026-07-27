@@ -36,6 +36,34 @@ export function decodeSpec(encoded: string): DesignSpec {
   return specFromDict(JSON.parse(json));
 }
 
+// Spec keys that do NOT affect the modeled design or its computed metrics, and
+// so are excluded from the analysis fingerprint: editing them must not stale a
+// result.
+const NON_ANALYSIS_KEYS = ["label", "notes", "optimization"];
+
+// FNV-1a 32-bit hash, as 8 hex digits. Deterministic and dependency-free.
+function fnv1a(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+// A stable short fingerprint of the analysis-affecting spec fields. Two specs
+// share a fingerprint iff they would produce the same analysis; label, notes,
+// and optimization metadata are ignored. Used to detect when displayed results
+// no longer match the edited design. specToDict emits keys in a fixed order, so
+// the serialization is stable.
+export function analysisFingerprint(spec: DesignSpec): string {
+  const dict = specToDict(spec);
+  for (const key of NON_ANALYSIS_KEYS) {
+    delete dict[key];
+  }
+  return fnv1a(JSON.stringify(dict));
+}
+
 // Build a shareable link (current origin + path) for a spec.
 export function shareLink(spec: DesignSpec): string {
   const { origin, pathname } = window.location;
