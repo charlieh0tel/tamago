@@ -76,7 +76,10 @@ function settledStatus(
 export function reducer(state: UiState, action: Action): UiState {
   switch (action.type) {
     case "SET_FREQ": {
-      const spec = { ...state.spec, freqMhz: action.value };
+      // Any analysis-affecting edit invalidates the optimization record, so it
+      // is never serialized as if it still described the design (a shared or
+      // reopened edited design must not look freshly optimized).
+      const spec = { ...state.spec, freqMhz: action.value, optimization: null };
       const perimeterMm =
         state.prov.perim === "est"
           ? estimatePerimeterMm(action.value)
@@ -87,9 +90,9 @@ export function reducer(state: UiState, action: Action): UiState {
     case "SET_LABEL":
       return edited(state, { spec: { ...state.spec, label: action.value || null } });
     case "SET_CONDUCTOR":
-      return edited(state, { spec: action.spec });
+      return edited(state, { spec: { ...action.spec, optimization: null } });
     case "SET_PERIMETER": {
-      const spec = { ...state.spec, loopPerimeterMm: action.value };
+      const spec = { ...state.spec, loopPerimeterMm: action.value, optimization: null };
       return edited(state, {
         spec,
         perimeterMm: action.value,
@@ -98,7 +101,7 @@ export function reducer(state: UiState, action: Action): UiState {
     }
     case "ESTIMATE_PERIMETER": {
       const value = estimatePerimeterMm(state.spec.freqMhz);
-      const spec = { ...state.spec, loopPerimeterMm: null };
+      const spec = { ...state.spec, loopPerimeterMm: null, optimization: null };
       return edited(state, {
         spec,
         perimeterMm: value,
@@ -108,7 +111,9 @@ export function reducer(state: UiState, action: Action): UiState {
       });
     }
     case "PATCH_SPEC":
-      return edited(state, { spec: { ...state.spec, ...action.patch } });
+      return edited(state, {
+        spec: { ...state.spec, ...action.patch, optimization: null },
+      });
     case "SET_REFLECTOR_FIELD": {
       const key =
         action.field === "spacing"
@@ -116,7 +121,11 @@ export function reducer(state: UiState, action: Action): UiState {
           : action.field === "droop"
             ? "radialDroopDeg"
             : "radialCount";
-      const spec = { ...state.spec, [key]: action.value } as DesignSpec;
+      const spec = {
+        ...state.spec,
+        [key]: action.value,
+        optimization: null,
+      } as DesignSpec;
       return edited(state, {
         spec,
         prov: { ...state.prov, [action.field]: "user" },
