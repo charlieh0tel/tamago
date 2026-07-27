@@ -249,7 +249,7 @@ export function SkyMaps({
         </figure>
       </div>
       <p className="polar-note">
-        Center = zenith (overhead); outer ring = horizon. Rings mark zenith angle
+        Centre = zenith (overhead); outer ring = horizon. Rings mark zenith angle
         (0–90°); azimuth 0° at top, increasing clockwise.
       </p>
     </>
