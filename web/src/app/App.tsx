@@ -186,6 +186,7 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
           <Results
             state={state}
             dispatch={dispatch}
+            onAnalyze={() => void runAnalyze()}
             onPrintView={() => dispatch({ type: "SET_VIEW", view: "report" })}
             onToast={toast}
           />

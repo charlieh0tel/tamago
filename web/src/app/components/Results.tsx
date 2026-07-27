@@ -2,6 +2,7 @@
 // carry a freshness dot (stale after edits, pulsing while loading).
 
 import type { Dispatch } from "react";
+import { resultsStale } from "../state/reducer";
 import type { Action, TabId, TierState, UiState } from "../state/types";
 import { Charts } from "./Charts";
 import { CutSheet } from "./CutSheet";
@@ -32,18 +33,32 @@ function FreshDot({ state }: { state: TierState }): JSX.Element | null {
 export function Results({
   state,
   dispatch,
+  onAnalyze,
   onPrintView,
   onToast,
 }: {
   state: UiState;
   dispatch: Dispatch<Action>;
+  onAnalyze: () => void;
   onPrintView: () => void;
   onToast: (message: string) => void;
 }): JSX.Element {
   const analysis = state.analysis;
   const veil = state.status === "analyzing" || state.status === "optimizing";
+  const stale = resultsStale(state) && !veil;
   return (
     <div className="results">
+      {stale && analysis && (
+        <div className="stale-banner" role="status">
+          <span>
+            Showing the previous analysis ({analysis.result.spec.freqMhz.toFixed(1)}{" "}
+            MHz). Your edits have not been analyzed.
+          </span>
+          <button type="button" onClick={onAnalyze}>
+            Analyze
+          </button>
+        </div>
+      )}
       <div className="tabs" role="tablist">
         {TABS.map((t) => (
           <button
