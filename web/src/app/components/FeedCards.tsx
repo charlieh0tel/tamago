@@ -154,8 +154,11 @@ export function FeedCards({
               {opt.token} &middot; {opt.tradeoff}
             </span>
           </div>
-          {/* Decorative silhouette from our own static markup. */}
-          <div dangerouslySetInnerHTML={{ __html: opt.art }} />
+          {/* Only the selected scheme shows its art, to keep the section
+              compact. Decorative silhouette from our own static markup. */}
+          {opt.token === value && (
+            <div dangerouslySetInnerHTML={{ __html: opt.art }} />
+          )}
         </div>
       ))}
     </div>
