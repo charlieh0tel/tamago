@@ -73,15 +73,19 @@ export function shareLink(spec: DesignSpec): string {
 export interface HashState {
   spec: DesignSpec | null;
   report: boolean;
+  // A spec= fragment was present but could not be decoded (distinct from no
+  // spec= at all, so a bad shared link is not silently treated as absent).
+  specError: boolean;
 }
 
 // Parse the location hash into a spec and the report flag. Malformed specs are
-// ignored (spec: null) rather than throwing.
+// reported via specError (spec: null) rather than throwing.
 export function parseHash(hash: string): HashState {
   const body = hash.startsWith("#") ? hash.slice(1) : hash;
   const parts = body.split("&").filter(Boolean);
   let spec: DesignSpec | null = null;
   let report = false;
+  let specError = false;
   for (const part of parts) {
     if (part === "report") {
       report = true;
@@ -90,10 +94,11 @@ export function parseHash(hash: string): HashState {
         spec = decodeSpec(part.slice("spec=".length));
       } catch {
         spec = null;
+        specError = true;
       }
     }
   }
-  return { spec, report };
+  return { spec, report, specError };
 }
 
 export function writeSpecHash(spec: DesignSpec, report: boolean): void {

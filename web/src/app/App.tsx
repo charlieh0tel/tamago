@@ -2,7 +2,7 @@
 // view, per docs/web-ux.md. Owns the reducer, the engine service, URL-fragment
 // sharing + localStorage restore, and the lazy compute of the charts/sky tiers.
 
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import type { DesignResult } from "../engine/index";
 import { Header } from "./components/Header";
 import { JsonModal } from "./components/JsonModal";
@@ -29,20 +29,25 @@ import {
 import type { OptimizeBundle } from "./worker/protocol";
 
 // Build the first UI state from the URL hash, then localStorage, then defaults.
-function bootState(): { state: UiState; report: boolean } {
+function bootState(): { state: UiState; report: boolean; badLink: boolean } {
   const hash = parseHash(window.location.hash);
   if (hash.spec !== null) {
-    return { state: initialState(hash.spec), report: hash.report };
+    return { state: initialState(hash.spec), report: hash.report, badLink: false };
+  }
+  if (hash.specError) {
+    // A malformed shared link: start from the default rather than localStorage,
+    // so the recipient never sees their own saved design under someone's link.
+    return { state: initialState(), report: hash.report, badLink: true };
   }
   const last = loadLastSpec();
   if (last !== null) {
-    return { state: initialState(last), report: hash.report };
+    return { state: initialState(last), report: hash.report, badLink: false };
   }
-  return { state: initialState(), report: hash.report };
+  return { state: initialState(), report: hash.report, badLink: false };
 }
 
 export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
-  const boot = useRef<{ state: UiState; report: boolean }>();
+  const boot = useRef<{ state: UiState; report: boolean; badLink: boolean }>();
   if (boot.current === undefined) {
     boot.current = bootState();
   }
@@ -58,6 +63,7 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
   }
   const svc = engineRef.current;
   const jobRef = useRef<Job<OptimizeBundle> | null>(null);
+  const [badLink, setBadLink] = useState(boot.current.badLink);
 
   const toast = (message: string): void => dispatch({ type: "TOAST", message });
 
@@ -182,6 +188,14 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
   return (
     <div className="app">
       <Header state={state} onCopyLink={() => void copyLink()} />
+      {badLink && (
+        <div className="link-banner" role="alert">
+          <span>That design link couldn't be read — showing the default design.</span>
+          <button type="button" onClick={() => setBadLink(false)}>
+            dismiss
+          </button>
+        </div>
+      )}
       {state.view === "report" ? (
         <Report
           state={state}
