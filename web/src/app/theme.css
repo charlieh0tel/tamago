@@ -148,6 +148,11 @@ header .spacer {
   align-items: start;
   padding-top: 16px;
 }
+/* Let the grid tracks shrink below their content's intrinsic width instead of
+   forcing a page-level horizontal scrollbar (e.g. the feed-card SVGs). */
+.panes > * {
+  min-width: 0;
+}
 @media (max-width: 860px) {
   .panes {
     grid-template-columns: 1fr;
@@ -362,7 +367,9 @@ button:focus-visible,
   color: var(--muted);
 }
 .feedcard svg {
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
   margin-top: 4px;
 }
