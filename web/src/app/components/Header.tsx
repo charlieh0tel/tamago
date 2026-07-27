@@ -19,29 +19,53 @@ function TuningChip({ state }: { state: UiState }): JSX.Element {
     // The check asserts the phase only; performance vs targets is in the
     // results summary, not implied here.
     return (
-      <span className="chip">
+      <span
+        className="chip"
+        title="Loop currents are 90° apart — the quadrature that makes the pattern circularly polarized. The number is the achieved loop A minus loop B current phase."
+      >
         quadrature <b>✓ {phase}°</b>
       </span>
     );
   }
   if (status === "analyzed") {
     return (
-      <span className="chip tuning">
+      <span
+        className="chip tuning"
+        title="Analyzed at the current dimensions but not tuned to 90° quadrature. Run Optimize to tune the perimeter."
+      >
         analyzed — <b>phase {phase}°, not quadrature</b>
       </span>
     );
   }
   if (status === "analyzing") {
-    return <span className="chip">analyzing…</span>;
+    return (
+      <span className="chip" title="Running nec2c on the current design…">
+        analyzing…
+      </span>
+    );
   }
   if (status === "optimizing") {
-    return <span className="chip">optimizing…</span>;
+    return (
+      <span
+        className="chip"
+        title="Tuning the perimeter to quadrature and searching the reflector…"
+      >
+        optimizing…
+      </span>
+    );
   }
   if (status === "fresh") {
-    return <span className="chip">not analyzed — press Analyze</span>;
+    return (
+      <span className="chip" title="Nothing analyzed yet. Press Analyze.">
+        not analyzed — press Analyze
+      </span>
+    );
   }
   return (
-    <span className="chip tuning">
+    <span
+      className="chip tuning"
+      title="The design changed since the last analysis. Press Analyze to update the results."
+    >
       edited — <b>not analyzed</b>
     </span>
   );
@@ -81,7 +105,10 @@ export function Header({
       <span className="chips">
         <TuningChip state={state} />
         {analysis && (
-          <span className="chip">
+          <span
+            className="chip"
+            title="Achieved circular-polarization handedness (from the modeled pattern) versus the sense you requested."
+          >
             sense{" "}
             <b>
               {achieved === wanted
@@ -91,7 +118,10 @@ export function Header({
           </span>
         )}
         {analysis && (
-          <span className="chip">
+          <span
+            className="chip"
+            title="How the phasing line connects to loop B. 'crossed' swaps the two conductors at loop B to deliver the requested sense; 'normal' is straight through. See the schematic."
+          >
             {analysis.result.crossedPhasingLine ? "crossed" : "normal"} line to loop B
           </span>
         )}
