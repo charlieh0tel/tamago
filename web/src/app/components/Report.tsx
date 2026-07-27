@@ -51,8 +51,8 @@ export function Report({
       )}
       <h1 className="rtitle">{title}</h1>
       <div className="rmeta">
-        tamago <span lang="ja">卵泡立て器</span> &middot; {spec.freqMhz} MHz &middot;{" "}
-        {spec.sense.toUpperCase()} &middot; generated {generated}
+        tamago awadateki <span lang="ja">卵泡立て器</span> &middot; {spec.freqMhz} MHz
+        &middot; {spec.sense.toUpperCase()} &middot; generated {generated}
       </div>
       <div className="rmeta">
         tool <b>{VERSION_PAREN}</b> &middot; {REPO} &middot; design link:{" "}
