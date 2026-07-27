@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Analyze flow with a mocked engine: pressing Analyze renders the cut sheet and
-// reports an "analyzed -- not tuned" status for a non-opt perimeter.
+// reports an "analyzed -- not quadrature" status for a non-opt perimeter.
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { App } from "../src/app/App";
@@ -29,8 +29,8 @@ describe("analyze flow", () => {
         "Eggbeater cut sheet: FAKE",
       );
     });
-    // A non-opt (estimated) perimeter analyzes but is not tuned.
-    expect(getByText(/not tuned/)).toBeInTheDocument();
+    // A non-opt (estimated) perimeter analyzes but is not quadrature-tuned.
+    expect(getByText(/not quadrature/)).toBeInTheDocument();
   });
 
   it("switches to the report view from the cut sheet print action", async () => {

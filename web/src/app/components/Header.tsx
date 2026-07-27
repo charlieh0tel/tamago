@@ -16,16 +16,18 @@ function TuningChip({ state }: { state: UiState }): JSX.Element {
   const { status, analysis } = state;
   const phase = analysis ? signed(analysis.result.phaseDiffDeg) : "";
   if (status === "tuned") {
+    // The check asserts the phase only; performance vs targets is in the
+    // results summary, not implied here.
     return (
       <span className="chip">
-        tuned <b>✓ quadrature {phase}°</b>
+        quadrature <b>✓ {phase}°</b>
       </span>
     );
   }
   if (status === "analyzed") {
     return (
       <span className="chip tuning">
-        analyzed — <b>phase {phase}°, not tuned</b>
+        analyzed — <b>phase {phase}°, not quadrature</b>
       </span>
     );
   }
