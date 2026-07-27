@@ -488,42 +488,51 @@ export function SpecRail({
         </div>
       </details>
 
-      <button
-        type="button"
-        className="applybtn"
-        onClick={onAnalyze}
-        disabled={!analyzeEnabled}
-      >
-        {status === "analyzing" ? "analyzing…" : "Analyze"}
-      </button>
-      <div className="optnote">{analyzeNote}</div>
-      <button type="button" className="optbtn" onClick={onOptimize} disabled={busy}>
-        Optimize
-      </button>
-      <div className="optnote">
-        tunes perimeter to quadrature; searches reflector · seconds to minutes
-      </div>
-
-      {status === "optimizing" && (
-        <div className="optpanel">
-          <div className="opthead">
-            <span>{state.optProgress?.stage ?? "starting…"}</span>
-            <button type="button" className="cancel" onClick={onCancelOptimize}>
-              cancel
-            </button>
+      <div className="actions">
+        <button
+          type="button"
+          className="applybtn"
+          onClick={onAnalyze}
+          disabled={!analyzeEnabled}
+        >
+          {status === "analyzing" ? "analyzing…" : "Analyze"}
+        </button>
+        <div className="optnote">{analyzeNote}</div>
+        {status === "analyzed" && (
+          <div className="tune-hint">
+            Analyzed, not tuned — run <b>Optimize</b> to reach quadrature.
           </div>
-          <div className="bar">
-            <i
-              style={{ width: `${Math.min(95, (state.optProgress?.runs ?? 0) * 2)}%` }}
-            />
-          </div>
-          <span style={{ color: "var(--muted)" }}>
-            {state.optProgress
-              ? `nec2c run ${state.optProgress.runs} · ${state.optProgress.elapsedS.toFixed(1)} s`
-              : "warming up the solver"}
-          </span>
+        )}
+        <button type="button" className="optbtn" onClick={onOptimize} disabled={busy}>
+          Optimize
+        </button>
+        <div className="optnote">
+          tunes perimeter to quadrature; searches reflector · seconds to minutes
         </div>
-      )}
+
+        {status === "optimizing" && (
+          <div className="optpanel">
+            <div className="opthead">
+              <span>{state.optProgress?.stage ?? "starting…"}</span>
+              <button type="button" className="cancel" onClick={onCancelOptimize}>
+                cancel
+              </button>
+            </div>
+            <div className="bar">
+              <i
+                style={{
+                  width: `${Math.min(95, (state.optProgress?.runs ?? 0) * 2)}%`,
+                }}
+              />
+            </div>
+            <span style={{ color: "var(--muted)" }}>
+              {state.optProgress
+                ? `nec2c run ${state.optProgress.runs} · ${state.optProgress.elapsedS.toFixed(1)} s`
+                : "warming up the solver"}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
