@@ -55,7 +55,7 @@ function ProvTag({
 const LEGEND: Array<{ v: string; stale?: boolean; text: string; label: string }> = [
   { v: "est", text: "est", label: "estimate, tracks frequency" },
   { v: "user", text: "user", label: "entered by you" },
-  { v: "opt", text: "opt", label: "from Optimize" },
+  { v: "opt", text: "opt", label: "from optimizer" },
   { v: "opt", stale: true, text: "opt*", label: "stale, re-run" },
 ];
 
