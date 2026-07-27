@@ -10,6 +10,7 @@ import { Files } from "./Files";
 import { Model3D } from "./Model3D";
 import { Schematic } from "./Schematic";
 import { SkyMaps } from "./SkyMaps";
+import { Summary } from "./Summary";
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: "cut", label: "Cut sheet" },
@@ -59,6 +60,7 @@ export function Results({
           </button>
         </div>
       )}
+      {analysis && <Summary result={analysis.result} />}
       <div className="tabs" role="tablist">
         {TABS.map((t) => (
           <button
