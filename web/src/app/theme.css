@@ -721,6 +721,15 @@ figure.chart .note {
   fill: var(--limit);
   font-weight: 600;
 }
+.offscale path {
+  fill: var(--amber);
+}
+.offscale text {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--amber);
+}
 .tip {
   position: fixed;
   pointer-events: none;

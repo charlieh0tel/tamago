@@ -27,6 +27,28 @@ interface Tip {
 // A series point: [percent offset from f0, value].
 type Pair = [number, number];
 
+// The peak point of each contiguous run that exceeds ymax, so a curve clamped
+// to the top edge is flagged (and its true value shown) rather than reading as
+// a flat line at the ceiling. Both band edges are flagged for a U-shaped curve.
+function offScaleRunPeaks(points: Pair[], ymax: number): Pair[] {
+  const peaks: Pair[] = [];
+  let inRun = false;
+  for (const p of points) {
+    if (p[1] > ymax) {
+      const last = peaks[peaks.length - 1];
+      if (!inRun) {
+        peaks.push(p);
+      } else if (last !== undefined && p[1] > last[1]) {
+        peaks[peaks.length - 1] = p;
+      }
+      inRun = true;
+    } else {
+      inRun = false;
+    }
+  }
+  return peaks;
+}
+
 function Chart({
   points,
   ymin,
@@ -75,6 +97,8 @@ function Chart({
         `${sx(p[0]).toFixed(1)},${sy(Math.min(p[1], ymax), ymin, ymax).toFixed(1)}`,
     )
     .join(" ");
+
+  const offPeaks = offScaleRunPeaks(points, ymax);
 
   return (
     <>
@@ -152,6 +176,15 @@ function Chart({
           strokeWidth={2.2}
           strokeLinejoin="round"
         />
+        {offPeaks.map((p) => (
+          <g className="offscale" key={p[0]}>
+            <path d={`M${sx(p[0]).toFixed(1)},${MT + 1} l-4.5,7 l9,0 z`} />
+            <title>{`off scale: ${format(p[1])}`}</title>
+            <text x={sx(p[0])} y={MT + 20} textAnchor="middle">
+              {p[1].toFixed(1)}
+            </text>
+          </g>
+        ))}
         <text className="axis" x={(ML + W - MR) / 2} y={H - 4} textAnchor="middle">
           frequency offset (%)
         </text>
