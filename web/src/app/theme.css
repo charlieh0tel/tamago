@@ -817,6 +817,21 @@ figure.chart .note {
   align-items: center;
   margin-bottom: 14px;
 }
+.report-warn {
+  border: 2px solid var(--amber);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--amber) 14%, var(--panel));
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+}
+.report-warn b {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--amber) 55%, var(--ink));
+}
 .rtitle {
   font-family: var(--mono);
   font-size: 20px;

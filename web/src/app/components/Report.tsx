@@ -4,6 +4,7 @@
 // browser Print produces the report. Deep-linkable via #report.
 
 import { shareLink } from "../hash";
+import { resultsStale } from "../state/reducer";
 import type { UiState } from "../state/types";
 import { VERSION_PAREN } from "../version";
 import { Charts } from "./Charts";
@@ -20,10 +21,13 @@ export function Report({
   onBack: () => void;
 }): JSX.Element {
   const analysis = state.analysis;
-  const spec = state.spec;
+  // Every field describes the analyzed design, not the live editor state, so the
+  // printed metadata and design link always reproduce the printed results.
+  const spec = analysis?.result.spec ?? state.spec;
   const title = spec.label ? `Eggbeater design — ${spec.label}` : "Eggbeater design";
   const generated = new Date().toISOString().slice(0, 10);
   const link = shareLink(spec);
+  const stale = resultsStale(state);
 
   return (
     <div className="report">
@@ -38,6 +42,13 @@ export function Report({
           or use the browser's Print (Ctrl+P)
         </span>
       </div>
+      {stale && (
+        <div className="report-warn" role="alert">
+          <b>Unapplied edits.</b> This report reflects the last analyzed design
+          {analysis ? ` (${analysis.result.spec.freqMhz} MHz)` : ""}, not the current
+          designer form. Re-analyze to report your edits.
+        </div>
+      )}
       <h1 className="rtitle">{title}</h1>
       <div className="rmeta">
         tamago <span lang="ja">卵泡立て器</span> &middot; {spec.freqMhz} MHz &middot;{" "}
