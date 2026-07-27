@@ -77,7 +77,7 @@ export type Action =
   | { type: "SET_REFLECTOR_FIELD"; field: "spacing" | "droop" | "count"; value: number }
   | { type: "LOAD_SPEC"; spec: DesignSpec }
   | { type: "ANALYZE_START" }
-  | { type: "ANALYZE_DONE"; bundle: AnalysisBundle }
+  | { type: "ANALYZE_DONE"; bundle: AnalysisBundle; fingerprint: string }
   | { type: "ANALYZE_ERROR"; message: string }
   | { type: "OPTIMIZE_START" }
   | { type: "OPTIMIZE_PROGRESS"; progress: OptimizeProgress }

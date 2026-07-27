@@ -11,6 +11,7 @@ import { Results } from "./components/Results";
 import { SpecRail } from "./components/SpecRail";
 import { Toast } from "./components/Toast";
 import {
+  analysisFingerprint,
   loadLastSpec,
   parseHash,
   saveLastSpec,
@@ -64,8 +65,11 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
     dispatch({ type: "ANALYZE_START" });
     try {
       const perimeter = state.prov.perim === "est" ? null : state.perimeterMm;
+      // Fingerprint the spec actually analyzed; if the user edits during the
+      // run, this no longer matches the form and the stale banner shows.
+      const fingerprint = analysisFingerprint(state.spec);
       const bundle = await svc.analyze(state.spec, perimeter);
-      dispatch({ type: "ANALYZE_DONE", bundle });
+      dispatch({ type: "ANALYZE_DONE", bundle, fingerprint });
     } catch (err) {
       dispatch({
         type: "ANALYZE_ERROR",
@@ -105,6 +109,15 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
   };
 
   const cancelOptimize = (): void => jobRef.current?.cancel();
+
+  // Cancel a running Optimize the moment the design is edited, so its writeback
+  // cannot clobber the edit. jobRef is set only while Optimize runs, and an edit
+  // is the only thing that flips the status to "edited" during a run.
+  useEffect(() => {
+    if (state.status === "edited" && jobRef.current !== null) {
+      jobRef.current.cancel();
+    }
+  }, [state.status]);
 
   const copyLink = async (): Promise<void> => {
     try {

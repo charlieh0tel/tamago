@@ -139,11 +139,14 @@ export function reducer(state: UiState, action: Action): UiState {
       return { ...state, status: "analyzing", error: null };
     case "ANALYZE_DONE": {
       const analysis = action.bundle;
+      // If the spec was edited during the run, the result no longer matches the
+      // form: keep it (behind the stale banner) but report the design as edited.
+      const edited = analysisFingerprint(state.spec) !== action.fingerprint;
       return {
         ...state,
         analysis,
-        analyzedFingerprint: analysisFingerprint(state.spec),
-        status: settledStatus({ ...state, analysis }),
+        analyzedFingerprint: action.fingerprint,
+        status: edited ? "edited" : settledStatus({ ...state, analysis }),
         charts: stale(state.charts),
         sky: stale(state.sky),
         error: null,
@@ -185,13 +188,19 @@ export function reducer(state: UiState, action: Action): UiState {
         error: null,
       };
     }
-    case "OPTIMIZE_CANCELLED":
+    case "OPTIMIZE_CANCELLED": {
+      // An edit during the run already set status "edited" and cancelled the
+      // job; otherwise it was a manual cancel and the form is unchanged.
+      const editCancel = state.status === "edited";
       return {
         ...state,
-        status: settledStatus(state),
+        status: editCancel ? "edited" : settledStatus(state),
         optProgress: null,
-        toast: "optimization cancelled -- form unchanged",
+        toast: editCancel
+          ? "optimization cancelled -- the design changed"
+          : "optimization cancelled -- form unchanged",
       };
+    }
     case "OPTIMIZE_ERROR":
       return {
         ...state,
