@@ -75,6 +75,7 @@ function PolarHeatmap({
   vmax,
   cmap,
   barLabel,
+  name,
 }: {
   values: Map<string, number>;
   thetas: readonly number[];
@@ -83,6 +84,7 @@ function PolarHeatmap({
   vmax: number;
   cmap: Cmap;
   barLabel: string;
+  name: string;
 }): JSX.Element {
   const span = vmax - vmin || 1.0;
   const sectors: JSX.Element[] = [];
@@ -164,7 +166,13 @@ function PolarHeatmap({
     );
   }
   return (
-    <svg viewBox="0 0 360 300" role="img" preserveAspectRatio="xMidYMid meet">
+    <svg
+      viewBox="0 0 360 300"
+      role="img"
+      aria-label={name}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <title>{name}</title>
       {sectors}
       {rings}
       {azLabels}
@@ -211,31 +219,39 @@ export function SkyMaps({
   const gmax = Math.ceil(gainMax(data));
   const staleNote = state === "stale" ? " (stale)" : "";
   return (
-    <div className="polar">
-      <figure className="chart" style={{ flex: 1, minWidth: 260 }}>
-        <figcaption>Gain over the sky{staleNote}</figcaption>
-        <PolarHeatmap
-          values={data.gainMap}
-          thetas={data.thetas}
-          phis={data.phis}
-          vmin={gmax - GAIN_MAP_RANGE_DB}
-          vmax={gmax}
-          cmap={GAIN_CMAP}
-          barLabel="dBi"
-        />
-      </figure>
-      <figure className="chart" style={{ flex: 1, minWidth: 260 }}>
-        <figcaption>Axial ratio over the sky{staleNote}</figcaption>
-        <PolarHeatmap
-          values={data.arMap}
-          thetas={data.thetas}
-          phis={data.phis}
-          vmin={0}
-          vmax={AR_MAP_MAX_DB}
-          cmap={AR_CMAP}
-          barLabel="dB"
-        />
-      </figure>
-    </div>
+    <>
+      <div className="polar">
+        <figure className="chart" style={{ flex: 1, minWidth: 260 }}>
+          <figcaption>Gain over the sky{staleNote}</figcaption>
+          <PolarHeatmap
+            values={data.gainMap}
+            thetas={data.thetas}
+            phis={data.phis}
+            vmin={gmax - GAIN_MAP_RANGE_DB}
+            vmax={gmax}
+            cmap={GAIN_CMAP}
+            barLabel="dBi"
+            name={`Gain over the sky, polar plot: zenith at centre, horizon at rim, peak ${gmax} dBi`}
+          />
+        </figure>
+        <figure className="chart" style={{ flex: 1, minWidth: 260 }}>
+          <figcaption>Axial ratio over the sky{staleNote}</figcaption>
+          <PolarHeatmap
+            values={data.arMap}
+            thetas={data.thetas}
+            phis={data.phis}
+            vmin={0}
+            vmax={AR_MAP_MAX_DB}
+            cmap={AR_CMAP}
+            barLabel="dB"
+            name="Axial ratio over the sky, polar plot: zenith at centre, horizon at rim"
+          />
+        </figure>
+      </div>
+      <p className="polar-note">
+        Center = zenith (overhead); outer ring = horizon. Rings mark zenith angle
+        (0–90°); azimuth 0° at top, increasing clockwise.
+      </p>
+    </>
   );
 }

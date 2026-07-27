@@ -807,6 +807,12 @@ figure.chart .note {
   gap: 20px;
   flex-wrap: wrap;
 }
+.polar-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 .viewer-canvas {
   width: 100%;
   max-width: 420px;
