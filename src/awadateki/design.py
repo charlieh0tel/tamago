@@ -293,6 +293,10 @@ class DesignResult:
         coverage_gain_db: worst-case total gain over the coverage cone
             (theta <= COVERAGE_THETA_DEG), dBi.
         deck: the tuned NEC deck text (with the chosen line connection).
+        loop_a_feed_z, loop_b_feed_z: active driving-point impedance at each
+            loop's feed gap, with both loops driven in the delivered quadrature
+            (mutual coupling included). None unless characterized (the optimizer
+            skips this extra run); see _loop_feed_impedances.
     """
 
     spec: DesignSpec
@@ -307,6 +311,8 @@ class DesignResult:
     ar_peak_db: float
     coverage_gain_db: float
     deck: str
+    loop_a_feed_z: complex | None = None
+    loop_b_feed_z: complex | None = None
 
 
 def _center_z_m(spec: DesignSpec, wavelength: float, perimeter_m: float) -> float:
@@ -645,6 +651,52 @@ def _antenna_feed_z(result: NecResult) -> complex:
     return complex(result.sources[0].z_real, result.sources[0].z_imag)
 
 
+def _source_z(result: NecResult, tag: int) -> complex:
+    """Driving-point impedance at the source on wire `tag`."""
+    for source in result.sources:
+        if source.tag == tag:
+            return complex(source.z_real, source.z_imag)
+    raise ValueError(f"nec2c reported no source on tag {tag}")
+
+
+def _loop_feed_impedances(
+    spec: DesignSpec, factor: float, phase_diff_deg: float
+) -> tuple[complex, complex]:
+    """Active driving-point impedance at each loop's feed gap.
+
+    Replaces the harness with a voltage source on each loop feed, driven in the
+    delivered quadrature (loop A at 1/_0, loop B at 1/_ minus the delivered
+    current phase difference), and reads each source impedance. This is the
+    impedance each loop presents at its feed while the antenna operates, with
+    mutual coupling between the loops included.
+    """
+    egg, wavelength = _eggbeater(spec, factor)
+    wires = egg.wires + _reflector_wires(spec, wavelength)
+    phi = math.radians(phase_diff_deg)
+    sources = (
+        Source(egg.loop_a.feed_tag, egg.loop_a.feed_segment, 1.0, 0.0),
+        Source(
+            egg.loop_b.feed_tag,
+            egg.loop_b.feed_segment,
+            math.cos(phi),
+            -math.sin(phi),
+        ),
+    )
+    deck = build_deck(
+        _comment_lines(spec),
+        wires,
+        sources,
+        ground=spec.reflector == REFLECTOR_GROUND,
+        freq_mhz=spec.freq_mhz,
+        grid=DEFAULT_GRID,
+    )
+    result = run_nec(deck, spec.nec2c)
+    return (
+        _source_z(result, egg.loop_a.feed_tag),
+        _source_z(result, egg.loop_b.feed_tag),
+    )
+
+
 def series_element_fitted(z: complex) -> bool:
     """Whether the match includes a series element for this feedpoint z."""
     return abs(z.imag) > MATCH_REACTANCE_WARN_OHMS
@@ -847,7 +899,7 @@ def _natural_hand(spec: DesignSpec) -> str | None:
     return NEC_SENSE_TO_HAND.get(_boresight_sense(probe))
 
 
-def design(spec: DesignSpec) -> DesignResult:
+def design(spec: DesignSpec, with_loop_z: bool = True) -> DesignResult:
     """Tune an eggbeater to the spec and return the result.
 
     A coarse probe run reads the natural handedness; the requested sense then
@@ -856,18 +908,26 @@ def design(spec: DesignSpec) -> DesignResult:
     connection. Crossing is a mirror image only on boresight: the vertical
     loop offset makes the two senses slightly different antennas off-axis,
     so the delivered connection must be the one characterized.
+
+    with_loop_z adds one extra nec2c run to characterize the per-loop feed-point
+    impedances; the optimizer passes False since it needs only the match cost.
     """
     natural = _natural_hand(spec)
     crossed = natural is not None and natural != spec.sense
     base_factor = _quadrature_factor(spec, flip=crossed)
     result, deck = analyze(spec, base_factor, flip=crossed)
     ar_boresight, ar_worst, ar_peak, sense = _polarization_summary(result)
+    phase_diff = _phase_difference(result)
+
+    loop_a_z, loop_b_z = (None, None)
+    if with_loop_z:
+        loop_a_z, loop_b_z = _loop_feed_impedances(spec, base_factor, phase_diff)
 
     return DesignResult(
         spec=spec,
         base_factor=base_factor,
         z_in=_antenna_feed_z(result),
-        phase_diff_deg=_phase_difference(result),
+        phase_diff_deg=phase_diff,
         loop_balance=_loop_balance(result),
         crossed_phasing_line=crossed,
         sense=sense,
@@ -876,6 +936,8 @@ def design(spec: DesignSpec) -> DesignResult:
         ar_peak_db=ar_peak,
         coverage_gain_db=_coverage_gain_db(result),
         deck=deck,
+        loop_a_feed_z=loop_a_z,
+        loop_b_feed_z=loop_b_z,
     )
 
 
@@ -915,7 +977,7 @@ def _best_placement(
             radial_droop_deg=droop,
             optimization=None,
         )
-        return _reflector_cost(design(candidate))
+        return _reflector_cost(design(candidate, with_loop_z=False))
 
     spacing = sum(SPACING_BOUNDS_WL) / 2.0
     droop = sum(DROOP_BOUNDS_DEG) / 2.0 if optimize_droop else 0.0
@@ -937,7 +999,7 @@ def _best_placement(
         radial_droop_deg=droop,
         optimization=None,
     )
-    result = design(candidate)
+    result = design(candidate, with_loop_z=False)
     return _reflector_cost(result), candidate, result
 
 

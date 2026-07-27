@@ -175,9 +175,21 @@ function matchLines(result: DesignResult, build: JsonObject): string[] {
 
 function performanceLines(result: DesignResult, perf: JsonObject): string[] {
   const z = obj(perf, "feed_z_ohm");
-  return [
+  const lines = [
     "Predicted performance:",
     `  feedpoint Z      : ${f(num(z, "real"), 1)} ${fs(num(z, "imag"), 1)}j ohms`,
+  ];
+  const za = perf.loop_a_feed_z_ohm as JsonObject | null;
+  const zb = perf.loop_b_feed_z_ohm as JsonObject | null;
+  if (za !== null && zb !== null) {
+    lines.push(
+      `  loop A feed Z    : ${f(num(za, "real"), 1)} ${fs(num(za, "imag"), 1)}j ohms`,
+    );
+    lines.push(
+      `  loop B feed Z    : ${f(num(zb, "real"), 1)} ${fs(num(zb, "imag"), 1)}j ohms`,
+    );
+  }
+  lines.push(
     `  VSWR (unmatched) : ${f(num(perf, "vswr_unmatched"), 2)}`,
     `  loop current phase: ${fs(num(perf, "loop_current_phase_deg"), 1)} deg (target +/-90)`,
     `  loop balance     : ${f(num(perf, "loop_balance"), 3)} |Ib/Ia| (1.0 = equal drive)`,
@@ -188,7 +200,8 @@ function performanceLines(result: DesignResult, perf: JsonObject): string[] {
     `  axial ratio (peak): ${f(num(perf, "axial_ratio_peak_db"), 2)} dB`,
     `  coverage gain     : ${f(num(perf, "coverage_gain_dbi"), 2)} dBi ` +
       `(worst case <= ${Math.trunc(COVERAGE_THETA_DEG)} deg from zenith)`,
-  ];
+  );
+  return lines;
 }
 
 function buildLines(result: DesignResult, build: JsonObject): string[] {

@@ -26,6 +26,8 @@ export function fakeResult(spec: DesignSpec, phaseDiffDeg = 89.9): DesignResult 
     arPeakDb: 0.53,
     coverageGainDb: 1.12,
     deck: "CM fake deck\nCE\nEN\n",
+    loopAFeedZ: { re: 115.3, im: 0.1 },
+    loopBFeedZ: { re: 115.1, im: -0.2 },
   };
 }
 

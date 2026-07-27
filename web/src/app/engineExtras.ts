@@ -29,6 +29,7 @@ import {
   analyze,
   axialRatioDb,
   feedCurrent,
+  loopFeedImpedances,
   wavelengthM,
   wrapPhaseDeg,
 } from "../engine/index";
@@ -185,11 +186,18 @@ export async function analyzeLiteral(
   const natural = NEC_SENSE_TO_HAND[boresightSense(probe.result)] ?? null;
   const crossed = natural !== null && natural !== spec.sense;
   const { result, deck } = await analyze(spec, factor, { flip: crossed }, runner);
+  const phaseDiffDeg = phaseDifference(result);
+  const [loopAFeedZ, loopBFeedZ] = await loopFeedImpedances(
+    spec,
+    factor,
+    phaseDiffDeg,
+    runner,
+  );
   return {
     spec,
     baseFactor: factor,
     zIn: antennaFeedZ(result),
-    phaseDiffDeg: phaseDifference(result),
+    phaseDiffDeg,
     loopBalance: loopBalance(result),
     crossedPhasingLine: crossed,
     sense: boresightSense(result),
@@ -198,6 +206,8 @@ export async function analyzeLiteral(
     arPeakDb: peakArDb(result),
     coverageGainDb: coverageGainDb(result),
     deck,
+    loopAFeedZ,
+    loopBFeedZ,
   };
 }
 

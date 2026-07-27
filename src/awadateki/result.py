@@ -30,7 +30,9 @@ only when a frequency sweep is requested):
     performance feedpoint and pattern figures of merit:
                   feed_z_ohm {real, imag}, feed_z_kind (feedpoint),
                   vswr_unmatched, vswr_matched, loop_current_phase_deg,
-                  loop_balance (|I_B|/|I_A|), sense, sense_requested,
+                  loop_balance (|I_B|/|I_A|), loop_a_feed_z_ohm and
+                  loop_b_feed_z_ohm {real, imag} (active per-loop feedpoint
+                  impedance, null if not characterized), sense, sense_requested,
                   sense_achieved, axial_ratio_cone_db (mean),
                   axial_ratio_cone_worst_db, axial_ratio_peak_db,
                   coverage_gain_dbi.
@@ -195,6 +197,10 @@ def _build_dict(result: DesignResult) -> dict:
     return build
 
 
+def _z_ohm(z: complex | None) -> dict | None:
+    return {"real": z.real, "imag": z.imag} if z is not None else None
+
+
 def _performance_dict(result: DesignResult) -> dict:
     spec = result.spec
     z = result.z_in
@@ -206,6 +212,8 @@ def _performance_dict(result: DesignResult) -> dict:
         "vswr_matched": matched_vswr(spec, z),
         "loop_current_phase_deg": result.phase_diff_deg,
         "loop_balance": result.loop_balance,
+        "loop_a_feed_z_ohm": _z_ohm(result.loop_a_feed_z),
+        "loop_b_feed_z_ohm": _z_ohm(result.loop_b_feed_z),
         "sense": (achieved.upper() if achieved else result.sense),
         "sense_requested": spec.sense.upper(),
         "sense_achieved": achieved == spec.sense,

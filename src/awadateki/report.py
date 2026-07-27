@@ -140,9 +140,16 @@ def _match_lines(result: DesignResult, build: dict) -> list[str]:
 
 def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
     z = perf["feed_z_ohm"]
-    return [
+    lines = [
         "Predicted performance:",
         f"  feedpoint Z      : {z['real']:.1f} {z['imag']:+.1f}j ohms",
+    ]
+    za = perf["loop_a_feed_z_ohm"]
+    zb = perf["loop_b_feed_z_ohm"]
+    if za is not None and zb is not None:
+        lines.append(f"  loop A feed Z    : {za['real']:.1f} {za['imag']:+.1f}j ohms")
+        lines.append(f"  loop B feed Z    : {zb['real']:.1f} {zb['imag']:+.1f}j ohms")
+    lines += [
         f"  VSWR (unmatched) : {perf['vswr_unmatched']:.2f}",
         f"  loop current phase: {perf['loop_current_phase_deg']:+.1f} deg "
         "(target +/-90)",
@@ -155,6 +162,7 @@ def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
         f"  coverage gain     : {perf['coverage_gain_dbi']:.2f} dBi "
         f"(worst case <= {int(COVERAGE_THETA_DEG)} deg from zenith)",
     ]
+    return lines
 
 
 def _build_lines(result: DesignResult, build: dict) -> list[str]:

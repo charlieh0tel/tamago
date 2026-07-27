@@ -40,6 +40,18 @@ function metrics(result: DesignResult): Metric[] {
       label: "Feed Z",
       value: `${result.zIn.re.toFixed(1)} ${signed(result.zIn.im)}j Ω`,
     },
+    ...(result.loopAFeedZ && result.loopBFeedZ
+      ? [
+          {
+            label: "Loop A feed Z",
+            value: `${result.loopAFeedZ.re.toFixed(1)} ${signed(result.loopAFeedZ.im)}j Ω`,
+          },
+          {
+            label: "Loop B feed Z",
+            value: `${result.loopBFeedZ.re.toFixed(1)} ${signed(result.loopBFeedZ.im)}j Ω`,
+          },
+        ]
+      : []),
     {
       label: `VSWR (< ${FEASIBLE_VSWR})`,
       value: vswr.toFixed(2),

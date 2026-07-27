@@ -36,6 +36,8 @@ function syntheticResult(feed: string, zReal: number): DesignResult {
     arPeakDb: 1.2,
     coverageGainDb: 1.2,
     deck: "",
+    loopAFeedZ: null,
+    loopBFeedZ: null,
   };
 }
 

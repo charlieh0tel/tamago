@@ -68,6 +68,14 @@
     "vswr_matched": 1.3119239974781598,
     "loop_current_phase_deg": 89.90792105098808,
     "loop_balance": 1.7660023340073234,
+    "loop_a_feed_z_ohm": {
+      "real": 88.303,
+      "imag": 0.1357
+    },
+    "loop_b_feed_z_ohm": {
+      "real": 88.303,
+      "imag": 0.1357
+    },
     "sense": "RHCP",
     "sense_requested": "RHCP",
     "sense_achieved": true,

@@ -27,6 +27,8 @@ function result(specOverrides: Partial<DesignSpec> = {}): DesignResult {
     arPeakDb: 0.7,
     coverageGainDb: 0.34,
     deck: "",
+    loopAFeedZ: { re: 120.0, im: 3.0 },
+    loopBFeedZ: { re: 118.5, im: -2.0 },
   };
 }
 

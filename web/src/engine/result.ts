@@ -32,6 +32,7 @@ import {
   vswr,
 } from "./design";
 import { SHAPE_SQUIRCLE, loopExtentM, wavelengthM } from "./geometry";
+import type { Complex } from "./nec";
 import { type JsonObject, specToDict } from "./spec";
 
 const MM_PER_M = 1000.0;
@@ -167,6 +168,10 @@ function buildDict(result: DesignResult): JsonObject {
   return build;
 }
 
+function zOhm(z: Complex | null): JsonObject | null {
+  return z !== null ? { real: z.re, imag: z.im } : null;
+}
+
 function performanceDict(result: DesignResult): JsonObject {
   const spec = result.spec;
   const z = result.zIn;
@@ -178,6 +183,8 @@ function performanceDict(result: DesignResult): JsonObject {
     vswr_matched: matchedVswr(spec, z),
     loop_current_phase_deg: result.phaseDiffDeg,
     loop_balance: result.loopBalance,
+    loop_a_feed_z_ohm: zOhm(result.loopAFeedZ),
+    loop_b_feed_z_ohm: zOhm(result.loopBFeedZ),
     sense: achieved ? achieved.toUpperCase() : result.sense,
     sense_requested: spec.sense.toUpperCase(),
     sense_achieved: achieved === spec.sense,

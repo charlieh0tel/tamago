@@ -22,6 +22,8 @@ Match to 50 ohm:
 ----------------------------------------
 Predicted performance:
   feedpoint Z      : 26.0 -0.4j ohms
+  loop A feed Z    : 101.8 +1.6j ohms
+  loop B feed Z    : 110.2 -1.2j ohms
   VSWR (unmatched) : 1.93
   loop current phase: +89.6 deg (target +/-90)
   loop balance     : 1.021 |Ib/Ia| (1.0 = equal drive)

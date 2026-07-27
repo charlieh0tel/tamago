@@ -120,6 +120,11 @@ export interface DesignResult {
   arPeakDb: number;
   coverageGainDb: number;
   deck: string;
+  // Active driving-point impedance at each loop's feed gap, both loops driven
+  // in the delivered quadrature (mutual coupling included). null unless
+  // characterized -- the optimizer skips this extra run.
+  loopAFeedZ: Complex | null;
+  loopBFeedZ: Complex | null;
 }
 
 // One frequency-sweep sample.
@@ -521,6 +526,50 @@ function antennaFeedZ(result: NecResult): Complex {
   return { re: source.zReal, im: source.zImag };
 }
 
+function sourceZ(result: NecResult, tag: number): Complex {
+  for (const source of result.sources) {
+    if (source.tag === tag) {
+      return { re: source.zReal, im: source.zImag };
+    }
+  }
+  throw new Error(`nec2c reported no source on tag ${tag}`);
+}
+
+// Active driving-point impedance at each loop's feed gap. Replaces the harness
+// with a voltage source on each loop feed, driven in the delivered quadrature
+// (loop A at 1 angle 0, loop B at 1 angle minus the delivered current phase
+// difference), and reads each source impedance -- the impedance each loop
+// presents while operating, mutual coupling included.
+export async function loopFeedImpedances(
+  spec: DesignSpec,
+  factor: number,
+  phaseDiffDeg: number,
+  runner: NecRunner,
+): Promise<[Complex, Complex]> {
+  const { egg, wavelength } = buildEggbeater(spec, factor);
+  const wires = [...egg.wires, ...reflectorWires(spec, wavelength)];
+  const phi = (phaseDiffDeg * Math.PI) / 180.0;
+  const sources: Source[] = [
+    { tag: egg.loopA.feedTag, segment: egg.loopA.feedSegment, vReal: 1.0, vImag: 0.0 },
+    {
+      tag: egg.loopB.feedTag,
+      segment: egg.loopB.feedSegment,
+      vReal: Math.cos(phi),
+      vImag: -Math.sin(phi),
+    },
+  ];
+  const deck = buildDeck(
+    commentLines(spec),
+    wires,
+    sources,
+    spec.reflector === REFLECTOR_GROUND,
+    spec.freqMhz,
+    DEFAULT_GRID,
+  );
+  const result = parseOutput(await runner(deck));
+  return [sourceZ(result, egg.loopA.feedTag), sourceZ(result, egg.loopB.feedTag)];
+}
+
 export function axialRatioDb(axialRatio: number): number {
   if (axialRatio <= 0.0) {
     return Number.POSITIVE_INFINITY;
@@ -743,20 +792,27 @@ async function naturalHand(
   return NEC_SENSE_TO_HAND[boresightSense(result)] ?? null;
 }
 
+// withLoopZ adds one extra nec2c run to characterize the per-loop feed-point
+// impedances; the optimizer passes false since it needs only the match cost.
 export async function design(
   spec: DesignSpec,
   runner: NecRunner,
+  withLoopZ = true,
 ): Promise<DesignResult> {
   const natural = await naturalHand(spec, runner);
   const crossed = natural !== null && natural !== spec.sense;
   const baseFactor = await quadratureFactor(spec, crossed, runner);
   const { result, deck } = await analyze(spec, baseFactor, { flip: crossed }, runner);
   const [arBoresight, arWorst, arPeak, sense] = polarizationSummary(result);
+  const phaseDiffDeg = phaseDifference(result);
+  const [loopAFeedZ, loopBFeedZ] = withLoopZ
+    ? await loopFeedImpedances(spec, baseFactor, phaseDiffDeg, runner)
+    : [null, null];
   return {
     spec,
     baseFactor,
     zIn: antennaFeedZ(result),
-    phaseDiffDeg: phaseDifference(result),
+    phaseDiffDeg,
     loopBalance: loopBalance(result),
     crossedPhasingLine: crossed,
     sense,
@@ -765,6 +821,8 @@ export async function design(
     arPeakDb: arPeak,
     coverageGainDb: coverageGainDb(result),
     deck,
+    loopAFeedZ,
+    loopBFeedZ,
   };
 }
 
@@ -826,7 +884,7 @@ async function bestPlacement(
       radialDroopDeg: droop,
       optimization: null,
     };
-    return reflectorCost(await design(candidate, runner));
+    return reflectorCost(await design(candidate, runner, false));
   };
 
   let spacing = (SPACING_BOUNDS_WL[0] + SPACING_BOUNDS_WL[1]) / 2.0;
@@ -857,7 +915,7 @@ async function bestPlacement(
     radialDroopDeg: droop,
     optimization: null,
   };
-  const result = await design(candidate, runner);
+  const result = await design(candidate, runner, false);
   return { cost: reflectorCost(result), candidate, result };
 }
 
