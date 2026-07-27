@@ -765,6 +765,25 @@ figure.chart .note {
   fill: var(--ink);
   stroke: none;
 }
+.conn-callout {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--ground);
+  border-left: 3px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+}
+.conn-callout.crossed {
+  background: color-mix(in srgb, var(--amber) 12%, var(--panel));
+  border-left-color: var(--amber);
+}
+.conn-callout.crossed b {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--amber) 55%, var(--ink));
+}
 .schwrap svg {
   width: 100%;
   max-width: 820px;
