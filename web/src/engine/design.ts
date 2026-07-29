@@ -803,10 +803,14 @@ export function reflectorCost(result: DesignResult): number {
   return matchedVswr(spec, result.zIn) + AR_PENALTY_PER_DB * excess;
 }
 
+// Worst-case cone AR is gated against the full AR_TARGET_DB; the sub-target
+// margin is unreachable on the worst point (the eggbeater cone edge is a few
+// dB) and would only over-provision radials, so the margin shapes the
+// placement cost above instead of the radial-count gate.
 export function reflectorFeasible(result: DesignResult): boolean {
   const spec = result.spec;
   return (
-    result.arConeWorstDb <= AR_TARGET_DB - spec.arMarginDb &&
+    result.arConeWorstDb <= AR_TARGET_DB &&
     matchedVswr(spec, result.zIn) <= FEASIBLE_VSWR
   );
 }

@@ -95,9 +95,10 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `balun4`/`choke` (the harness feeds fix their own cables); setting them
   elsewhere is an error.
 - `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
-- `ar_margin_db`: margin `--optimize-reflector` holds below the 3 dB
-  axial-ratio budget at band center (default 0.5), so the design frequency
-  keeps usable axial-ratio bandwidth on both sides.
+- `ar_margin_db`: axial-ratio headroom `--optimize-reflector` seeks below the
+  3 dB budget (default 0.5). It biases the spacing/droop placement toward lower
+  worst-case cone AR (hence more bandwidth); the radial-count choice itself is
+  the fewest radials whose worst-case cone AR meets the full 3 dB target.
 - `segments`: polygon sides per loop (default 36, maximum 98). Non-circular
   shapes resample to equal-length sides; a multiple of 4 lands a square's
   corners on vertices.

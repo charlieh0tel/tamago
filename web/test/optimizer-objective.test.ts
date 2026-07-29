@@ -36,12 +36,23 @@ function coneResult(worst: number, mean: number): DesignResult {
 
 describe("reflector optimizer objective", () => {
   it("uses the worst cone AR, not the cone mean", () => {
-    // Budget is AR_TARGET_DB - margin = 2.5 dB; the mean is under budget in
-    // both, so only the worst-case cone AR can drive the outcome.
+    // The mean is under budget in both, so only the worst-case cone AR can
+    // drive the outcome.
     const over = coneResult(4.0, 1.0);
     const under = coneResult(2.0, 1.0);
     expect(reflectorFeasible(over)).toBe(false);
     expect(reflectorFeasible(under)).toBe(true);
     expect(reflectorCost(over)).toBeGreaterThan(reflectorCost(under));
+  });
+
+  it("gates the count on the 3 dB target, not the margin'd budget", () => {
+    // Worst cone AR between the margin'd budget (2.5) and the target (3.0) is
+    // feasible: the margin shapes the placement cost, not the count gate.
+    expect(reflectorFeasible(coneResult(2.8, 1.0))).toBe(true);
+    expect(reflectorFeasible(coneResult(3.2, 1.0))).toBe(false);
+    // The placement cost still charges the margin'd excess (2.8 > 2.5).
+    expect(reflectorCost(coneResult(2.8, 1.0))).toBeGreaterThan(
+      reflectorCost(coneResult(2.0, 1.0)),
+    );
   });
 });

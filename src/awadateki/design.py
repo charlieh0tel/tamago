@@ -203,9 +203,11 @@ class DesignSpec:
         feed_gap_mm: width of the feed gap at the bottom of each loop, where the
             line connects.
         system_z_ohm: radio-end reference impedance the match targets (50 or 75).
-        ar_margin_db: margin the reflector optimizer holds below the
-            AR_TARGET_DB budget at band center, keeping usable axial-ratio
-            bandwidth around the design frequency.
+        ar_margin_db: axial-ratio headroom the reflector optimizer's placement
+            cost seeks below AR_TARGET_DB, biasing spacing/droop toward lower
+            worst-case AR (and thus more usable bandwidth). It shapes the
+            placement, not the radial-count gate, which uses the full
+            AR_TARGET_DB.
         segments: polygon sides per loop (at most MAX_SEGMENTS).
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
@@ -257,10 +259,11 @@ class Optimization:
         droop_tolerance_deg: droop resolution the descent converged to.
         sweeps: alternating spacing/droop passes per radial count.
         radial_count_grid: radial counts searched.
-        ar_target_db: axial-ratio budget the search held to.
-        ar_margin_db: margin held below the budget at band center.
-        ar_penalty_per_db: cost penalty per dB of axial ratio above the
-            margin-tightened budget.
+        ar_target_db: worst-case cone axial-ratio budget the count gate held to.
+        ar_margin_db: axial-ratio headroom the placement cost sought below the
+            budget (shapes spacing/droop, not the count gate).
+        ar_penalty_per_db: cost penalty per dB of worst-case axial ratio above
+            the margin-tightened budget.
         feasible_vswr: post-match VSWR a radial count had to meet to be kept.
         objective: short description of what was minimized.
         elapsed_s: wall-clock seconds the search took.
@@ -922,12 +925,15 @@ def _reflector_cost(result: DesignResult) -> float:
 def _reflector_feasible(result: DesignResult) -> bool:
     """Whether a tuned design meets the axial-ratio and match objectives.
 
-    Axial ratio is the worst over the coverage cone, so feasibility means the
-    cone edge (not just its mean) is within budget.
+    Axial ratio is the worst over the coverage cone (its edge), gated against
+    the full AR_TARGET_DB. The eggbeater cone edge is inherently a few dB, so
+    the sub-target ar_margin_db is unreachable on the worst point and gating on
+    it would only over-provision radials; the margin instead shapes the
+    placement cost (below), biasing spacing/droop toward axial-ratio headroom.
     """
     spec = result.spec
     return (
-        result.ar_cone_worst_db <= AR_TARGET_DB - spec.ar_margin_db
+        result.ar_cone_worst_db <= AR_TARGET_DB
         and matched_vswr(spec, result.z_in) <= FEASIBLE_VSWR
     )
 

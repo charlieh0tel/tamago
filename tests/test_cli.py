@@ -311,6 +311,19 @@ def test_optimizer_objective_uses_worst_cone_ar():
     assert _reflector_cost(over) > _reflector_cost(under)
 
 
+def test_reflector_feasible_gates_on_target_not_margin():
+    # Worst cone AR between the margin'd budget (2.5) and the target (3.0) is
+    # feasible: the margin shapes the placement cost, not the radial-count gate,
+    # so the optimizer does not over-provision radials chasing an unreachable
+    # sub-target worst-case AR.
+    assert _reflector_feasible(_cone_result(worst=2.8, mean=1.0))
+    assert not _reflector_feasible(_cone_result(worst=3.2, mean=1.0))
+    # The placement cost still charges the margin'd excess (2.8 > budget 2.5).
+    assert _reflector_cost(_cone_result(worst=2.8, mean=1.0)) > _reflector_cost(
+        _cone_result(worst=2.0, mean=1.0)
+    )
+
+
 def test_optimize_reflector_returns_spec_with_provenance():
     base = replace(_spec(), reflector="radials")
     best = optimize_reflector(base)
