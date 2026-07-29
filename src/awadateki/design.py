@@ -22,6 +22,7 @@ from .geometry import (
     LOOP_B_TAG_BASE,
     SHAPE_CIRCLE,
     Wire,
+    loop_extent_m,
     loop_radius_m,
     make_eggbeater,
     make_radials,
@@ -435,6 +436,16 @@ def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool):
     raise ValueError(f"unknown feed scheme: {spec.feed!r}")
 
 
+class DesignInfeasible(ValueError):
+    """This spec cannot be realized: the geometry is invalid, or the loop
+    perimeter cannot be tuned to quadrature within its bounds.
+
+    Distinct from a plain ValueError (a caller mistake) so the reflector
+    optimizer can score such a candidate as infeasible and keep searching
+    instead of aborting the whole run.
+    """
+
+
 def _eggbeater(spec: DesignSpec, factor: float):
     """Build the crossed-loop geometry for a perimeter factor; returns
     (eggbeater, wavelength)."""
@@ -465,6 +476,25 @@ def _eggbeater(spec: DesignSpec, factor: float):
     wavelength = wavelength_m(spec.freq_mhz)
     perimeter = factor * wavelength
     center_z = _center_z_m(spec, wavelength, perimeter)
+    if spec.reflector in (REFLECTOR_GROUND, REFLECTOR_RADIALS):
+        # The lower loop must clear the reflector plane. Below that, its wires
+        # pass through the ground or the radials and nec2c solves a shorted
+        # structure, reporting impossibly high gain rather than an error.
+        half_extent = (
+            loop_extent_m(
+                perimeter, spec.loop_shape, spec.corner_radius_wl * wavelength
+            )
+            / 2.0
+        )
+        lowest_z = center_z - spec.loop_offset_mm / 2000.0 - half_extent
+        if lowest_z <= 0.0:
+            raise DesignInfeasible(
+                f"reflector_spacing_wl {spec.reflector_spacing_wl:g} puts the lower "
+                f"loop {-lowest_z * 1000.0:.1f} mm below the reflector plane at "
+                f"perimeter factor {factor:g}; it needs at least "
+                f"{(half_extent + spec.loop_offset_mm / 2000.0) / wavelength:.3f} "
+                "wavelengths of spacing to clear"
+            )
     egg = make_eggbeater(
         perimeter,
         perimeter,
@@ -537,22 +567,28 @@ def tuned_geometry(
     return wires, feeds
 
 
-def _secant(func, x0: float, x1: float, bounds, tolerance: float) -> float:
-    """Bounded secant root find for a scalar function."""
+def _secant(
+    func, x0: float, x1: float, bounds, tolerance: float
+) -> tuple[float, float]:
+    """Bounded secant root find; returns (x, residual at x).
+
+    The residual lets the caller tell a converged root from an iterate that
+    merely ran out of steps or pinned against a bound.
+    """
     low, high = bounds
     f0 = func(x0)
     f1 = func(x1)
     for _ in range(SOLVER_MAX_ITERATIONS):
         if abs(f1) <= tolerance:
-            return x1
+            return x1, f1
         denom = f1 - f0
         if denom == 0.0:
-            return x1
+            return x1, f1
         x2 = x1 - f1 * (x1 - x0) / denom
         x2 = min(max(x2, low), high)
         x0, f0 = x1, f1
         x1, f1 = x2, func(x2)
-    return x1
+    return x1, f1
 
 
 def _golden_section_min(func, low: float, high: float, tolerance: float) -> float:
@@ -588,7 +624,19 @@ def _quadrature_factor(spec: DesignSpec, flip: bool = False) -> float:
         result, _ = analyze(spec, factor, flip=flip)
         return abs(_phase_difference(result)) - 90.0
 
-    return _secant(phase_error, 1.0, 1.05, FACTOR_BOUNDS, PHASE_TOLERANCE_DEG)
+    factor, residual = _secant(
+        phase_error, 1.0, 1.05, FACTOR_BOUNDS, PHASE_TOLERANCE_DEG
+    )
+    if abs(residual) > PHASE_TOLERANCE_DEG:
+        # Pinning against a factor bound leaves the loops far from quadrature;
+        # the pattern is then not circularly polarized at all, so report it
+        # rather than returning a plausible-looking result.
+        raise DesignInfeasible(
+            f"loop currents will not reach quadrature within perimeter factors "
+            f"{FACTOR_BOUNDS[0]:g}..{FACTOR_BOUNDS[1]:g}: best phase difference is "
+            f"{residual + 90.0:.1f} deg at factor {factor:g}"
+        )
+    return factor
 
 
 def _loop_currents(result: NecResult) -> tuple[complex, complex]:
@@ -947,13 +995,16 @@ def _knee_count(counts: tuple[int, ...], worst_ar_db: dict[int, float]) -> int:
 
 def _best_placement(
     spec: DesignSpec, count: int, optimize_droop: bool
-) -> tuple[float, DesignSpec, DesignResult]:
+) -> tuple[float, DesignSpec, DesignResult] | None:
     """Coordinate-descent (spacing, droop) placement for a fixed radial count.
 
     Golden-section minimizes the match cost along each axis in turn, alternating
     for PLACEMENT_SWEEPS passes. The cost surface is smooth and unimodal, so a
     few sweeps reach a finer optimum than a fixed grid and never snap to a grid
     edge. Droop is held at zero for a ground reflector (no radials to tilt).
+
+    Returns None when the converged placement cannot be realized (see
+    DesignInfeasible), so the caller can pass over this radial count.
     """
 
     def cost_of(spacing: float, droop: float) -> float:
@@ -964,7 +1015,12 @@ def _best_placement(
             radial_droop_deg=droop,
             optimization=None,
         )
-        return _reflector_cost(design(candidate, with_loop_z=False))
+        try:
+            return _reflector_cost(design(candidate, with_loop_z=False))
+        except DesignInfeasible:
+            # Unbuildable geometry or untunable perimeter: score it out of the
+            # search rather than aborting the whole run.
+            return math.inf
 
     spacing = sum(SPACING_BOUNDS_WL) / 2.0
     droop = sum(DROOP_BOUNDS_DEG) / 2.0 if optimize_droop else 0.0
@@ -986,7 +1042,10 @@ def _best_placement(
         radial_droop_deg=droop,
         optimization=None,
     )
-    result = design(candidate, with_loop_z=False)
+    try:
+        result = design(candidate, with_loop_z=False)
+    except DesignInfeasible:
+        return None
     return _reflector_cost(result), candidate, result
 
 
@@ -1011,10 +1070,18 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
     placements: dict[int, DesignSpec] = {}
     worst_ar_db: dict[int, float] = {}
     for count in counts:
-        _, candidate, result = _best_placement(spec, count, optimize_droop=radials)
+        best = _best_placement(spec, count, optimize_droop=radials)
+        if best is None:
+            continue  # no realizable placement at this radial count
+        _, candidate, result = best
         placements[count] = candidate
         worst_ar_db[count] = result.ar_cone_worst_db
-    best_spec = placements[_knee_count(counts, worst_ar_db)]
+    if not placements:
+        raise DesignInfeasible(
+            "no realizable reflector placement was found for this spec at any "
+            f"radial count in {counts}"
+        )
+    best_spec = placements[_knee_count(tuple(sorted(placements)), worst_ar_db)]
 
     provenance = Optimization(
         input=replace(spec, optimization=None),

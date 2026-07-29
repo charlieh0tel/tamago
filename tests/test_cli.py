@@ -10,11 +10,13 @@ from awadateki.conductor import round_conductor
 from awadateki.design import (
     AR_TARGET_DB,
     VSWR_LIMIT,
+    DesignInfeasible,
     DesignResult,
     DesignSpec,
     _eggbeater,
     _knee_count,
     _reflector_cost,
+    _secant,
     bandwidth_within,
     design,
     frequency_sweep,
@@ -266,6 +268,33 @@ def test_loop_offset_clearance_validated():
     with pytest.raises(ValueError, match="loop_offset_mm"):
         _eggbeater(replace(_spec(), loop_offset_mm=4.0), 1.0)
     _eggbeater(replace(_spec(), loop_offset_mm=4.5), 1.0)
+
+
+def test_loop_must_clear_the_reflector_plane():
+    # A full-wave circular loop has radius ~0.167 wavelengths, so spacings below
+    # that put its lower half through the reflector; nec2c would solve the
+    # shorted structure and report impossibly high gain.
+    radials = replace(_spec(), reflector="radials", loop_shape="circle")
+    with pytest.raises(DesignInfeasible, match="below the reflector plane"):
+        _eggbeater(replace(radials, reflector_spacing_wl=0.15), 1.05)
+    _eggbeater(replace(radials, reflector_spacing_wl=0.25), 1.05)
+    # A ground plane is the same constraint; free space has no plane to hit.
+    with pytest.raises(DesignInfeasible, match="below the reflector plane"):
+        _eggbeater(
+            replace(radials, reflector="ground", reflector_spacing_wl=0.15), 1.05
+        )
+    _eggbeater(replace(radials, reflector="none", reflector_spacing_wl=0.15), 1.05)
+
+
+def test_secant_reports_its_residual():
+    # Converged: the residual is within tolerance.
+    root, residual = _secant(lambda x: x - 2.0, 0.0, 1.0, (0.0, 5.0), 1e-6)
+    assert math.isclose(root, 2.0, abs_tol=1e-6)
+    assert abs(residual) <= 1e-6
+    # No root in bounds: the iterate pins at a bound and the residual stays
+    # large, which is what lets the caller reject it instead of trusting it.
+    root, residual = _secant(lambda x: x + 10.0, 0.0, 1.0, (0.0, 5.0), 1e-6)
+    assert abs(residual) > 1e-6
 
 
 def test_bandwidth_interpolates_edges():

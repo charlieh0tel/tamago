@@ -59,6 +59,7 @@ import {
   LOOP_A_TAG_BASE,
   LOOP_B_TAG_BASE,
   type Wire,
+  loopExtentM,
   loopRadiusM,
   makeEggbeater,
   makeRadials,
@@ -299,6 +300,17 @@ function harness(
   throw new Error(`unknown feed scheme: ${JSON.stringify(spec.feed)}`);
 }
 
+// This spec cannot be realized: the geometry is invalid, or the loop perimeter
+// cannot be tuned to quadrature within its bounds. Distinct from a plain Error
+// (a caller mistake) so the reflector optimizer can score such a candidate as
+// infeasible and keep searching instead of aborting the whole run.
+export class DesignInfeasible extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DesignInfeasible";
+  }
+}
+
 function buildEggbeater(
   spec: DesignSpec,
   factor: number,
@@ -307,6 +319,20 @@ function buildEggbeater(
   const wavelength = wavelengthM(spec.freqMhz);
   const perimeter = factor * wavelength;
   const cz = centerZM(spec, wavelength, perimeter);
+  if (spec.reflector === REFLECTOR_GROUND || spec.reflector === REFLECTOR_RADIALS) {
+    // The lower loop must clear the reflector plane. Below that, its wires pass
+    // through the ground or the radials and nec2c solves a shorted structure,
+    // reporting impossibly high gain rather than an error.
+    const halfExtent =
+      loopExtentM(perimeter, spec.loopShape, spec.cornerRadiusWl * wavelength) / 2.0;
+    const lowestZ = cz - spec.loopOffsetMm / 2000.0 - halfExtent;
+    if (lowestZ <= 0.0) {
+      const needed = (halfExtent + spec.loopOffsetMm / 2000.0) / wavelength;
+      throw new DesignInfeasible(
+        `reflector_spacing_wl ${formatG(spec.reflectorSpacingWl)} puts the lower loop ${(-lowestZ * 1000.0).toFixed(1)} mm below the reflector plane at perimeter factor ${formatG(factor)}; it needs at least ${needed.toFixed(3)} wavelengths of spacing to clear`,
+      );
+    }
+  }
   const egg = makeEggbeater(
     perimeter,
     perimeter,
@@ -360,13 +386,16 @@ export async function analyze(
 
 // --- Solvers (async objective functions). ---
 
-async function secant(
+// Bounded secant root find; returns [x, residual at x]. The residual lets the
+// caller tell a converged root from an iterate that merely ran out of steps or
+// pinned against a bound.
+export async function secant(
   func: (x: number) => Promise<number>,
   x0In: number,
   x1In: number,
   bounds: [number, number],
   tolerance: number,
-): Promise<number> {
+): Promise<[number, number]> {
   const [low, high] = bounds;
   let x0 = x0In;
   let x1 = x1In;
@@ -374,11 +403,11 @@ async function secant(
   let f1 = await func(x1);
   for (let i = 0; i < SOLVER_MAX_ITERATIONS; i++) {
     if (Math.abs(f1) <= tolerance) {
-      return x1;
+      return [x1, f1];
     }
     const denom = f1 - f0;
     if (denom === 0.0) {
-      return x1;
+      return [x1, f1];
     }
     let x2 = x1 - (f1 * (x1 - x0)) / denom;
     x2 = Math.min(Math.max(x2, low), high);
@@ -387,7 +416,7 @@ async function secant(
     x1 = x2;
     f1 = await func(x2);
   }
-  return x1;
+  return [x1, f1];
 }
 
 async function goldenSectionMin(
@@ -429,7 +458,22 @@ export async function quadratureFactor(
     const { result } = await analyze(spec, factor, { flip }, runner);
     return Math.abs(phaseDifference(result)) - 90.0;
   };
-  return secant(phaseError, 1.0, 1.05, FACTOR_BOUNDS, PHASE_TOLERANCE_DEG);
+  const [factor, residual] = await secant(
+    phaseError,
+    1.0,
+    1.05,
+    FACTOR_BOUNDS,
+    PHASE_TOLERANCE_DEG,
+  );
+  if (Math.abs(residual) > PHASE_TOLERANCE_DEG) {
+    // Pinning against a factor bound leaves the loops far from quadrature; the
+    // pattern is then not circularly polarized at all, so report it rather than
+    // returning a plausible-looking result.
+    throw new DesignInfeasible(
+      `loop currents will not reach quadrature within perimeter factors ${formatG(FACTOR_BOUNDS[0])}..${formatG(FACTOR_BOUNDS[1])}: best phase difference is ${(residual + 90.0).toFixed(1)} deg at factor ${formatG(factor)}`,
+    );
+  }
+  return factor;
 }
 
 // --- Pattern and current metrics. ---
@@ -837,7 +881,7 @@ async function bestPlacement(
   count: number,
   optimizeDroop: boolean,
   runner: NecRunner,
-): Promise<{ cost: number; candidate: DesignSpec; result: DesignResult }> {
+): Promise<{ cost: number; candidate: DesignSpec; result: DesignResult } | null> {
   const costOf = async (spacing: number, droop: number): Promise<number> => {
     const candidate: DesignSpec = {
       ...spec,
@@ -846,7 +890,16 @@ async function bestPlacement(
       radialDroopDeg: droop,
       optimization: null,
     };
-    return reflectorCost(await design(candidate, runner, false));
+    try {
+      return reflectorCost(await design(candidate, runner, false));
+    } catch (err) {
+      // Unbuildable geometry or untunable perimeter: score it out of the search
+      // rather than aborting the whole run.
+      if (err instanceof DesignInfeasible) {
+        return Number.POSITIVE_INFINITY;
+      }
+      throw err;
+    }
   };
 
   let spacing = (SPACING_BOUNDS_WL[0] + SPACING_BOUNDS_WL[1]) / 2.0;
@@ -877,7 +930,17 @@ async function bestPlacement(
     radialDroopDeg: droop,
     optimization: null,
   };
-  const result = await design(candidate, runner, false);
+  // null when the converged placement cannot be realized, so the caller can
+  // pass over this radial count.
+  let result: DesignResult;
+  try {
+    result = await design(candidate, runner, false);
+  } catch (err) {
+    if (err instanceof DesignInfeasible) {
+      return null;
+    }
+    throw err;
+  }
   return { cost: reflectorCost(result), candidate, result };
 }
 
@@ -893,12 +956,22 @@ export async function optimizeReflector(
 
   const placements: Record<number, DesignSpec> = {};
   const worstArDb: Record<number, number> = {};
+  const feasible: number[] = [];
   for (const count of counts) {
-    const { candidate, result } = await bestPlacement(spec, count, radials, runner);
-    placements[count] = candidate;
-    worstArDb[count] = result.arConeWorstDb;
+    const best = await bestPlacement(spec, count, radials, runner);
+    if (best === null) {
+      continue; // no realizable placement at this radial count
+    }
+    placements[count] = best.candidate;
+    worstArDb[count] = best.result.arConeWorstDb;
+    feasible.push(count);
   }
-  const bestSpec = placements[kneeCount(counts, worstArDb)];
+  if (feasible.length === 0) {
+    throw new DesignInfeasible(
+      `no realizable reflector placement was found for this spec at any radial count in ${JSON.stringify(counts)}`,
+    );
+  }
+  const bestSpec = placements[kneeCount(feasible, worstArDb)];
   if (bestSpec === undefined) {
     throw new Error("optimizeReflector: no placement for the chosen count");
   }
