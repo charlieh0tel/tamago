@@ -130,6 +130,17 @@ def test_balun4_feed_designs():
     assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
 
 
+@needs_nec2c
+def test_choke_feed_designs():
+    # The choke shares balun4's differential NEC model, so it lands at the
+    # same ~50 ohm junction; it differs only in the match hardware.
+    result = design(replace(_spec(), reflector="ground", feed="choke", segments=36))
+    assert 40.0 < result.z_in.real < 60.0
+    assert abs(result.z_in.imag) < 5.0
+    assert result.loop_balance < 1.2
+    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
+
+
 def test_unknown_feed_rejected():
     from awadateki.design import _build_deck_text
 

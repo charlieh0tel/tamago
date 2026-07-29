@@ -1,0 +1,31 @@
+Eggbeater cut sheet
+========================================
+Frequency           : 145.9 MHz
+Wavelength          : 2054.8 mm
+Conductor           : round, 5 mm dia
+  equivalent radius : 2.5 mm
+Loop shape          : circle
+Reflector           : none
+----------------------------------------
+Both loops          : 2214.0 mm perimeter, 704.7 mm dia
+Loop offset         : 10 mm (loop A below, loop B above)
+Feed gap            : 10 mm at each loop bottom
+Phasing line        : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+Choke               : 1:1 ferrite choke, 3 x Fair-Rite 2643540002 ferrite cores over RG-58 at the feedpoint
+Pair braids         : bonded to each other at both ends; not grounded
+Feed                : RG-58 through the choke to the junction across loop A; normal phasing line to loop B
+----------------------------------------
+Match to 50 ohm:
+  none; the 1:1 ferrite choke presents the feed Z directly
+----------------------------------------
+Predicted performance:
+  feedpoint Z      : 49.6 +0.0j ohms
+  loop A feed Z    : 88.3 +0.1j ohms
+  loop B feed Z    : 88.3 +0.1j ohms
+  VSWR (unmatched) : 1.01
+  loop current phase: +89.9 deg (target +/-90)
+  loop balance     : 0.883 |Ib/Ia| (1.0 = equal drive)
+  polarization sense: RHCP
+  axial ratio (cone): 1.69 dB mean, 3.98 dB worst (<= 30 deg from zenith)
+  axial ratio (peak): 34.61 dB
+  coverage gain     : 0.95 dBi (worst case <= 60 deg from zenith)

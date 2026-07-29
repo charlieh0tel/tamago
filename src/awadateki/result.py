@@ -47,7 +47,14 @@ from .design import (
     BALUN4_PHASING_COAX,
     BALUN4_Q_COAX,
     BALUN_LINE_WL,
+    CHOKE_CORE_PN_UHF,
+    CHOKE_CORE_PN_VHF,
+    CHOKE_FEED_COAX,
+    CHOKE_FERRITE_CORES,
+    CHOKE_PHASING_COAX,
+    CHOKE_UHF_THRESHOLD_MHZ,
     FEED_BALUN4,
+    FEED_CHOKE,
     FEED_LINE,
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
@@ -96,6 +103,9 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
     if spec.feed == FEED_BALUN4:
         # The Q-section and balun in the harness are the match network.
         return {"system_z_ohm": spec.system_z_ohm, "network": "harness"}
+    if spec.feed == FEED_CHOKE:
+        # A 1:1 ferrite choke: no impedance transform, the radio sees z_in.
+        return {"system_z_ohm": spec.system_z_ohm, "network": "choke"}
     z0 = quarter_wave_match_z0(z, spec.system_z_ohm)
     coax = transformer_coax(z, spec.system_z_ohm, spec.match_coax)
     series = None
@@ -116,8 +126,28 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
 
 
 def _harness_dict(result: DesignResult, wavelength: float) -> dict:
-    """Harness pieces for the balun4 feed."""
+    """Harness pieces for the balanced feeds (balun4 and choke)."""
+    spec = result.spec
     connection = "crossed" if result.crossed_phasing_line else "normal"
+    if spec.feed == FEED_CHOKE:
+        core_pn = (
+            CHOKE_CORE_PN_UHF
+            if spec.freq_mhz >= CHOKE_UHF_THRESHOLD_MHZ
+            else CHOKE_CORE_PN_VHF
+        )
+        return {
+            "phasing_line": {
+                "coax": _coax_dict(CHOKE_PHASING_COAX),
+                "length_mm": _quarter_wave_mm(wavelength, CHOKE_PHASING_COAX),
+            },
+            "balun": {
+                "kind": "1:1 ferrite choke",
+                "coax": _coax_dict(CHOKE_FEED_COAX),
+                "cores": CHOKE_FERRITE_CORES,
+                "core_pn": core_pn,
+            },
+            "connection": connection,
+        }
     return {
         "phasing_line": {
             "coax": _coax_dict(BALUN4_PHASING_COAX),

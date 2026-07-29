@@ -13,7 +13,14 @@ import {
   BALUN4_PHASING_COAX,
   BALUN4_Q_COAX,
   BALUN_LINE_WL,
+  CHOKE_CORE_PN_UHF,
+  CHOKE_CORE_PN_VHF,
+  CHOKE_FEED_COAX,
+  CHOKE_FERRITE_CORES,
+  CHOKE_PHASING_COAX,
+  CHOKE_UHF_THRESHOLD_MHZ,
   FEED_BALUN4,
+  FEED_CHOKE,
   FEED_LINE,
   NEC_SENSE_TO_HAND,
   REFLECTOR_NONE,
@@ -66,6 +73,10 @@ function matchDict(result: DesignResult, wavelength: number): JsonObject {
     // The Q-section and balun in the harness are the match network.
     return { system_z_ohm: spec.systemZOhm, network: "harness" };
   }
+  if (spec.feed === FEED_CHOKE) {
+    // A 1:1 ferrite choke: no impedance transform, the radio sees z.
+    return { system_z_ohm: spec.systemZOhm, network: "choke" };
+  }
   const z0 = quarterWaveMatchZ0(z, spec.systemZOhm);
   const coax = transformerCoax(z, spec.systemZOhm, spec.matchCoax);
   let series: JsonObject | null = null;
@@ -87,9 +98,27 @@ function matchDict(result: DesignResult, wavelength: number): JsonObject {
   };
 }
 
-// Harness pieces for the balun4 feed.
+// Harness pieces for the balanced feeds (balun4 and choke).
 function harnessDict(result: DesignResult, wavelength: number): JsonObject {
+  const spec = result.spec;
   const connection = result.crossedPhasingLine ? "crossed" : "normal";
+  if (spec.feed === FEED_CHOKE) {
+    const corePn =
+      spec.freqMhz >= CHOKE_UHF_THRESHOLD_MHZ ? CHOKE_CORE_PN_UHF : CHOKE_CORE_PN_VHF;
+    return {
+      phasing_line: {
+        coax: coaxDict(CHOKE_PHASING_COAX),
+        length_mm: quarterWaveMm(wavelength, CHOKE_PHASING_COAX),
+      },
+      balun: {
+        kind: "1:1 ferrite choke",
+        coax: coaxDict(CHOKE_FEED_COAX),
+        cores: CHOKE_FERRITE_CORES,
+        core_pn: corePn,
+      },
+      connection,
+    };
+  }
   return {
     phasing_line: {
       coax: coaxDict(BALUN4_PHASING_COAX),

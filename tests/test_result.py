@@ -75,6 +75,27 @@ def test_balun4_build_sections():
     assert build["match"] == {"system_z_ohm": 50.0, "network": "harness"}
 
 
+def test_choke_build_sections():
+    data = result_to_dict(_result(feed="choke"))
+    build = data["build"]
+    harness = build["harness"]
+    # The F5VIF "final" system: same 100 ohm balanced phasing line, but a 1:1
+    # ferrite choke instead of a Q-section and 4:1 balun.
+    assert harness["phasing_line"]["coax"]["name"] == "2x RG-58 (balanced)"
+    assert "q_section" not in harness
+    assert harness["balun"]["kind"] == "1:1 ferrite choke"
+    assert harness["balun"]["coax"]["name"] == "RG-58"
+    assert harness["balun"]["cores"] == 3
+    assert harness["balun"]["core_pn"] == "Fair-Rite 2643540002"
+    # No impedance transform: the radio sees the feed Z through the choke.
+    assert build["match"] == {"system_z_ohm": 50.0, "network": "choke"}
+
+
+def test_choke_uhf_core_part_number():
+    harness = result_to_dict(_result(feed="choke", freq_mhz=436.0))["build"]["harness"]
+    assert harness["balun"]["core_pn"] == "Fair-Rite 2661540002"
+
+
 def test_bandwidth_absent_unless_requested():
     assert "bandwidth" not in result_to_dict(_result())
 

@@ -55,3 +55,16 @@ def test_balun4_schematic():
     assert "PL1" in svg and ">Q1" in svg
     assert "2x RG-58 (balanced)" in svg
     assert "crossed" in svg
+
+
+def test_choke_schematic():
+    svg = render_feed_schematic(_result(feed="choke", z_in=complex(49.0, 0.0)))
+    # Ferrite choke on the feed coax; no Q-section, no 4:1 balun.
+    assert "CH1  RG-58" in svg
+    assert "ferrite cores" in svg
+    assert "1:1 ferrite choke" in svg
+    assert "4:1 balun" not in svg and ">Q1" not in svg
+    # Balanced phasing line still reaches loop B.
+    assert "PL1" in svg and "2x RG-58 (balanced)" in svg
+    assert "LOOP A" in svg and "LOOP B" in svg
+    assert "<ellipse" in svg

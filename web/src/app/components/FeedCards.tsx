@@ -5,7 +5,12 @@
 // thumbnail legibility.
 
 import type { DesignResult } from "../../engine/index";
-import { FEED_BALUN4, FEED_LINE, renderFeedSchematic } from "../../engine/index";
+import {
+  FEED_BALUN4,
+  FEED_CHOKE,
+  FEED_LINE,
+  renderFeedSchematic,
+} from "../../engine/index";
 import { defaultSpec } from "../state/uiSpec";
 
 interface FeedOption {
@@ -96,6 +101,7 @@ function cardArt(feed: string, zReal: number): string {
 
 const LINE_ART = cardArt(FEED_LINE, 45.8);
 const BALUN4_ART = cardArt(FEED_BALUN4, 49.6);
+const CHOKE_ART = cardArt(FEED_CHOKE, 49.6);
 
 const OPTIONS: FeedOption[] = [
   {
@@ -109,6 +115,12 @@ const OPTIONS: FeedOption[] = [
     name: "4:1 balun",
     tradeoff: "balanced feed (F5VIF)",
     art: BALUN4_ART,
+  },
+  {
+    token: FEED_CHOKE,
+    name: "Ferrite choke",
+    tradeoff: "balanced, 1:1 (F5VIF)",
+    art: CHOKE_ART,
   },
 ];
 

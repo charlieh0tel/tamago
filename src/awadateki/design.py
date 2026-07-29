@@ -1,11 +1,13 @@
 """Design orchestration: build geometry, drive nec2c, tune to quadrature.
 
 Two equal resonant loops are driven with their currents 90 deg apart for
-circular polarization, by one of two coax feed harnesses (spec.feed): the
+circular polarization, by one of three coax feed harnesses (spec.feed): the
 source at the junction with a quarter-wave line to loop B (line), or the
-ON6WG/F5VIF balanced system -- a 100 ohm balanced phasing line fed through a
-balanced Q-section and half-wave 4:1 balun (balun4). Harness lines are NEC TL
-cards; crossing loop B's connection (negative Z0) reverses the handedness.
+ON6WG/F5VIF balanced system -- a 100 ohm balanced phasing line fed either
+through a balanced Q-section and half-wave 4:1 balun (balun4) or through a 1:1
+ferrite choke (choke). balun4 and choke share the same balanced NEC model and
+differ only in the match hardware. Harness lines are NEC TL cards; crossing
+loop B's connection (negative Z0) reverses the handedness.
 """
 
 import math
@@ -58,7 +60,24 @@ FEED_LINE = "line"  # source at the junction across loop A; 1/4-wave line to B
 # the loops, fed at the junction through a 100 ohm balanced Q-section and a
 # half-wave 4:1 coax balun.
 FEED_BALUN4 = "balun4"
-FEEDS = (FEED_LINE, FEED_BALUN4)
+# The ON6WG/F5VIF "final" balanced system: the same 100 ohm balanced phasing
+# line, but the 4:1 balun + Q-section are replaced by a 1:1 ferrite choke balun
+# (ferrite cores over a 50 ohm coax at the feedpoint). The paralleled ~100 ohm
+# loops present ~50 ohm directly, so no impedance transformer is needed.
+#
+# Idealization: the choke is NOT in the NEC model (the deck is identical to
+# balun4). It is treated as a perfect 1:1 pass-through -- the radio sees the
+# junction impedance directly, flat across frequency. What that ignores, and
+# what balun4's analytic harness model also ignores, is real hardware physics:
+# ferrite and coax loss, finite/frequency-dependent common-mode choking
+# impedance, and core saturation. The NEC source is a balanced differential
+# drive, so common-mode current is assumed fully suppressed for both feeds.
+FEED_CHOKE = "choke"
+FEEDS = (FEED_LINE, FEED_BALUN4, FEED_CHOKE)
+
+# Feeds whose harness is the 100 ohm balanced phasing line (balun4 and choke
+# share the same NEC model; they differ only in the match hardware).
+BALANCED_FEEDS = (FEED_BALUN4, FEED_CHOKE)
 
 # Default phasing-line cable for the line feed (spec.phasing_coax overrides).
 LINE_PHASING_COAX = RG_62
@@ -66,6 +85,16 @@ LINE_PHASING_COAX = RG_62
 BALUN4_PHASING_COAX = RG_58_BALANCED
 BALUN4_Q_COAX = RG_58_BALANCED
 BALUN4_BALUN_COAX = RG_58
+# Choke feed: same balanced phasing line, a 50 ohm feed coax, and a 1:1 ferrite
+# choke balun of this many cores near the feedpoint (Fair-Rite parts below).
+CHOKE_PHASING_COAX = RG_58_BALANCED
+CHOKE_FEED_COAX = RG_58
+CHOKE_FERRITE_CORES = 3
+# Fair-Rite cable-core part numbers F5VIF specifies for the choke balun.
+CHOKE_CORE_PN_VHF = "Fair-Rite 2643540002"
+CHOKE_CORE_PN_UHF = "Fair-Rite 2661540002"
+# Above this frequency the UHF ferrite cores are recommended.
+CHOKE_UHF_THRESHOLD_MHZ = 300.0
 
 # The loop offset must give the crossing conductors at least this many
 # equivalent conductor diameters of axis separation (1.0 = surfaces touching).
@@ -147,8 +176,12 @@ class DesignSpec:
         reflector: REFLECTOR_NONE, REFLECTOR_GROUND, or REFLECTOR_RADIALS.
         reflector_spacing_wl: loop-center height above the reflector, wavelengths.
         feed: FEED_LINE (source at the junction, quarter-wave line to loop B),
-            or FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm balanced
-            phasing line, balanced Q-section, half-wave 4:1 balun).
+            FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm balanced
+            phasing line, balanced Q-section, half-wave 4:1 balun), or
+            FEED_CHOKE (the F5VIF "final" system: the same balanced phasing
+            line, fed through a 1:1 ferrite current choke with no Q-section or
+            4:1 balun). balun4 and choke share the same balanced NEC model and
+            differ only in the match hardware.
         phasing_coax: cable of the quarter-wave phasing line feeding loop B,
             or None for the scheme default (RG-62). FEED_LINE only; setting
             it for a harness feed is an error, since those harnesses fix
@@ -157,8 +190,8 @@ class DesignSpec:
             electrical quarter wave).
         match_coax: cable of the quarter-wave matching transformer, or None to
             suggest the catalog cable nearest the computed transformer Z0.
-            Not applicable to FEED_BALUN4 (its Q-section and balun are the
-            match); setting it there is an error.
+            Not applicable to the balanced feeds (balun4 and choke), whose
+            harness or choke is the match; setting it there is an error.
         sense: desired polarization, SENSE_RHCP or SENSE_LHCP.
         loop_shape: loop outline, SHAPE_CIRCLE, SHAPE_SQUARE, or SHAPE_SQUIRCLE.
         corner_radius_wl: rounded-corner radius for the squircle shape, in
@@ -388,7 +421,9 @@ def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool):
     """Feed harness for the spec's scheme: (port wires, sources, TL cards)."""
     if spec.feed == FEED_LINE:
         return _feed(egg, spec, wavelength, flip)
-    if spec.feed == FEED_BALUN4:
+    if spec.feed in BALANCED_FEEDS:
+        # balun4 and choke share the balanced phasing-line NEC model; they
+        # differ only in the match hardware, which is outside the model.
         return _feed_balun4(egg, spec, wavelength, flip)
     raise ValueError(f"unknown feed scheme: {spec.feed!r}")
 
@@ -406,10 +441,10 @@ def _eggbeater(spec: DesignSpec, factor: float):
             f"phasing_coax applies only to the line feed; the {spec.feed!r} "
             "harness fixes its own cables"
         )
-    if spec.match_coax is not None and spec.feed == FEED_BALUN4:
+    if spec.match_coax is not None and spec.feed in BALANCED_FEEDS:
         raise ValueError(
-            "match_coax does not apply to the balun4 feed; its Q-section and "
-            "balun are the match"
+            f"match_coax does not apply to the {spec.feed!r} feed; it has no "
+            "quarter-wave matching transformer"
         )
     min_offset_mm = (
         MIN_LOOP_OFFSET_DIAMETERS * 2.0e3 * spec.conductor.equivalent_radius_m
@@ -806,14 +841,17 @@ def matched_vswr(spec: DesignSpec, z: complex) -> float:
     """Post-match VSWR at the radio for the spec's feed scheme.
 
     The balun4 feed reaches the radio through the quarter-wave balanced
-    Q-section and the half-wave 4:1 balun; the other schemes use the
-    series-element/transformer match.
+    Q-section and the half-wave 4:1 balun; the choke feed uses a 1:1 ferrite
+    choke balun (no impedance transform), so the radio sees the feedpoint
+    impedance directly; the line feed uses the series-element/transformer match.
     """
     if spec.feed == FEED_BALUN4:
         if z.real <= 0.0:
             return math.inf
         z_radio = _balun4_radio_z(z, spec.freq_mhz, spec.freq_mhz)
         return vswr(z_radio, spec.system_z_ohm)
+    if spec.feed == FEED_CHOKE:
+        return vswr(z, spec.system_z_ohm)
     return post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
 
 
@@ -1051,6 +1089,9 @@ def frequency_sweep(
         z_ant = _antenna_feed_z(nec)
         if spec.feed == FEED_BALUN4:
             z_in = _balun4_radio_z(z_ant, freq, design_freq)
+        elif spec.feed == FEED_CHOKE:
+            # A 1:1 ferrite choke passes the feed Z straight to the radio.
+            z_in = z_ant
         else:
             z_in = _matched_input_z(
                 z_ant,

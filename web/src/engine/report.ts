@@ -115,8 +115,8 @@ function feedLines(build: JsonObject): string[] {
   }
   const harness = obj(build, "harness");
   const balun = obj(harness, "balun");
-  if ("phasing_line" in harness) {
-    // The F5VIF balanced system (balun4).
+  if ("q_section" in harness) {
+    // The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
     return [
       `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
       `Q-section           : ${coaxText(obj(harness, "q_section"))}`,
@@ -125,11 +125,13 @@ function feedLines(build: JsonObject): string[] {
       `Feed                : balun then Q-section to the junction across loop A; ${str(harness, "connection")} phasing line to loop B`,
     ];
   }
+  // The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
+  const chokeCoax = str(obj(balun, "coax"), "name");
   return [
-    `Q-sections          : 2 x ${coaxText(obj(harness, "q_section"))}`,
-    `Delay line          : ${coaxText(obj(harness, "delay_line"))} in the loop B leg`,
-    `Balun               : ${str(balun, "kind")} at the radio`,
-    `Feed                : Q-section legs joined at the harness port; ${str(harness, "connection")} Q-section to loop B`,
+    `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
+    `Choke               : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
+    "Pair braids         : bonded to each other at both ends; not grounded",
+    `Feed                : ${chokeCoax} through the choke to the junction across loop A; ${str(harness, "connection")} phasing line to loop B`,
   ];
 }
 
@@ -150,6 +152,10 @@ function matchLines(result: DesignResult, build: JsonObject): string[] {
   const lines = [`Match to ${g(num(match, "system_z_ohm"))} ohm:`];
   if (match.network === "harness") {
     lines.push("  via the harness Q-section and 4:1 balun (see above)");
+    return lines;
+  }
+  if (match.network === "choke") {
+    lines.push("  none; the 1:1 ferrite choke presents the feed Z directly");
     return lines;
   }
   const series = match.series_element as JsonObject | null;

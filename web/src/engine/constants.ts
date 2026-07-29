@@ -22,7 +22,24 @@ export const FEED_LINE = "line"; // source at the junction across loop A; 1/4-wa
 // loops, fed at the junction through a 100 ohm balanced Q-section and a
 // half-wave 4:1 coax balun.
 export const FEED_BALUN4 = "balun4";
-export const FEEDS = [FEED_LINE, FEED_BALUN4] as const;
+// The F5VIF "final" balanced system: the same 100 ohm balanced phasing line, but
+// fed through a 1:1 ferrite current choke (no Q-section, no 4:1 balun); the radio
+// sees the feed Z directly.
+//
+// Idealization: the choke is NOT in the NEC model (the deck is identical to
+// balun4). It is treated as a perfect 1:1 pass-through -- the radio sees the
+// junction impedance directly, flat across frequency. What that ignores, and
+// what balun4's analytic harness model also ignores, is real hardware physics:
+// ferrite and coax loss, finite/frequency-dependent common-mode choking
+// impedance, and core saturation. The NEC source is a balanced differential
+// drive, so common-mode current is assumed fully suppressed for both feeds.
+export const FEED_CHOKE = "choke";
+export const FEEDS = [FEED_LINE, FEED_BALUN4, FEED_CHOKE] as const;
+// Feeds built on the balanced phasing-line NEC model.
+export const BALANCED_FEEDS = [FEED_BALUN4, FEED_CHOKE] as const;
+export function isBalancedFeed(feed: string): boolean {
+  return (BALANCED_FEEDS as readonly string[]).includes(feed);
+}
 
 // Quarter-wave sections (phasing line, Q-sections): NEC ideal TLs of this
 // electrical length (free-space wavelengths) give 90 deg each.
@@ -35,6 +52,15 @@ export const LINE_PHASING_COAX = RG_62;
 export const BALUN4_PHASING_COAX = RG_58_BALANCED;
 export const BALUN4_Q_COAX = RG_58_BALANCED;
 export const BALUN4_BALUN_COAX = RG_58;
+// Choke harness: same balanced phasing line, a 50 ohm feed coax carrying the
+// ferrite cores of the 1:1 current choke.
+export const CHOKE_PHASING_COAX = RG_58_BALANCED;
+export const CHOKE_FEED_COAX = RG_58;
+export const CHOKE_FERRITE_CORES = 3;
+// Ferrite mix by band: 43 mix (VHF) below the threshold, 61 mix (UHF) at or above.
+export const CHOKE_CORE_PN_VHF = "Fair-Rite 2643540002";
+export const CHOKE_CORE_PN_UHF = "Fair-Rite 2661540002";
+export const CHOKE_UHF_THRESHOLD_MHZ = 300.0;
 
 // Port wires hosting harness junctions (a NEC TL port must be a wire segment).
 export const PORT_TAG_BASE = 400;

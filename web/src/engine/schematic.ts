@@ -450,6 +450,88 @@ function balun4Layout(build: JsonObject): [string, number, number] {
   return [parts.join(""), 780, 330];
 }
 
+// A stack of ferrite cores threaded on a coax: short ellipses across it.
+function ferriteCores(x0: number, x1: number, y: number, count: number): string {
+  const rx = 7.0;
+  const ry = COAX_RY + 6.0;
+  const step = (x1 - x0) / (count + 1);
+  return Array.from(
+    { length: count },
+    (_, i) =>
+      `<ellipse cx="${(x0 + step * (i + 1)).toFixed(1)}" cy="${y.toFixed(1)}" ` +
+      `rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}"/>`,
+  ).join("");
+}
+
+// Layout for the F5VIF "final" balanced system (choke): the rig coax carries a
+// stack of ferrite cores near the feedpoint (a 1:1 current choke, the only
+// balun); its center conductor and shield become the balanced pair at the
+// junction across loop A, and the balanced phasing line reaches loop B.
+function chokeLayout(build: JsonObject): [string, number, number] {
+  const harness = obj(build.harness);
+  const match = obj(build.match);
+  const balun = obj(harness.balun);
+  const crossed = harness.connection === "crossed";
+
+  const yA = 120.0; // center conductor of the feed coax and the loop A run
+  const yB = 230.0; // upper conductor of the loop B branch
+  const yBot = yA + RAIL_GAP;
+  const xTerm = 40.0;
+  const xCoax0 = 96.0;
+  const xCoax1 = 300.0; // feed coax carrying the ferrite cores
+  const xTeeA = 382.0;
+  const xTeeB = 398.0; // junction tees
+  const xRailEnd = 470.0;
+  const loopACx = 530.0;
+  const xPh0 = 440.0;
+  const xPh1 = 600.0; // balanced phasing line
+  const xSwap0 = 610.0;
+  const xSwap = 634.0;
+  const loopBCx = 696.0;
+
+  const rig = `to rig (${formatG(match.system_z_ohm as number)} &#8486;)`;
+  const coax = obj(balun.coax);
+  const chokeLabel = [
+    `CH1  ${coax.name} + ${balun.cores} ferrite cores`,
+    balun.kind as string,
+  ];
+  const parts = [
+    text(xTerm - 20.0, yBot + 30.0, rig, "start"),
+    terminalPair(xTerm, yA),
+    // Center conductor runs on to the loop A leads; the return conductor stops
+    // at the coax shield pigtails inside the choke run.
+    line(xTerm + TERMINAL_RADIUS, yA, xRailEnd, yA),
+    line(xTerm + TERMINAL_RADIUS, yBot, xCoax0, yBot),
+    line(xCoax1, yBot, xRailEnd, yBot),
+    coaxSection(xCoax0, xCoax1, yA, yBot, chokeLabel),
+    ferriteCores(xCoax0, xCoax1, yA, balun.cores as number),
+    // Junction: the phasing line tees off both conductors.
+    dot(xTeeA, yA),
+    dot(xTeeB, yBot),
+    hop(xTeeA, yA, yBot, yB),
+    line(xTeeB, yBot, xTeeB, yB + RAIL_GAP),
+    loopSymbol(xRailEnd, yA, loopACx, "LOOP A"),
+    // Balanced phasing line to loop B.
+    line(xTeeA, yB, xSwap0, yB),
+    line(xTeeB, yB + RAIL_GAP, xSwap0, yB + RAIL_GAP),
+    balancedPairSection(
+      xPh0,
+      xPh1,
+      yB,
+      sectionLabel("PL1", obj(harness.phasing_line), "1/4"),
+    ),
+  ];
+  if (crossed) {
+    parts.push(crossover(xSwap0, xSwap, yB));
+    parts.push(text((xSwap0 + xSwap) / 2.0, yB + RAIL_GAP + 24.0, "crossed"));
+  } else {
+    parts.push(line(xSwap0, yB, xSwap, yB));
+    parts.push(line(xSwap0, yB + RAIL_GAP, xSwap, yB + RAIL_GAP));
+  }
+  parts.push(loopSymbol(xSwap, yB, loopBCx, "LOOP B"));
+  return [parts.join(""), 780, 330];
+}
+
 // Feed and match schematic for a tuned design, as an SVG string.
 export function renderFeedSchematic(result: DesignResult): string {
   const build = obj(resultToDict(result).build);
@@ -458,8 +540,10 @@ export function renderFeedSchematic(result: DesignResult): string {
   let height: number;
   if ("phasing_line" in build) {
     [body, width, height] = linePhased(build);
-  } else {
+  } else if ("q_section" in obj(build.harness)) {
     [body, width, height] = balun4Layout(build);
+  } else {
+    [body, width, height] = chokeLayout(build);
   }
   return (
     `<svg class="sch" viewBox="0 0 ${width} ${height}" ` +

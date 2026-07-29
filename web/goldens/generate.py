@@ -32,6 +32,7 @@ from awadateki.coax import RG_58, RG_59  # noqa: E402
 from awadateki.conductor import bar_conductor, round_conductor  # noqa: E402
 from awadateki.design import (  # noqa: E402
     FEED_BALUN4,
+    FEED_CHOKE,
     FEED_LINE,
     REFLECTOR_GROUND,
     REFLECTOR_NONE,
@@ -216,6 +217,41 @@ CASES: list[tuple[str, DesignSpec, bool]] = [
             "balun4_radials_squircle_rhcp_70cm",
             freq_mhz=BAND_70CM,
             feed=FEED_BALUN4,
+            reflector=REFLECTOR_RADIALS,
+            loop_shape=SHAPE_SQUIRCLE,
+            corner_radius_wl=0.08,
+            sense=SENSE_RHCP,
+            conductor=BAR_6X3MM,
+        ),
+        False,
+    ),
+    (
+        *_spec(
+            "choke_none_circle_rhcp_2m",
+            freq_mhz=BAND_2M,
+            feed=FEED_CHOKE,
+            reflector=REFLECTOR_NONE,
+            loop_shape=SHAPE_CIRCLE,
+            sense=SENSE_RHCP,
+        ),
+        False,
+    ),
+    (
+        *_spec(
+            "choke_none_circle_lhcp_2m",
+            freq_mhz=BAND_2M,
+            feed=FEED_CHOKE,
+            reflector=REFLECTOR_NONE,
+            loop_shape=SHAPE_CIRCLE,
+            sense=SENSE_LHCP,
+        ),
+        False,
+    ),
+    (
+        *_spec(
+            "choke_radials_squircle_rhcp_70cm",
+            freq_mhz=BAND_70CM,
+            feed=FEED_CHOKE,
             reflector=REFLECTOR_RADIALS,
             loop_shape=SHAPE_SQUIRCLE,
             corner_radius_wl=0.08,

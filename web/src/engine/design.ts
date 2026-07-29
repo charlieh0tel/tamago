@@ -2,10 +2,12 @@
 // Port of the design core of src/awadateki/design.py.
 //
 // Two equal resonant loops are driven with their currents 90 deg apart for
-// circular polarization, by one of two coax feed harnesses (spec.feed): the
+// circular polarization, by one of three coax feed harnesses (spec.feed): the
 // source at the junction with a quarter-wave line to loop B (line), or the
-// ON6WG/F5VIF balanced system (balun4). Harness lines are NEC TL cards;
-// crossing loop B's connection (negative Z0) reverses the handedness.
+// ON6WG/F5VIF balanced system (balun4 with a 4:1 balun, or choke with a 1:1
+// ferrite choke -- same NEC model, different match hardware). Harness lines
+// are NEC TL cards; crossing loop B's connection (negative Z0) reverses the
+// handedness.
 //
 // The nec2c runner is threaded in explicitly (async, since a WASM run is async):
 // design(spec, runner), analyze(spec, factor, options, runner). No globals.
@@ -26,6 +28,7 @@ import {
   FACTOR_BOUNDS,
   FEASIBLE_VSWR,
   FEED_BALUN4,
+  FEED_CHOKE,
   FEED_LINE,
   GOLDEN_RATIO,
   HZ_PER_MHZ,
@@ -47,6 +50,7 @@ import {
   SPACING_TOLERANCE_WL,
   SWEEP_POINTS,
   SWEEP_SPAN_FRACTION,
+  isBalancedFeed,
 } from "./constants";
 import { formatG } from "./format";
 import {
@@ -286,7 +290,9 @@ function harness(
   if (spec.feed === FEED_LINE) {
     return feedLine(egg, spec, wavelength, flip);
   }
-  if (spec.feed === FEED_BALUN4) {
+  if (isBalancedFeed(spec.feed)) {
+    // balun4 and choke share the balanced phasing-line NEC model; they differ
+    // only in the match hardware, which is outside the model.
     return feedBalun4(egg, wavelength, flip);
   }
   throw new Error(`unknown feed scheme: ${JSON.stringify(spec.feed)}`);
@@ -688,6 +694,10 @@ export function matchedVswr(spec: DesignSpec, z: Complex): number {
     const zRadio = balun4RadioZ(z, spec.freqMhz, spec.freqMhz);
     return vswr(zRadio, spec.systemZOhm);
   }
+  if (spec.feed === FEED_CHOKE) {
+    // A 1:1 ferrite choke: no impedance transform, the radio sees z.
+    return vswr(z, spec.systemZOhm);
+  }
   return postMatchVswr(z, spec.systemZOhm, spec.matchCoax);
 }
 
@@ -921,6 +931,9 @@ export async function frequencySweep(
     let zIn: Complex;
     if (spec.feed === FEED_BALUN4) {
       zIn = balun4RadioZ(zAnt, freq, designFreq);
+    } else if (spec.feed === FEED_CHOKE) {
+      // A 1:1 ferrite choke passes the feed Z straight to the radio.
+      zIn = zAnt;
     } else {
       zIn = matchedInputZ(
         zAnt,

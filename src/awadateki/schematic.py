@@ -386,13 +386,91 @@ def _balun4_layout(build: dict) -> tuple[str, int, int]:
     return "".join(parts), 780, 330
 
 
+def _ferrite_cores(x0: float, x1: float, y: float, count: int) -> str:
+    """A stack of ferrite cores threaded on a coax: short ellipses across it."""
+    rx = 7.0
+    ry = COAX_RY + 6.0
+    step = (x1 - x0) / (count + 1)
+    return "".join(
+        f'<ellipse cx="{x0 + step * (i + 1):.1f}" cy="{y:.1f}" '
+        f'rx="{rx:.1f}" ry="{ry:.1f}"/>'
+        for i in range(count)
+    )
+
+
+def _choke_layout(build: dict) -> tuple[str, int, int]:
+    """Layout for the F5VIF "final" balanced system (choke).
+
+    The rig coax carries a stack of ferrite cores near the feedpoint (a 1:1
+    current choke, the only balun); its center conductor and shield become the
+    balanced pair at the junction across loop A, and the balanced phasing line
+    reaches loop B.
+    """
+    harness = build["harness"]
+    match = build["match"]
+    balun = harness["balun"]
+    crossed = harness["connection"] == "crossed"
+
+    y_a = 120.0  # center conductor of the feed coax and the loop A run
+    y_b = 230.0  # upper conductor of the loop B branch
+    y_bot = y_a + RAIL_GAP
+    x_term = 40.0
+    x_coax0, x_coax1 = 96.0, 300.0  # feed coax carrying the ferrite cores
+    x_tee_a, x_tee_b = 382.0, 398.0  # junction tees
+    x_rail_end = 470.0
+    loop_a_cx = 530.0
+    x_ph0, x_ph1 = 440.0, 600.0  # balanced phasing line
+    x_swap0, x_swap = 610.0, 634.0
+    loop_b_cx = 696.0
+
+    rig = f"to rig ({match['system_z_ohm']:g} &#8486;)"
+    coax = balun["coax"]
+    choke_label = (
+        f"CH1  {coax['name']} + {balun['cores']} ferrite cores",
+        balun["kind"],
+    )
+    parts = [
+        _text(x_term - 20.0, y_bot + 30.0, rig, "start"),
+        _terminal_pair(x_term, y_a),
+        # Center conductor runs on to the loop A leads; the return conductor
+        # stops at the coax shield pigtails inside the choke run.
+        _line(x_term + TERMINAL_RADIUS, y_a, x_rail_end, y_a),
+        _line(x_term + TERMINAL_RADIUS, y_bot, x_coax0, y_bot),
+        _line(x_coax1, y_bot, x_rail_end, y_bot),
+        _coax_section(x_coax0, x_coax1, y_a, y_bot, choke_label),
+        _ferrite_cores(x_coax0, x_coax1, y_a, balun["cores"]),
+        # Junction: the phasing line tees off both conductors.
+        _dot(x_tee_a, y_a),
+        _dot(x_tee_b, y_bot),
+        _hop(x_tee_a, y_a, y_bot, y_b),
+        _line(x_tee_b, y_bot, x_tee_b, y_b + RAIL_GAP),
+        _loop_symbol(x_rail_end, y_a, loop_a_cx, "LOOP A"),
+        # Balanced phasing line to loop B.
+        _line(x_tee_a, y_b, x_swap0, y_b),
+        _line(x_tee_b, y_b + RAIL_GAP, x_swap0, y_b + RAIL_GAP),
+        _balanced_pair_section(
+            x_ph0, x_ph1, y_b, _section_label("PL1", harness["phasing_line"], "1/4")
+        ),
+    ]
+    if crossed:
+        parts.append(_crossover(x_swap0, x_swap, y_b))
+        parts.append(_text((x_swap0 + x_swap) / 2.0, y_b + RAIL_GAP + 24.0, "crossed"))
+    else:
+        parts.append(_line(x_swap0, y_b, x_swap, y_b))
+        parts.append(_line(x_swap0, y_b + RAIL_GAP, x_swap, y_b + RAIL_GAP))
+    parts.append(_loop_symbol(x_swap, y_b, loop_b_cx, "LOOP B"))
+    return "".join(parts), 780, 330
+
+
 def render_feed_schematic(result: DesignResult) -> str:
     """Feed and match schematic for a tuned design, as an SVG string."""
     build = result_to_dict(result)["build"]
     if "phasing_line" in build:
         body, width, height = _line_phased(build)
-    else:
+    elif "q_section" in build["harness"]:
         body, width, height = _balun4_layout(build)
+    else:
+        body, width, height = _choke_layout(build)
     return (
         f'<svg class="sch" viewBox="0 0 {width} {height}" '
         f'role="img" aria-label="Feed and match schematic">{body}</svg>'

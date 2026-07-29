@@ -66,7 +66,11 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   ([Appendix
   A](http://146970.com/PDFs/Antenna%20Egg%20Beater%20Appendix%20A%20-%20English.pdf),
   courtesy ON6WG/F5VIF). balun4 gives a balanced feed (no feedline common-mode)
-  with everyday cable.
+  with everyday cable. `choke`: the F5VIF "final" system -- the same balanced
+  phasing line, but fed directly through a 1:1 ferrite current choke (a stack
+  of ferrite cores over the 50 ohm feed coax) with no Q-section or 4:1 balun,
+  so the radio sees the ~50 ohm feedpoint straight through. balun4 and choke
+  share the same balanced NEC model and differ only in the match hardware.
 - `loop_shape`: `circle` (default), `square`, or `squircle` (a square with
   radiused corners: four straight sides joined by quarter-circle arcs). The
   loop perimeter is held fixed across shapes; the cut sheet reports the across
@@ -87,8 +91,9 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `"RG-62"`) or a custom cable `{"name": ..., "z0_ohm": ..., "vf": ...}`. The
   phasing line defaults to RG-62 (93 ohm, VF 0.84); the transformer defaults to
   the catalog cable nearest the computed transformer impedance. `phasing_coax`
-  applies only to the `line` feed and `match_coax` not to `balun4` (the
-  harness feeds fix their own cables); setting them elsewhere is an error.
+  applies only to the `line` feed and `match_coax` not to the balanced feeds
+  `balun4`/`choke` (the harness feeds fix their own cables); setting them
+  elsewhere is an error.
 - `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
 - `ar_margin_db`: margin `--optimize-reflector` holds below the 3 dB
   axial-ratio budget at band center (default 0.5), so the design frequency
@@ -148,6 +153,20 @@ The `balun4` feed is the line feed's model with a 100 ohm balanced phasing
 line; its Q-section and balun sit in series toward the radio and do not affect
 the loop currents, so they are sized analytically (junction ~50 ohm -> 200 ohm
 through the quarter-wave 100 ohm Q-section -> 50 ohm through the 4:1 balun).
+
+The `choke` feed shares that balanced model exactly -- its NEC deck is
+identical to `balun4` -- and replaces the Q-section and 4:1 balun with a 1:1
+ferrite current choke, so the radio sees the ~50 ohm junction impedance
+directly, flat across frequency.
+
+Both baluns are idealizations, not simulated hardware. Neither the 4:1
+balun/Q-section nor the ferrite choke is in the electromagnetic model:
+`balun4`'s harness is modeled analytically as ideal lossless transmission
+lines (capturing the 4:1 transform and its off-band dispersion), and the
+`choke` is modeled as a perfect 1:1 pass-through (no transform, no dispersion).
+The NEC source is a balanced differential drive, so common-mode current is
+assumed fully suppressed for both. Ferrite and coax loss, finite
+common-mode choking impedance, and core saturation are not modeled.
 
 Conductor cross-sections are reduced to a NEC equivalent radius; the loop
 perimeter is then tuned until the two loop currents sit 90 degrees apart

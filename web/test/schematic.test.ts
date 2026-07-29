@@ -51,6 +51,16 @@ describe("renderFeedSchematic byte parity", () => {
     expect(renderFeedSchematic(result)).toBe(readFixture("balun4_crossed.svg"));
   });
 
+  it("choke feed, normal connection", async () => {
+    const result = await design(loadSpec("choke_none_circle_rhcp_2m"), runNec);
+    expect(renderFeedSchematic(result)).toBe(readFixture("choke_normal.svg"));
+  });
+
+  it("choke feed, crossed connection", async () => {
+    const result = await design(loadSpec("choke_none_circle_lhcp_2m"), runNec);
+    expect(renderFeedSchematic(result)).toBe(readFixture("choke_crossed.svg"));
+  });
+
   it("line feed with a series capacitor (positive feedpoint reactance)", async () => {
     const base = await design(loadSpec("line_none_circle_rhcp_2m"), runNec);
     const result: DesignResult = {

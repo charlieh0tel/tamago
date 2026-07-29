@@ -4,10 +4,10 @@
 
 import { equivalentRadiusM } from "./conductor";
 import {
-  FEED_BALUN4,
   FEED_LINE,
   MAX_SEGMENTS,
   MIN_LOOP_OFFSET_DIAMETERS,
+  isBalancedFeed,
 } from "./constants";
 import { formatG } from "./format";
 import type { DesignSpec } from "./spec";
@@ -25,9 +25,9 @@ export function validateSpec(spec: DesignSpec): void {
       `phasing_coax applies only to the line feed; the ${JSON.stringify(spec.feed)} harness fixes its own cables`,
     );
   }
-  if (spec.matchCoax !== null && spec.feed === FEED_BALUN4) {
+  if (spec.matchCoax !== null && isBalancedFeed(spec.feed)) {
     throw new Error(
-      "match_coax does not apply to the balun4 feed; its Q-section and balun are the match",
+      `match_coax does not apply to the ${JSON.stringify(spec.feed)} feed; it has no quarter-wave matching transformer`,
     );
   }
   const minOffsetMm =

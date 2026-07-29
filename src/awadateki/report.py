@@ -78,8 +78,8 @@ def _feed_lines(build: dict) -> list[str]:
         ]
     harness = build["harness"]
     balun = harness["balun"]
-    if "phasing_line" in harness:
-        # The F5VIF balanced system (balun4).
+    if "q_section" in harness:
+        # The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
         return [
             f"Phasing line        : {_coax_text(harness['phasing_line'])}",
             f"Q-section           : {_coax_text(harness['q_section'])}",
@@ -90,12 +90,15 @@ def _feed_lines(build: dict) -> list[str]:
             f"Feed                : balun then Q-section to the junction across "
             f"loop A; {harness['connection']} phasing line to loop B",
         ]
+    # The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
     return [
-        f"Q-sections          : 2 x {_coax_text(harness['q_section'])}",
-        f"Delay line          : {_coax_text(harness['delay_line'])} in the loop B leg",
-        f"Balun               : {balun['kind']} at the radio",
-        f"Feed                : Q-section legs joined at the harness port; "
-        f"{harness['connection']} Q-section to loop B",
+        f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+        f"Choke               : {balun['kind']}, {balun['cores']} x "
+        f"{balun['core_pn']} ferrite cores over {balun['coax']['name']} at the "
+        "feedpoint",
+        "Pair braids         : bonded to each other at both ends; not grounded",
+        f"Feed                : {balun['coax']['name']} through the choke to the "
+        f"junction across loop A; {harness['connection']} phasing line to loop B",
     ]
 
 
@@ -116,6 +119,9 @@ def _match_lines(result: DesignResult, build: dict) -> list[str]:
     lines = [f"Match to {match['system_z_ohm']:g} ohm:"]
     if match.get("network") == "harness":
         lines.append("  via the harness Q-section and 4:1 balun (see above)")
+        return lines
+    if match.get("network") == "choke":
+        lines.append("  none; the 1:1 ferrite choke presents the feed Z directly")
         return lines
     series = match["series_element"]
     if series is not None:
