@@ -146,18 +146,20 @@ SPACING_TOLERANCE_WL = 0.005
 DROOP_TOLERANCE_DEG = 1.0
 # Alternating spacing/droop passes per radial count.
 PLACEMENT_SWEEPS = 2
-# Radial counts searched, ascending; the optimizer keeps the fewest that meets
-# the objectives (fewer radials is cheaper, lighter, and less wind load).
+# Radial counts searched, ascending; the optimizer stops at the knee of the
+# axial-ratio-vs-count curve (fewer radials is cheaper, lighter, less wind load).
 RADIAL_COUNT_GRID = (3, 4, 6, 8)
 AR_TARGET_DB = 3.0
-# Default spec.ar_margin_db: margin the optimizer holds below AR_TARGET_DB at
-# band center, so the design does not sit exactly at the budget with no usable
-# axial-ratio bandwidth.
+# Default spec.ar_margin_db: axial-ratio headroom the placement cost seeks below
+# AR_TARGET_DB, biasing spacing/droop toward lower worst-case AR (and bandwidth).
 AR_MARGIN_DB = 0.5
 # Cost penalty per dB of axial ratio above the margin-tightened budget.
 AR_PENALTY_PER_DB = 1.0
-# A radial count is acceptable when the tuned design holds axial ratio within
-# the margin-tightened budget and post-match VSWR within this limit.
+# Minimum worst-case cone axial-ratio improvement (dB) a larger radial count
+# must buy to be worth the extra radials; below it the curve has flattened and
+# the optimizer keeps the smaller count. This is the count-selection knee.
+AR_KNEE_DB = 0.2
+# Post-match VSWR a placement must hold within to be a valid match.
 FEASIBLE_VSWR = 1.5
 
 # Frequency-sweep defaults and the SWR threshold whose bandwidth is reported.
@@ -205,9 +207,9 @@ class DesignSpec:
         system_z_ohm: radio-end reference impedance the match targets (50 or 75).
         ar_margin_db: axial-ratio headroom the reflector optimizer's placement
             cost seeks below AR_TARGET_DB, biasing spacing/droop toward lower
-            worst-case AR (and thus more usable bandwidth). It shapes the
-            placement, not the radial-count gate, which uses the full
-            AR_TARGET_DB.
+            worst-case AR (and thus more usable bandwidth). It shapes each
+            placement; the radial count is then chosen at the knee of the
+            worst-case-AR-versus-count curve (see AR_KNEE_DB).
         segments: polygon sides per loop (at most MAX_SEGMENTS).
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
@@ -259,12 +261,14 @@ class Optimization:
         droop_tolerance_deg: droop resolution the descent converged to.
         sweeps: alternating spacing/droop passes per radial count.
         radial_count_grid: radial counts searched.
-        ar_target_db: worst-case cone axial-ratio budget the count gate held to.
+        ar_target_db: worst-case cone axial-ratio budget the placement cost
+            referenced (penalty above ar_target_db - ar_margin_db).
         ar_margin_db: axial-ratio headroom the placement cost sought below the
-            budget (shapes spacing/droop, not the count gate).
+            budget (shapes spacing/droop; the count is chosen at the AR knee).
         ar_penalty_per_db: cost penalty per dB of worst-case axial ratio above
             the margin-tightened budget.
-        feasible_vswr: post-match VSWR a radial count had to meet to be kept.
+        feasible_vswr: post-match VSWR intended as a valid match (the placement
+            cost drives spacing/droop toward it).
         objective: short description of what was minimized.
         elapsed_s: wall-clock seconds the search took.
     """
@@ -922,20 +926,23 @@ def _reflector_cost(result: DesignResult) -> float:
     return matched_vswr(spec, result.z_in) + AR_PENALTY_PER_DB * excess
 
 
-def _reflector_feasible(result: DesignResult) -> bool:
-    """Whether a tuned design meets the axial-ratio and match objectives.
+def _knee_count(counts: tuple[int, ...], worst_ar_db: dict[int, float]) -> int:
+    """Fewest radials at the diminishing-returns knee of worst-case cone AR.
 
-    Axial ratio is the worst over the coverage cone (its edge), gated against
-    the full AR_TARGET_DB. The eggbeater cone edge is inherently a few dB, so
-    the sub-target ar_margin_db is unreachable on the worst point and gating on
-    it would only over-provision radials; the margin instead shapes the
-    placement cost (below), biasing spacing/droop toward axial-ratio headroom.
+    Walk the counts ascending, advancing to a larger count only while it lowers
+    the worst cone axial ratio by at least AR_KNEE_DB; stop where the curve
+    flattens. This keeps axial-ratio headroom (a marginal smaller count sitting
+    right at the budget loses to the next count that buys real margin) without
+    adding radials that barely help (or that cannot reach the budget at all).
     """
-    spec = result.spec
-    return (
-        result.ar_cone_worst_db <= AR_TARGET_DB
-        and matched_vswr(spec, result.z_in) <= FEASIBLE_VSWR
-    )
+    ordered = sorted(counts)
+    chosen = ordered[0]
+    for prev, cur in zip(ordered, ordered[1:], strict=False):
+        if worst_ar_db[prev] - worst_ar_db[cur] >= AR_KNEE_DB:
+            chosen = cur
+        else:
+            break
+    return chosen
 
 
 def _best_placement(
@@ -987,30 +994,27 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
     """Search radial count, spacing, and droop; return the best spec.
 
     A spec -> spec transform: the returned spec differs from the input only in
-    the reflector geometry that best serves the design. Radial count is searched
-    ascending and the fewest that meets the objectives (axial ratio within
-    AR_TARGET_DB, post-match VSWR within FEASIBLE_VSWR) is kept; for each count a
-    coordinate descent finds the lowest-cost spacing/droop placement. If no count
-    is feasible the lowest-cost candidate overall is returned. Droop and count
-    apply only to radials; a ground reflector searches spacing alone.
+    the reflector geometry that best serves the design. For each radial count a
+    coordinate descent finds the lowest-cost spacing/droop placement, then the
+    count is chosen at the knee of the worst-case cone axial ratio versus count
+    (the fewest radials past which more buy less than AR_KNEE_DB, see
+    _knee_count). Droop and count apply only to radials; a ground reflector
+    searches spacing alone.
 
-    Axial ratio in both the cost and the feasibility test is the worst over the
-    coverage cone (its edge), not the cone mean.
+    Axial ratio throughout is the worst over the coverage cone (its edge), not
+    the cone mean.
     """
     radials = spec.reflector == REFLECTOR_RADIALS
     counts = tuple(sorted(RADIAL_COUNT_GRID if radials else (spec.radial_count,)))
     start = time.perf_counter()
 
-    chosen: DesignSpec | None = None
-    fallback: tuple[float, DesignSpec] | None = None
+    placements: dict[int, DesignSpec] = {}
+    worst_ar_db: dict[int, float] = {}
     for count in counts:
-        cost, candidate, result = _best_placement(spec, count, optimize_droop=radials)
-        if fallback is None or cost < fallback[0]:
-            fallback = (cost, candidate)
-        if _reflector_feasible(result):
-            chosen = candidate
-            break
-    best_spec = chosen if chosen is not None else fallback[1]
+        _, candidate, result = _best_placement(spec, count, optimize_droop=radials)
+        placements[count] = candidate
+        worst_ar_db[count] = result.ar_cone_worst_db
+    best_spec = placements[_knee_count(counts, worst_ar_db)]
 
     provenance = Optimization(
         input=replace(spec, optimization=None),
@@ -1026,8 +1030,8 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
         ar_penalty_per_db=AR_PENALTY_PER_DB,
         feasible_vswr=FEASIBLE_VSWR,
         objective=(
-            "fewest radials meeting worst-case cone AR and VSWR, "
-            "then minimize match cost"
+            "radial count at the worst-case cone AR knee, "
+            "spacing/droop minimizing match cost"
         ),
         elapsed_s=round(time.perf_counter() - start, 3),
     )

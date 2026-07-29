@@ -13,8 +13,8 @@ from awadateki.design import (
     DesignResult,
     DesignSpec,
     _eggbeater,
+    _knee_count,
     _reflector_cost,
-    _reflector_feasible,
     bandwidth_within,
     design,
     frequency_sweep,
@@ -300,28 +300,27 @@ def _cone_result(worst: float, mean: float) -> DesignResult:
     )
 
 
-def test_optimizer_objective_uses_worst_cone_ar():
-    # Budget is AR_TARGET_DB - margin = 2.5 dB. Mean is well under budget in
-    # both; only the worst-case cone AR differs, and it must drive the result.
+def test_placement_cost_uses_worst_cone_ar():
+    # Mean is identical; only the worst-case cone AR differs, so it alone must
+    # drive the placement cost (worst 4.0 costs more than worst 2.0).
     over = _cone_result(worst=4.0, mean=1.0)
     under = _cone_result(worst=2.0, mean=1.0)
-    assert not _reflector_feasible(over)
-    assert _reflector_feasible(under)
-    # Cost tracks the worst-case excess even though the mean is identical.
     assert _reflector_cost(over) > _reflector_cost(under)
 
 
-def test_reflector_feasible_gates_on_target_not_margin():
-    # Worst cone AR between the margin'd budget (2.5) and the target (3.0) is
-    # feasible: the margin shapes the placement cost, not the radial-count gate,
-    # so the optimizer does not over-provision radials chasing an unreachable
-    # sub-target worst-case AR.
-    assert _reflector_feasible(_cone_result(worst=2.8, mean=1.0))
-    assert not _reflector_feasible(_cone_result(worst=3.2, mean=1.0))
-    # The placement cost still charges the margin'd excess (2.8 > budget 2.5).
-    assert _reflector_cost(_cone_result(worst=2.8, mean=1.0)) > _reflector_cost(
-        _cone_result(worst=2.0, mean=1.0)
-    )
+def test_knee_count_stops_at_diminishing_returns():
+    counts = (3, 4, 6, 8)
+    # A 0.43 dB step (3->4) is worth it; the 0.12 dB step (4->6) is not: keep 4.
+    assert _knee_count(counts, {3: 3.20, 4: 2.77, 6: 2.65, 8: 2.66}) == 4
+    # Curve flat from the start: the fewest count wins outright.
+    assert _knee_count(counts, {3: 2.59, 4: 2.50, 6: 2.45, 8: 2.50}) == 3
+    # Every step still buys >= AR_KNEE_DB: walk to the largest count.
+    assert _knee_count(counts, {3: 5.0, 4: 4.5, 6: 4.0, 8: 3.5}) == 8
+    # A marginal count sitting at the budget loses to the next with real
+    # headroom (0.33 dB), so we do not sit at the edge.
+    assert _knee_count(counts, {3: 3.00, 4: 2.67, 6: 2.60, 8: 2.59}) == 4
+    # A single count (e.g. a ground reflector) is returned as-is.
+    assert _knee_count((4,), {4: 3.5}) == 4
 
 
 def test_optimize_reflector_returns_spec_with_provenance():

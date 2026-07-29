@@ -16,6 +16,7 @@ import type { Coax } from "./coax";
 import { nearestStandardCoax } from "./coax";
 import { equivalentRadiusM } from "./conductor";
 import {
+  AR_KNEE_DB,
   AR_PENALTY_PER_DB,
   AR_TARGET_DB,
   BALUN4_BALUN_COAX,
@@ -803,16 +804,32 @@ export function reflectorCost(result: DesignResult): number {
   return matchedVswr(spec, result.zIn) + AR_PENALTY_PER_DB * excess;
 }
 
-// Worst-case cone AR is gated against the full AR_TARGET_DB; the sub-target
-// margin is unreachable on the worst point (the eggbeater cone edge is a few
-// dB) and would only over-provision radials, so the margin shapes the
-// placement cost above instead of the radial-count gate.
-export function reflectorFeasible(result: DesignResult): boolean {
-  const spec = result.spec;
-  return (
-    result.arConeWorstDb <= AR_TARGET_DB &&
-    matchedVswr(spec, result.zIn) <= FEASIBLE_VSWR
-  );
+// Fewest radials at the diminishing-returns knee of worst-case cone AR: walk
+// the counts ascending, advancing only while a larger count lowers the worst
+// cone AR by at least AR_KNEE_DB; stop where the curve flattens. This keeps AR
+// headroom (a marginal smaller count sitting at the budget loses to the next
+// with real margin) without adding radials that barely help.
+export function kneeCount(
+  counts: readonly number[],
+  worstArDb: Record<number, number>,
+): number {
+  const ordered = [...counts].sort((a, b) => a - b);
+  let chosen = ordered[0];
+  if (chosen === undefined) {
+    throw new Error("kneeCount requires at least one count");
+  }
+  for (let i = 1; i < ordered.length; i++) {
+    const prev = ordered[i - 1];
+    const cur = ordered[i];
+    if (prev === undefined || cur === undefined) break;
+    const improvement = (worstArDb[prev] ?? 0) - (worstArDb[cur] ?? 0);
+    if (improvement >= AR_KNEE_DB) {
+      chosen = cur;
+    } else {
+      break;
+    }
+  }
+  return chosen;
 }
 
 async function bestPlacement(
@@ -874,25 +891,17 @@ export async function optimizeReflector(
   );
   const start = performance.now();
 
-  let chosen: DesignSpec | null = null;
-  let fallback: { cost: number; candidate: DesignSpec } | null = null;
+  const placements: Record<number, DesignSpec> = {};
+  const worstArDb: Record<number, number> = {};
   for (const count of counts) {
-    const { cost, candidate, result } = await bestPlacement(
-      spec,
-      count,
-      radials,
-      runner,
-    );
-    if (fallback === null || cost < fallback.cost) {
-      fallback = { cost, candidate };
-    }
-    if (reflectorFeasible(result)) {
-      chosen = candidate;
-      break;
-    }
+    const { candidate, result } = await bestPlacement(spec, count, radials, runner);
+    placements[count] = candidate;
+    worstArDb[count] = result.arConeWorstDb;
   }
-  const bestSpec =
-    chosen !== null ? chosen : (fallback as { candidate: DesignSpec }).candidate;
+  const bestSpec = placements[kneeCount(counts, worstArDb)];
+  if (bestSpec === undefined) {
+    throw new Error("optimizeReflector: no placement for the chosen count");
+  }
 
   const elapsedS = Math.round(performance.now() - start) / 1000.0;
   return {
@@ -911,7 +920,7 @@ export async function optimizeReflector(
       arPenaltyPerDb: AR_PENALTY_PER_DB,
       feasibleVswr: FEASIBLE_VSWR,
       objective:
-        "fewest radials meeting worst-case cone AR and VSWR, then minimize match cost",
+        "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost",
       elapsedS,
     },
   };

@@ -116,7 +116,11 @@ export const PLACEMENT_SWEEPS = 2;
 export const RADIAL_COUNT_GRID: number[] = [3, 4, 6, 8];
 // Cost penalty per dB of axial ratio above the margin-tightened budget.
 export const AR_PENALTY_PER_DB = 1.0;
-// Post-match VSWR a radial count must meet to be kept feasible.
+// Minimum worst-case cone AR improvement (dB) a larger radial count must buy to
+// be worth the extra radials; below it the curve has flattened and the smaller
+// count is kept. This is the count-selection knee.
+export const AR_KNEE_DB = 0.2;
+// Post-match VSWR a placement must hold within to be a valid match.
 export const FEASIBLE_VSWR = 1.5;
 
 // Frequency-sweep defaults and the SWR threshold whose bandwidth is reported.
