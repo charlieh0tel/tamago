@@ -794,17 +794,19 @@ export function tunedGeometry(result: DesignResult): {
 
 // --- Reflector optimizer. ---
 
-function reflectorCost(result: DesignResult): number {
+// The axial-ratio term is the worst over the coverage cone, so the optimizer
+// drives the cone edge (not just the cone mean) under the budget.
+export function reflectorCost(result: DesignResult): number {
   const spec = result.spec;
   const budget = AR_TARGET_DB - spec.arMarginDb;
-  const excess = Math.max(0.0, result.arBoresightDb - budget);
+  const excess = Math.max(0.0, result.arConeWorstDb - budget);
   return matchedVswr(spec, result.zIn) + AR_PENALTY_PER_DB * excess;
 }
 
-function reflectorFeasible(result: DesignResult): boolean {
+export function reflectorFeasible(result: DesignResult): boolean {
   const spec = result.spec;
   return (
-    result.arBoresightDb <= AR_TARGET_DB - spec.arMarginDb &&
+    result.arConeWorstDb <= AR_TARGET_DB - spec.arMarginDb &&
     matchedVswr(spec, result.zIn) <= FEASIBLE_VSWR
   );
 }
@@ -904,7 +906,8 @@ export async function optimizeReflector(
       arMarginDb: spec.arMarginDb,
       arPenaltyPerDb: AR_PENALTY_PER_DB,
       feasibleVswr: FEASIBLE_VSWR,
-      objective: "fewest radials meeting AR and VSWR, then minimize match cost",
+      objective:
+        "fewest radials meeting worst-case cone AR and VSWR, then minimize match cost",
       elapsedS,
     },
   };

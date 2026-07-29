@@ -908,18 +908,26 @@ def design(spec: DesignSpec, with_loop_z: bool = True) -> DesignResult:
 
 
 def _reflector_cost(result: DesignResult) -> float:
-    """Optimization cost: post-match SWR, penalized for excess axial ratio."""
+    """Optimization cost: post-match SWR, penalized for excess axial ratio.
+
+    The axial-ratio term is the worst over the coverage cone, so the optimizer
+    drives the cone edge (not just the cone mean) under the budget.
+    """
     spec = result.spec
     budget = AR_TARGET_DB - spec.ar_margin_db
-    excess = max(0.0, result.ar_boresight_db - budget)
+    excess = max(0.0, result.ar_cone_worst_db - budget)
     return matched_vswr(spec, result.z_in) + AR_PENALTY_PER_DB * excess
 
 
 def _reflector_feasible(result: DesignResult) -> bool:
-    """Whether a tuned design meets the axial-ratio and match objectives."""
+    """Whether a tuned design meets the axial-ratio and match objectives.
+
+    Axial ratio is the worst over the coverage cone, so feasibility means the
+    cone edge (not just its mean) is within budget.
+    """
     spec = result.spec
     return (
-        result.ar_boresight_db <= AR_TARGET_DB - spec.ar_margin_db
+        result.ar_cone_worst_db <= AR_TARGET_DB - spec.ar_margin_db
         and matched_vswr(spec, result.z_in) <= FEASIBLE_VSWR
     )
 
@@ -979,6 +987,9 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
     coordinate descent finds the lowest-cost spacing/droop placement. If no count
     is feasible the lowest-cost candidate overall is returned. Droop and count
     apply only to radials; a ground reflector searches spacing alone.
+
+    Axial ratio in both the cost and the feasibility test is the worst over the
+    coverage cone (its edge), not the cone mean.
     """
     radials = spec.reflector == REFLECTOR_RADIALS
     counts = tuple(sorted(RADIAL_COUNT_GRID if radials else (spec.radial_count,)))
@@ -1008,7 +1019,10 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
         ar_margin_db=spec.ar_margin_db,
         ar_penalty_per_db=AR_PENALTY_PER_DB,
         feasible_vswr=FEASIBLE_VSWR,
-        objective="fewest radials meeting AR and VSWR, then minimize match cost",
+        objective=(
+            "fewest radials meeting worst-case cone AR and VSWR, "
+            "then minimize match cost"
+        ),
         elapsed_s=round(time.perf_counter() - start, 3),
     )
     return replace(best_spec, optimization=provenance)

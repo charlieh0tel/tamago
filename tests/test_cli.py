@@ -10,8 +10,11 @@ from awadateki.conductor import round_conductor
 from awadateki.design import (
     AR_TARGET_DB,
     VSWR_LIMIT,
+    DesignResult,
     DesignSpec,
     _eggbeater,
+    _reflector_cost,
+    _reflector_feasible,
     bandwidth_within,
     design,
     frequency_sweep,
@@ -278,6 +281,36 @@ def test_bandwidth_none_when_center_mismatched():
 
 
 @needs_nec2c
+def _cone_result(worst: float, mean: float) -> DesignResult:
+    # A tuned result at ~50 ohm (so VSWR is negligible) with independently set
+    # cone-mean and cone-worst axial ratios, to probe the optimizer objective.
+    return DesignResult(
+        spec=replace(_spec(), reflector="radials", ar_margin_db=0.5),
+        base_factor=1.05,
+        z_in=complex(50.0, 0.0),
+        phase_diff_deg=90.0,
+        loop_balance=1.0,
+        crossed_phasing_line=False,
+        sense="RIGHT",
+        ar_boresight_db=mean,
+        ar_cone_worst_db=worst,
+        ar_peak_db=0.5,
+        coverage_gain_db=0.0,
+        deck="",
+    )
+
+
+def test_optimizer_objective_uses_worst_cone_ar():
+    # Budget is AR_TARGET_DB - margin = 2.5 dB. Mean is well under budget in
+    # both; only the worst-case cone AR differs, and it must drive the result.
+    over = _cone_result(worst=4.0, mean=1.0)
+    under = _cone_result(worst=2.0, mean=1.0)
+    assert not _reflector_feasible(over)
+    assert _reflector_feasible(under)
+    # Cost tracks the worst-case excess even though the mean is identical.
+    assert _reflector_cost(over) > _reflector_cost(under)
+
+
 def test_optimize_reflector_returns_spec_with_provenance():
     base = replace(_spec(), reflector="radials")
     best = optimize_reflector(base)
