@@ -264,6 +264,16 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 
 ## Modeling caveats
 
+- **The loop driving-point impedance does not converge in `segments`, so axial
+  ratio carries several dB of modeling uncertainty and results are only
+  comparable at equal segmentation.** Over `segments` 16 to 96 at fixed
+  geometry the loop impedance drifts monotonically without settling, and since
+  loop current balance is `|Z_loop| / Z0_phasing` and axial ratio follows
+  `20*log10(balance)`, that alone moves the predicted cone axial ratio by
+  roughly 1.7 to 4 dB. Compare designs only at the same `segments`, and treat
+  absolute axial ratio as indicative. See
+  [docs/segmentation.md](docs/segmentation.md) for the diagnostics, including
+  the causes that were ruled out.
 - The phasing line is a NEC ideal transmission line: lossless, with no shield
   or common-mode current (a real build uses a current balun; see TODO). Its
   off-design phase drift matches a real cable exactly, since physical length
