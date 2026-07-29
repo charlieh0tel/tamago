@@ -168,7 +168,7 @@ header .spacer {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
 }
 .rail .actions {
   position: sticky;
@@ -207,7 +207,7 @@ header .spacer {
 .group > summary {
   list-style: none;
   cursor: pointer;
-  padding: 7px 12px;
+  padding: 9px 12px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.16em;
@@ -228,10 +228,10 @@ header .spacer {
   display: none;
 }
 .gbody {
-  padding: 2px 12px 10px;
+  padding: 2px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .field {
   display: flex;
@@ -242,27 +242,12 @@ header .spacer {
   font-size: 12px;
   color: var(--muted);
 }
-/* Top-level fields lay the label beside its control (a compact two-column
-   form); the control takes the remaining width so segmented controls do not
-   clip. Fields paired inside .inline keep the stacked layout so two controls
-   still share a row. */
-.gbody > .field {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  column-gap: 10px;
-  row-gap: 4px;
-}
-.gbody > .field > label {
-  max-width: 48%;
-}
 .prov-legend {
   display: flex;
-  flex-flow: row wrap;
-  column-gap: 14px;
-  row-gap: 4px;
-  padding: 7px 10px;
-  margin-bottom: 2px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
   background: var(--ground);
   border-radius: 6px;
   font-size: 10.5px;
@@ -271,7 +256,7 @@ header .spacer {
 .prov-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 .prov-legend .prov {
   margin-left: 0;
