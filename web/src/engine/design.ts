@@ -2,10 +2,9 @@
 // Port of the design core of src/awadateki/design.py.
 //
 // Two equal resonant loops are driven with their currents 90 deg apart for
-// circular polarization, by one of three coax feed harnesses (spec.feed): the
-// source at the junction with a quarter-wave line to loop B (line), a Q-section
-// per loop paralleled at a port with a delay line in loop B's leg (turnstile),
-// or the ON6WG/F5VIF balanced system (balun4). Harness lines are NEC TL cards;
+// circular polarization, by one of two coax feed harnesses (spec.feed): the
+// source at the junction with a quarter-wave line to loop B (line), or the
+// ON6WG/F5VIF balanced system (balun4). Harness lines are NEC TL cards;
 // crossing loop B's connection (negative Z0) reverses the handedness.
 //
 // The nec2c runner is threaded in explicitly (async, since a WASM run is async):
@@ -28,7 +27,6 @@ import {
   FEASIBLE_VSWR,
   FEED_BALUN4,
   FEED_LINE,
-  FEED_TURNSTILE,
   GOLDEN_RATIO,
   HZ_PER_MHZ,
   LINE_PHASING_COAX,
@@ -38,10 +36,6 @@ import {
   PHASE_TOLERANCE_DEG,
   PHASING_LINE_WL,
   PLACEMENT_SWEEPS,
-  PORT_RADIUS_M,
-  PORT_SEGMENT_LENGTH_M,
-  PORT_SPACING_M,
-  PORT_TAG_BASE,
   RADIAL_COUNT_GRID,
   RADIAL_SEGMENT_WL,
   REFERENCE_IMPEDANCE_OHMS,
@@ -53,8 +47,6 @@ import {
   SPACING_TOLERANCE_WL,
   SWEEP_POINTS,
   SWEEP_SPAN_FRACTION,
-  TURNSTILE_DELAY_COAX,
-  TURNSTILE_Q_COAX,
 } from "./constants";
 import { formatG } from "./format";
 import {
@@ -242,24 +234,6 @@ export function phasingLineCoax(spec: DesignSpec): Coax {
   return spec.phasingCoax ?? LINE_PHASING_COAX;
 }
 
-// Tiny isolated wire at the loop center hosting harness TL ports. The two ports
-// (index 0, 1) straddle the loop center symmetrically.
-function portWire(tag: number, segments: number, cz: number, index: number): Wire {
-  const half = (PORT_SEGMENT_LENGTH_M * segments) / 2.0;
-  const z = cz + (index - 0.5) * PORT_SPACING_M;
-  return {
-    tag,
-    segments,
-    x1: -half,
-    y1: 0.0,
-    z1: z,
-    x2: half,
-    y2: 0.0,
-    z2: z,
-    radiusM: PORT_RADIUS_M,
-  };
-}
-
 function feedLine(
   egg: Eggbeater,
   spec: DesignSpec,
@@ -282,46 +256,6 @@ function feedLine(
     lengthM: PHASING_LINE_WL * wavelength,
   };
   return { ports: [], sources: [source], lines: [line] };
-}
-
-function feedTurnstile(
-  egg: Eggbeater,
-  wavelength: number,
-  flip: boolean,
-  cz: number,
-): Harness {
-  const port = portWire(PORT_TAG_BASE, 1, cz, 0);
-  const mid = portWire(PORT_TAG_BASE + 1, 1, cz, 1);
-  const quarter = PHASING_LINE_WL * wavelength;
-  const qZ0 = TURNSTILE_Q_COAX.z0Ohm;
-  const lines: TransmissionLine[] = [
-    {
-      tag1: port.tag,
-      segment1: 1,
-      tag2: egg.loopA.feedTag,
-      segment2: egg.loopA.feedSegment,
-      z0Ohm: qZ0,
-      lengthM: quarter,
-    },
-    {
-      tag1: port.tag,
-      segment1: 1,
-      tag2: mid.tag,
-      segment2: 1,
-      z0Ohm: TURNSTILE_DELAY_COAX.z0Ohm,
-      lengthM: quarter,
-    },
-    {
-      tag1: mid.tag,
-      segment1: 1,
-      tag2: egg.loopB.feedTag,
-      segment2: egg.loopB.feedSegment,
-      z0Ohm: flip ? -qZ0 : qZ0,
-      lengthM: quarter,
-    },
-  ];
-  const source: Source = { tag: port.tag, segment: 1, vReal: 1.0, vImag: 0.0 };
-  return { ports: [port, mid], sources: [source], lines };
 }
 
 function feedBalun4(egg: Eggbeater, wavelength: number, flip: boolean): Harness {
@@ -348,13 +282,9 @@ function harness(
   spec: DesignSpec,
   wavelength: number,
   flip: boolean,
-  cz: number,
 ): Harness {
   if (spec.feed === FEED_LINE) {
     return feedLine(egg, spec, wavelength, flip);
-  }
-  if (spec.feed === FEED_TURNSTILE) {
-    return feedTurnstile(egg, wavelength, flip, cz);
   }
   if (spec.feed === FEED_BALUN4) {
     return feedBalun4(egg, wavelength, flip);
@@ -393,8 +323,7 @@ export function buildDeckText(
   grid: RadiationGrid | null,
 ): string {
   const { egg, wavelength } = buildEggbeater(spec, factor);
-  const cz = centerZM(spec, wavelength, factor * wavelength);
-  const parts = harness(egg, spec, wavelength, flip, cz);
+  const parts = harness(egg, spec, wavelength, flip);
   const wires = [...egg.wires, ...parts.ports, ...reflectorWires(spec, wavelength)];
   return buildDeck(
     commentLines(spec),

@@ -316,98 +316,6 @@ def _section_label(designator: str, piece: dict, fraction: str) -> tuple[str, st
     )
 
 
-def _turnstile_layout(build: dict) -> tuple[str, int, int]:
-    """Layout for the turnstile harness.
-
-    Rig -> quarter-wave transformer -> harness port -> a Q-section leg per
-    loop, with the delay line in loop B's leg and the sense connection at
-    loop B.
-    """
-    harness = build["harness"]
-    match = build["match"]
-    crossed = harness["connection"] == "crossed"
-
-    y_a = 120.0  # hot rail of the main run and the loop A leg
-    y_b = 230.0  # hot rail of the loop B leg
-    x_term = 48.0
-    x_s0, x_s1 = 96.0, 244.0  # transformer
-    x_ser0, x_ser1 = 268.0, 320.0  # series element, when fitted
-    x_tee_a, x_tee_b = 348.0, 364.0  # harness port tees
-    x_qa0, x_qa1 = 404.0, 524.0  # loop A Q-section
-    x_rail_end = 560.0
-    loop_a_cx = 620.0
-    x_dl0, x_dl1 = 404.0, 500.0  # delay line, loop B leg
-    x_qb0, x_qb1 = 528.0, 624.0  # loop B Q-section
-    x_swap0, x_swap = 634.0, 658.0
-    loop_b_cx = 720.0
-
-    top_label = _section_label(
-        "TL1",
-        {
-            "coax": match["transformer_coax"],
-            "length_mm": match["transformer_length_mm"],
-        },
-        "1/4",
-    )
-    rig = f"to rig ({match['system_z_ohm']:g} &#8486;, 1:1 choke)"
-    series = match["series_element"]
-
-    parts = [
-        _text(x_term - 24.0, y_a + RAIL_GAP + 30.0, rig, "start"),
-        _terminal_pair(x_term, y_a),
-        # Hot rail through the first section and series element to loop A.
-        _line(x_term + TERMINAL_RADIUS, y_a, x_ser0, y_a),
-        _series_element(series, x_ser0, x_ser1, y_a),
-        _line(x_ser1, y_a, x_rail_end, y_a),
-        # Return rail, broken for each coax section's shield.
-        _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_s0, y_a + RAIL_GAP),
-        _line(x_s1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
-        _unbalanced_section(
-            x_s0, x_s1, y_a, y_a + RAIL_GAP, top_label, match["transformer_coax"]
-        ),
-        _coax_section(
-            x_qa0,
-            x_qa1,
-            y_a,
-            y_a + RAIL_GAP,
-            _section_label("Q1", harness["q_section"], "1/4"),
-        ),
-        # Harness port: loop B's leg tees off both conductors.
-        _dot(x_tee_a, y_a),
-        _dot(x_tee_b, y_a + RAIL_GAP),
-        _hop(x_tee_a, y_a, y_a + RAIL_GAP, y_b),
-        _line(x_tee_b, y_a + RAIL_GAP, x_tee_b, y_b + RAIL_GAP),
-        _loop_symbol(x_rail_end, y_a, loop_a_cx, "LOOP A"),
-        # Loop B leg: delay line then Q-section.
-        _line(x_tee_a, y_b, x_swap0, y_b),
-        _line(x_tee_b, y_b + RAIL_GAP, x_dl0, y_b + RAIL_GAP),
-        _line(x_dl1, y_b + RAIL_GAP, x_qb0, y_b + RAIL_GAP),
-        _line(x_qb1, y_b + RAIL_GAP, x_swap0, y_b + RAIL_GAP),
-        _coax_section(
-            x_dl0,
-            x_dl1,
-            y_b,
-            y_b + RAIL_GAP,
-            _section_label("DL1", harness["delay_line"], "1/4"),
-        ),
-        _coax_section(
-            x_qb0,
-            x_qb1,
-            y_b,
-            y_b + RAIL_GAP,
-            _section_label("Q2", harness["q_section"], "1/4"),
-        ),
-    ]
-    if crossed:
-        parts.append(_crossover(x_swap0, x_swap, y_b))
-        parts.append(_text((x_swap0 + x_swap) / 2.0, y_b + RAIL_GAP + 24.0, "crossed"))
-    else:
-        parts.append(_line(x_swap0, y_b, x_swap, y_b))
-        parts.append(_line(x_swap0, y_b + RAIL_GAP, x_swap, y_b + RAIL_GAP))
-    parts.append(_loop_symbol(x_swap, y_b, loop_b_cx, "LOOP B"))
-    return "".join(parts), 810, 320
-
-
 def _balun4_layout(build: dict) -> tuple[str, int, int]:
     """Layout for the F5VIF balanced system (balun4).
 
@@ -483,10 +391,8 @@ def render_feed_schematic(result: DesignResult) -> str:
     build = result_to_dict(result)["build"]
     if "phasing_line" in build:
         body, width, height = _line_phased(build)
-    elif "phasing_line" in build["harness"]:
-        body, width, height = _balun4_layout(build)
     else:
-        body, width, height = _turnstile_layout(build)
+        body, width, height = _balun4_layout(build)
     return (
         f'<svg class="sch" viewBox="0 0 {width} {height}" '
         f'role="img" aria-label="Feed and match schematic">{body}</svg>'

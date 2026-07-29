@@ -18,8 +18,6 @@ import {
   NEC_SENSE_TO_HAND,
   REFLECTOR_NONE,
   REFLECTOR_RADIALS,
-  TURNSTILE_DELAY_COAX,
-  TURNSTILE_Q_COAX,
 } from "./constants";
 import {
   type DesignResult,
@@ -89,38 +87,23 @@ function matchDict(result: DesignResult, wavelength: number): JsonObject {
   };
 }
 
-// Harness pieces for the turnstile and balun4 feeds.
+// Harness pieces for the balun4 feed.
 function harnessDict(result: DesignResult, wavelength: number): JsonObject {
   const connection = result.crossedPhasingLine ? "crossed" : "normal";
-  if (result.spec.feed === FEED_BALUN4) {
-    return {
-      phasing_line: {
-        coax: coaxDict(BALUN4_PHASING_COAX),
-        length_mm: quarterWaveMm(wavelength, BALUN4_PHASING_COAX),
-      },
-      q_section: {
-        coax: coaxDict(BALUN4_Q_COAX),
-        length_mm: quarterWaveMm(wavelength, BALUN4_Q_COAX),
-      },
-      balun: {
-        kind: "half-wave 4:1",
-        coax: coaxDict(BALUN4_BALUN_COAX),
-        length_mm: BALUN_LINE_WL * wavelength * BALUN4_BALUN_COAX.vf * MM_PER_M,
-      },
-      connection,
-    };
-  }
   return {
+    phasing_line: {
+      coax: coaxDict(BALUN4_PHASING_COAX),
+      length_mm: quarterWaveMm(wavelength, BALUN4_PHASING_COAX),
+    },
     q_section: {
-      coax: coaxDict(TURNSTILE_Q_COAX),
-      length_mm: quarterWaveMm(wavelength, TURNSTILE_Q_COAX),
-      count: 2,
+      coax: coaxDict(BALUN4_Q_COAX),
+      length_mm: quarterWaveMm(wavelength, BALUN4_Q_COAX),
     },
-    delay_line: {
-      coax: coaxDict(TURNSTILE_DELAY_COAX),
-      length_mm: quarterWaveMm(wavelength, TURNSTILE_DELAY_COAX),
+    balun: {
+      kind: "half-wave 4:1",
+      coax: coaxDict(BALUN4_BALUN_COAX),
+      length_mm: BALUN_LINE_WL * wavelength * BALUN4_BALUN_COAX.vf * MM_PER_M,
     },
-    balun: { kind: "1:1 current choke" },
     connection,
   };
 }

@@ -369,107 +369,6 @@ function sectionLabel(
   ];
 }
 
-// Layout for the turnstile harness.
-//
-// Rig -> quarter-wave transformer -> harness port -> a Q-section leg per
-// loop, with the delay line in loop B's leg and the sense connection at
-// loop B.
-function turnstileLayout(build: JsonObject): [string, number, number] {
-  const harness = obj(build.harness);
-  const match = obj(build.match);
-  const crossed = harness.connection === "crossed";
-
-  const yA = 120.0; // hot rail of the main run and the loop A leg
-  const yB = 230.0; // hot rail of the loop B leg
-  const xTerm = 48.0;
-  const xS0 = 96.0;
-  const xS1 = 244.0; // transformer
-  const xSer0 = 268.0;
-  const xSer1 = 320.0; // series element, when fitted
-  const xTeeA = 348.0;
-  const xTeeB = 364.0; // harness port tees
-  const xQa0 = 404.0;
-  const xQa1 = 524.0; // loop A Q-section
-  const xRailEnd = 560.0;
-  const loopACx = 620.0;
-  const xDl0 = 404.0;
-  const xDl1 = 500.0; // delay line, loop B leg
-  const xQb0 = 528.0;
-  const xQb1 = 624.0; // loop B Q-section
-  const xSwap0 = 634.0;
-  const xSwap = 658.0;
-  const loopBCx = 720.0;
-
-  const topLabel = sectionLabel(
-    "TL1",
-    { coax: match.transformer_coax, length_mm: match.transformer_length_mm },
-    "1/4",
-  );
-  const rig = `to rig (${formatG(match.system_z_ohm as number)} &#8486;, 1:1 choke)`;
-  const series = match.series_element as JsonObject | null;
-
-  const parts = [
-    text(xTerm - 24.0, yA + RAIL_GAP + 30.0, rig, "start"),
-    terminalPair(xTerm, yA),
-    // Hot rail through the first section and series element to loop A.
-    line(xTerm + TERMINAL_RADIUS, yA, xSer0, yA),
-    seriesElement(series, xSer0, xSer1, yA),
-    line(xSer1, yA, xRailEnd, yA),
-    // Return rail, broken for each coax section's shield.
-    line(xTerm + TERMINAL_RADIUS, yA + RAIL_GAP, xS0, yA + RAIL_GAP),
-    line(xS1, yA + RAIL_GAP, xRailEnd, yA + RAIL_GAP),
-    unbalancedSection(
-      xS0,
-      xS1,
-      yA,
-      yA + RAIL_GAP,
-      topLabel,
-      obj(match.transformer_coax),
-    ),
-    coaxSection(
-      xQa0,
-      xQa1,
-      yA,
-      yA + RAIL_GAP,
-      sectionLabel("Q1", obj(harness.q_section), "1/4"),
-    ),
-    // Harness port: loop B's leg tees off both conductors.
-    dot(xTeeA, yA),
-    dot(xTeeB, yA + RAIL_GAP),
-    hop(xTeeA, yA, yA + RAIL_GAP, yB),
-    line(xTeeB, yA + RAIL_GAP, xTeeB, yB + RAIL_GAP),
-    loopSymbol(xRailEnd, yA, loopACx, "LOOP A"),
-    // Loop B leg: delay line then Q-section.
-    line(xTeeA, yB, xSwap0, yB),
-    line(xTeeB, yB + RAIL_GAP, xDl0, yB + RAIL_GAP),
-    line(xDl1, yB + RAIL_GAP, xQb0, yB + RAIL_GAP),
-    line(xQb1, yB + RAIL_GAP, xSwap0, yB + RAIL_GAP),
-    coaxSection(
-      xDl0,
-      xDl1,
-      yB,
-      yB + RAIL_GAP,
-      sectionLabel("DL1", obj(harness.delay_line), "1/4"),
-    ),
-    coaxSection(
-      xQb0,
-      xQb1,
-      yB,
-      yB + RAIL_GAP,
-      sectionLabel("Q2", obj(harness.q_section), "1/4"),
-    ),
-  ];
-  if (crossed) {
-    parts.push(crossover(xSwap0, xSwap, yB));
-    parts.push(text((xSwap0 + xSwap) / 2.0, yB + RAIL_GAP + 24.0, "crossed"));
-  } else {
-    parts.push(line(xSwap0, yB, xSwap, yB));
-    parts.push(line(xSwap0, yB + RAIL_GAP, xSwap, yB + RAIL_GAP));
-  }
-  parts.push(loopSymbol(xSwap, yB, loopBCx, "LOOP B"));
-  return [parts.join(""), 810, 320];
-}
-
 // Layout for the F5VIF balanced system (balun4).
 //
 // Rig coax arrives at one end of the half-wave balun hairpin (the feedline
@@ -559,10 +458,8 @@ export function renderFeedSchematic(result: DesignResult): string {
   let height: number;
   if ("phasing_line" in build) {
     [body, width, height] = linePhased(build);
-  } else if ("phasing_line" in obj(build.harness)) {
-    [body, width, height] = balun4Layout(build);
   } else {
-    [body, width, height] = turnstileLayout(build);
+    [body, width, height] = balun4Layout(build);
   }
   return (
     `<svg class="sch" viewBox="0 0 ${width} ${height}" ` +

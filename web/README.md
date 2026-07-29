@@ -87,12 +87,12 @@ reusing the mockup's design system verbatim as a global stylesheet
 | `nec.py` (deck + parsers) | `engine/nec.ts` | done (pure only) | `buildDeck` byte-identical cards; parsers for input params, radiation patterns (missing-sense LINEAR fallback), currents; `NecRunner` type for later WASM. Subprocess `run_nec` NOT ported |
 | `spec.py` + `DesignSpec`/`Optimization` (from `design.py`) | `engine/spec.ts` | done | all fields/defaults; JSON round-trip (shape + key order); coax dict/name forms; optimization provenance; new optional `loop_perimeter_mm` |
 | `design.py` geometry guards | `engine/validate.ts` | done | `validateSpec`: segment cap, loop-offset clearance, coax/feed applicability |
-| `design.py` constants | `engine/constants.ts` | done | feed/reflector/sense names, harness cables, solver/grid/optimizer bounds, `NEC_SENSE_TO_HAND`, port geometry, sweep defaults |
-| `design.py` (core) | `engine/design.ts` | done | center-z/reflector wires, three feed harnesses + port wires (crossed = negative Z0), `buildDeckText`, async `analyze`/`design` (takes a `NecRunner`), secant + golden-section solvers, `quadratureFactor`, pattern metrics (cone dedup, mean/worst AR, coverage gain, boresight sense, `wrapPhaseDeg`, loop balance), matching math (`vswr`, `postMatchVswr`, `matchedVswr`, `balun4RadioZ`, `lineInputZ`, `matchedInputZ`), `optimizeReflector`, `frequencySweep`, `bandwidthWithin` |
+| `design.py` constants | `engine/constants.ts` | done | feed/reflector/sense names, harness cables, solver/grid/optimizer bounds, `NEC_SENSE_TO_HAND`, sweep defaults |
+| `design.py` (core) | `engine/design.ts` | done | center-z/reflector wires, two feed harnesses (crossed = negative Z0), `buildDeckText`, async `analyze`/`design` (takes a `NecRunner`), secant + golden-section solvers, `quadratureFactor`, pattern metrics (cone dedup, mean/worst AR, coverage gain, boresight sense, `wrapPhaseDeg`, loop balance), matching math (`vswr`, `postMatchVswr`, `matchedVswr`, `balun4RadioZ`, `lineInputZ`, `matchedInputZ`), `optimizeReflector`, `frequencySweep`, `bandwidthWithin` |
 | `result.py` | `engine/result.ts` | done | `resultToDict` (build/performance sections, per-feed harness/match dicts) reproducing the Python key order; `resultsToJson` |
 | `report.py` | `engine/report.ts` | done | `formatCutSheet`, `cutSheetBuild`, async `formatBandwidth`; byte-exact vs the goldens |
 | -- | `engine/format.ts` | done | `formatG` (Python `%g`/`%.Ng`) for stock descriptions and reports |
-| `schematic.py` | `engine/schematic.ts` | done | `renderFeedSchematic`; byte-identical SVG vs Python for all three feed layouts (line normal/crossed, turnstile, balun4 normal/crossed, plus synthetic series-L/C cases) -- see `test/fixtures/*.svg` |
+| `schematic.py` | `engine/schematic.ts` | done | `renderFeedSchematic`; byte-identical SVG vs Python for both feed layouts (line normal/crossed, balun4 normal/crossed, plus synthetic series-L/C cases) -- see `test/fixtures/*.svg` |
 | `plot.py` (data collectors only) | `engine/plot.ts` | done | `chartData` (frequency-sweep VSWR/AR series, elevation cut, 2:1 VSWR / 3 dB AR bandwidth) and `skyData` (gain/AR hemisphere maps); numeric parity vs Python to 1e-9 relative -- see `test/fixtures/{chart_data,sky_data}.json`. The SVG/HTML chart renderers in `plot.py` are not ported (later UI wave) |
 | `design.py`'s `tuned_geometry` | `engine/design.ts` (`tunedGeometry`) | done | wire model + loop feed points for the 3-D viewer, reconstructed from the same geometry call as `analyze()` |
 
@@ -102,18 +102,18 @@ and the 3-D orbit viewer (`viewer.js`), and the bandwidth-carrying variant of
 
 ### Golden parity
 
-`test/golden.test.ts` runs all 18 cases in `goldens/manifest.json` through the
+`test/golden.test.ts` runs all 15 cases in `goldens/manifest.json` through the
 WASM nec2c runner (`wasm/runner.mjs`):
 - **Decks** (`buildDeckText`): byte-for-byte vs `<name>.deck.nec`, plus the one
-  crossed (`deck-flipped`) case. All 18 pass.
+  crossed (`deck-flipped`) case. All 15 pass.
 - **Result dicts** (`resultToDict(design(...))`): numeric leaves to 1e-9
   relative, strings/booleans exact, key order verified vs `<name>.result.json`.
-  All 18 pass (the WASM output is byte-identical to native, so they match well
+  All 15 pass (the WASM output is byte-identical to native, so they match well
   inside tolerance).
-- **Cut sheets** (`formatCutSheet`): exact text vs `<name>.cutsheet.txt`. All 18
+- **Cut sheets** (`formatCutSheet`): exact text vs `<name>.cutsheet.txt`. All 15
   pass. No float-formatting corner needed a documented exception.
 
-The full golden suite (18 tuned designs, ~12 nec runs each) completes in about a
+The full golden suite (15 tuned designs, ~12 nec runs each) completes in about a
 second. `@types/node` was added as a dev dependency so the parity tests can read
 the golden files.
 

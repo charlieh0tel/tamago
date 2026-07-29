@@ -7,7 +7,7 @@
 #
 # Requires uv, nec2c on PATH, and jq.
 
-PAIRS := circle squircle turnstile balun4
+PAIRS := circle squircle balun4
 SOURCES := $(wildcard src/awadateki/*.py)
 
 SPECS := $(PAIRS:%=designs/satellite_pair_%.json)

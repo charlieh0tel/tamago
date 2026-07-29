@@ -50,9 +50,6 @@ HEAD`) the set was generated from.
 | line_none_circle_rhcp_2m_matchcoax | line (explicit match_coax=RG-59) | none | circle | rhcp | 2m | round | 16 |
 | line_none_circle_rhcp_2m_phasingcoax | line (explicit phasing_coax=RG-58) | none | circle | rhcp | 2m | round | 16 |
 | line_none_circle_rhcp_2m_bar | line | none | circle | rhcp | 2m | bar (6x3mm) | 16 |
-| turnstile_none_circle_rhcp_2m | turnstile | none | circle | rhcp | 2m | round | 16 |
-| turnstile_none_circle_lhcp_2m | turnstile | none | circle | lhcp | 2m | round | 16 |
-| turnstile_ground_square_rhcp_70cm | turnstile | ground | square | rhcp | 70cm | round | 16 |
 | balun4_none_circle_rhcp_2m | balun4 | none | circle | rhcp | 2m | round | 16 |
 | balun4_none_circle_lhcp_2m | balun4 | none | circle | lhcp | 2m | round | 16 |
 | balun4_radials_squircle_rhcp_70cm | balun4 | radials | squircle (corner_radius_wl=0.08) | rhcp | 70cm | bar (6x3mm) | 16 |
@@ -60,7 +57,7 @@ HEAD`) the set was generated from.
 | balun4_none_circle_rhcp_2m_full36 | balun4 | none | circle | rhcp | 2m | round | 36 (full) |
 
 Notes on coverage:
-- Every feed scheme (line, turnstile, balun4) has both an rhcp and an lhcp
+- Every feed scheme (line, balun4) has both an rhcp and an lhcp
   case, so the crossed-connection path (`crossed_phasing_line` /
   `Optimization`-free direct spec) is exercised per feed. lhcp forces the
   crossed harness connection for these geometries -- check

@@ -5,7 +5,7 @@
 // itself (tuning, harness synthesis, metrics, optimizer) is a later wave; only
 // the constants it will share live here now.
 
-import { RG_58, RG_58_BALANCED, RG_59, RG_62 } from "./coax";
+import { RG_58, RG_58_BALANCED, RG_62 } from "./coax";
 
 // Reflector schemes.
 export const REFLECTOR_NONE = "none";
@@ -18,23 +18,20 @@ export const SENSE_LHCP = "lhcp";
 
 // Feed schemes: how the radio drives the two loops.
 export const FEED_LINE = "line"; // source at the junction across loop A; 1/4-wave line to B
-export const FEED_TURNSTILE = "turnstile"; // per-loop Q-sections joined in parallel
 // The ON6WG/F5VIF "balanced system": a 100 ohm balanced phasing line between the
 // loops, fed at the junction through a 100 ohm balanced Q-section and a
 // half-wave 4:1 coax balun.
 export const FEED_BALUN4 = "balun4";
-export const FEEDS = [FEED_LINE, FEED_TURNSTILE, FEED_BALUN4] as const;
+export const FEEDS = [FEED_LINE, FEED_BALUN4] as const;
 
-// Quarter-wave sections (phasing line, Q-sections, delay line): NEC ideal TLs of
-// this electrical length (free-space wavelengths) give 90 deg each.
+// Quarter-wave sections (phasing line, Q-sections): NEC ideal TLs of this
+// electrical length (free-space wavelengths) give 90 deg each.
 export const PHASING_LINE_WL = 0.25;
 export const BALUN_LINE_WL = 0.5;
 
 // Default phasing-line cable for the line feed (spec.phasingCoax overrides).
 export const LINE_PHASING_COAX = RG_62;
-// Harness cables per scheme (catalog defaults).
-export const TURNSTILE_Q_COAX = RG_59;
-export const TURNSTILE_DELAY_COAX = RG_58;
+// Balun4 harness cables (catalog defaults).
 export const BALUN4_PHASING_COAX = RG_58_BALANCED;
 export const BALUN4_Q_COAX = RG_58_BALANCED;
 export const BALUN4_BALUN_COAX = RG_58;

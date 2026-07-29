@@ -64,18 +64,6 @@ describe("result_to_dict", () => {
     expect(perf.sense_achieved).toBe(true);
   });
 
-  it("turnstile build sections", () => {
-    const build = obj(resultToDict(result({ feed: "turnstile" })), "build");
-    expect(build.feed).toBe("turnstile");
-    expect("phasing_line" in build).toBe(false);
-    const harness = obj(build, "harness");
-    expect(obj(obj(harness, "q_section"), "coax").name).toBe("RG-59");
-    expect(obj(harness, "q_section").count).toBe(2);
-    expect(obj(obj(harness, "delay_line"), "coax").name).toBe("RG-58");
-    expect(obj(harness, "balun")).toEqual({ kind: "1:1 current choke" });
-    expect(obj(obj(build, "match"), "transformer_coax").name).toBe("RG-59");
-  });
-
   it("balun4 build sections", () => {
     const build = obj(resultToDict(result({ feed: "balun4" })), "build");
     const harness = obj(build, "harness");

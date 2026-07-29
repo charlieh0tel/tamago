@@ -73,9 +73,9 @@ describe("spec", () => {
   });
 
   it("round trip feed scheme", () => {
-    const s = spec({ feed: "turnstile" });
+    const s = spec({ feed: "balun4" });
     const data = specToDict(s);
-    expect(data.feed).toBe("turnstile");
+    expect(data.feed).toBe("balun4");
     expect(specFromDict(data)).toEqual(s);
   });
 

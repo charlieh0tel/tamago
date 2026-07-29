@@ -21,19 +21,14 @@ function spec(
 describe("validateSpec", () => {
   it("coax fields rejected for wrong feed", () => {
     // phasing_coax belongs to the line feed only.
-    expect(() => validateSpec(spec({ feed: "turnstile", phasingCoax: RG_62 }))).toThrow(
-      /phasing_coax/,
-    );
     expect(() => validateSpec(spec({ feed: "balun4", phasingCoax: RG_62 }))).toThrow(
       /phasing_coax/,
     );
-    // match_coax is meaningless for balun4 but valid for turnstile.
+    // match_coax is meaningless for balun4 (the harness matches) but valid for line.
     expect(() => validateSpec(spec({ feed: "balun4", matchCoax: RG_59 }))).toThrow(
       /match_coax/,
     );
-    expect(() =>
-      validateSpec(spec({ feed: "turnstile", matchCoax: RG_59 })),
-    ).not.toThrow();
+    expect(() => validateSpec(spec({ feed: "line", matchCoax: RG_59 }))).not.toThrow();
     expect(() =>
       validateSpec(spec({ phasingCoax: RG_62, matchCoax: RG_59 })),
     ).not.toThrow();

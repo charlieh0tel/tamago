@@ -15,13 +15,12 @@ only when a frequency sweep is requested):
                   loop_center_height_wl/_mm and radials present with a reflector;
                   loop {perimeter_mm, width_mm} (width is the across dimension:
                   diameter, side, or squircle width); loop_offset_mm; feed_gap_mm;
-                  feed (line|turnstile|balun4);
+                  feed (line|balun4);
                   phasing_line {coax {name, z0_ohm, vf}, length_mm,
                   connection (normal|crossed)} for the line feed, else
-                  harness (turnstile: q_section {coax, length_mm, count},
-                  delay_line, balun {kind}, connection; balun4: phasing_line,
-                  q_section, balun {kind, coax, length_mm}, connection);
-                  match: system_z_ohm plus, for line/turnstile,
+                  harness (balun4: phasing_line, q_section,
+                  balun {kind, coax, length_mm}, connection);
+                  match: system_z_ohm plus, for the line feed,
                          series_element (null or {kind, value_nh|value_pf}),
                          transformer_z0_ohm (ideal),
                          transformer_coax {name, z0_ohm, vf},
@@ -53,8 +52,6 @@ from .design import (
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
-    TURNSTILE_DELAY_COAX,
-    TURNSTILE_Q_COAX,
     VSWR_LIMIT,
     DesignResult,
     bandwidth_within,
@@ -119,39 +116,22 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
 
 
 def _harness_dict(result: DesignResult, wavelength: float) -> dict:
-    """Harness pieces for the turnstile and balun4 feeds."""
+    """Harness pieces for the balun4 feed."""
     connection = "crossed" if result.crossed_phasing_line else "normal"
-    if result.spec.feed == FEED_BALUN4:
-        return {
-            "phasing_line": {
-                "coax": _coax_dict(BALUN4_PHASING_COAX),
-                "length_mm": _quarter_wave_mm(wavelength, BALUN4_PHASING_COAX),
-            },
-            "q_section": {
-                "coax": _coax_dict(BALUN4_Q_COAX),
-                "length_mm": _quarter_wave_mm(wavelength, BALUN4_Q_COAX),
-            },
-            "balun": {
-                "kind": "half-wave 4:1",
-                "coax": _coax_dict(BALUN4_BALUN_COAX),
-                "length_mm": BALUN_LINE_WL
-                * wavelength
-                * BALUN4_BALUN_COAX.vf
-                * MM_PER_M,
-            },
-            "connection": connection,
-        }
     return {
+        "phasing_line": {
+            "coax": _coax_dict(BALUN4_PHASING_COAX),
+            "length_mm": _quarter_wave_mm(wavelength, BALUN4_PHASING_COAX),
+        },
         "q_section": {
-            "coax": _coax_dict(TURNSTILE_Q_COAX),
-            "length_mm": _quarter_wave_mm(wavelength, TURNSTILE_Q_COAX),
-            "count": 2,
+            "coax": _coax_dict(BALUN4_Q_COAX),
+            "length_mm": _quarter_wave_mm(wavelength, BALUN4_Q_COAX),
         },
-        "delay_line": {
-            "coax": _coax_dict(TURNSTILE_DELAY_COAX),
-            "length_mm": _quarter_wave_mm(wavelength, TURNSTILE_DELAY_COAX),
+        "balun": {
+            "kind": "half-wave 4:1",
+            "coax": _coax_dict(BALUN4_BALUN_COAX),
+            "length_mm": BALUN_LINE_WL * wavelength * BALUN4_BALUN_COAX.vf * MM_PER_M,
         },
-        "balun": {"kind": "1:1 current choke"},
         "connection": connection,
     }
 

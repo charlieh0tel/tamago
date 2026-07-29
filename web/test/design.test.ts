@@ -69,18 +69,6 @@ describe("design (nec2c)", () => {
     expect(gwCount(result.deck)).toBe(2 * (s.segments + 2) + s.radialCount);
   }, 30_000);
 
-  it("turnstile feed designs", async () => {
-    const result = await design(
-      spec({ reflector: "ground", feed: "turnstile", segments: 36 }),
-      runNec,
-    );
-    expect(result.zIn.re).toBeGreaterThan(20.0);
-    expect(result.zIn.re).toBeLessThan(35.0);
-    expect(Math.abs(result.zIn.im)).toBeLessThan(5.0);
-    expect(result.loopBalance).toBeLessThan(1.1);
-    expect(gwCount(result.deck)).toBe(2 * (result.spec.segments + 2) + 2);
-  }, 60_000);
-
   it("balun4 feed designs", async () => {
     const result = await design(
       spec({ reflector: "ground", feed: "balun4", segments: 36 }),
@@ -103,9 +91,9 @@ describe("design (nec2c)", () => {
   }, 60_000);
 
   it("crossed design reports the delivered pattern", async () => {
-    // Turnstile's natural sense is RHCP, so LHCP forces the crossed connection;
+    // The loops' natural sense is RHCP, so LHCP forces the crossed connection;
     // the reported metrics come from the crossed (delivered) run.
-    const s = spec({ reflector: "ground", feed: "turnstile", sense: "lhcp" });
+    const s = spec({ reflector: "ground", feed: "line", sense: "lhcp" });
     const result = await design(s, runNec);
     expect(result.crossedPhasingLine).toBe(true);
     expect(result.sense).toBe("LEFT");

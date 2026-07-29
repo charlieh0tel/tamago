@@ -1,20 +1,18 @@
 """Design orchestration: build geometry, drive nec2c, tune to quadrature.
 
 Two equal resonant loops are driven with their currents 90 deg apart for
-circular polarization, by one of three coax feed harnesses (spec.feed): the
-source at the junction with a quarter-wave line to loop B (line), a Q-section
-per loop paralleled at a port with a delay line in loop B's leg (turnstile),
-or the ON6WG/F5VIF balanced system -- a 100 ohm balanced phasing line fed
-through a balanced Q-section and half-wave 4:1 balun (balun4). Harness lines
-are NEC TL cards; crossing loop B's connection (negative Z0) reverses the
-handedness.
+circular polarization, by one of two coax feed harnesses (spec.feed): the
+source at the junction with a quarter-wave line to loop B (line), or the
+ON6WG/F5VIF balanced system -- a 100 ohm balanced phasing line fed through a
+balanced Q-section and half-wave 4:1 balun (balun4). Harness lines are NEC TL
+cards; crossing loop B's connection (negative Z0) reverses the handedness.
 """
 
 import math
 import time
 from dataclasses import dataclass, replace
 
-from .coax import RG_58, RG_58_BALANCED, RG_59, RG_62, Coax, nearest_standard_coax
+from .coax import RG_58, RG_58_BALANCED, RG_62, Coax, nearest_standard_coax
 from .conductor import Conductor
 from .geometry import (
     DEFAULT_SEGMENTS,
@@ -56,32 +54,18 @@ BALUN_LINE_WL = 0.5
 
 # Feed schemes: how the radio drives the two loops.
 FEED_LINE = "line"  # source at the junction across loop A; 1/4-wave line to B
-FEED_TURNSTILE = "turnstile"  # per-loop Q-sections joined in parallel
 # The ON6WG/F5VIF "balanced system": a 100 ohm balanced phasing line between
 # the loops, fed at the junction through a 100 ohm balanced Q-section and a
 # half-wave 4:1 coax balun.
 FEED_BALUN4 = "balun4"
-FEEDS = (FEED_LINE, FEED_TURNSTILE, FEED_BALUN4)
+FEEDS = (FEED_LINE, FEED_BALUN4)
 
 # Default phasing-line cable for the line feed (spec.phasing_coax overrides).
 LINE_PHASING_COAX = RG_62
-# Harness cables per scheme (catalog defaults). The turnstile delay line's Z0
-# is chosen near the impedance at its insertion point to keep its extra 90 deg
-# roughly transparent; the residual mismatch leaves the delivered inter-loop
-# phase several degrees short of quadrature (visible in phase_diff_deg).
-TURNSTILE_Q_COAX = RG_59
-TURNSTILE_DELAY_COAX = RG_58
+# Balun4 harness cables (catalog defaults).
 BALUN4_PHASING_COAX = RG_58_BALANCED
 BALUN4_Q_COAX = RG_58_BALANCED
 BALUN4_BALUN_COAX = RG_58
-
-# Port wires: tiny isolated segments hosting harness junctions (a NEC TL port
-# must be a wire segment). They sit at the loop center, far from the loop
-# conductors, and are short and thin so they radiate negligibly.
-PORT_TAG_BASE = 400
-PORT_SEGMENT_LENGTH_M = 0.002
-PORT_RADIUS_M = 0.0005
-PORT_SPACING_M = 0.02
 
 # The loop offset must give the crossing conductors at least this many
 # equivalent conductor diameters of axis separation (1.0 = surfaces touching).
@@ -163,10 +147,8 @@ class DesignSpec:
         reflector: REFLECTOR_NONE, REFLECTOR_GROUND, or REFLECTOR_RADIALS.
         reflector_spacing_wl: loop-center height above the reflector, wavelengths.
         feed: FEED_LINE (source at the junction, quarter-wave line to loop B),
-            FEED_TURNSTILE (a Q-section per loop paralleled at a port, delay
-            line in loop B's leg, quarter-wave transformer and 1:1 choke to the
-            radio), or FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm
-            balanced phasing line, balanced Q-section, half-wave 4:1 balun).
+            or FEED_BALUN4 (the ON6WG/F5VIF balanced system: 100 ohm balanced
+            phasing line, balanced Q-section, half-wave 4:1 balun).
         phasing_coax: cable of the quarter-wave phasing line feeding loop B,
             or None for the scheme default (RG-62). FEED_LINE only; setting
             it for a harness feed is an error, since those harnesses fix
@@ -379,57 +361,6 @@ def phasing_line_coax(spec: DesignSpec) -> Coax:
     return spec.phasing_coax or LINE_PHASING_COAX
 
 
-def _port_wire(tag: int, segments: int, center_z: float, index: int) -> Wire:
-    """Tiny isolated wire at the loop center hosting harness TL ports.
-
-    The two ports (index 0, 1) straddle the loop center symmetrically:
-    stacking them to one side breaks the pattern's up/down symmetry enough
-    to bias the axial ratio.
-    """
-    half = PORT_SEGMENT_LENGTH_M * segments / 2.0
-    z = center_z + (index - 0.5) * PORT_SPACING_M
-    return Wire(
-        tag=tag,
-        segments=segments,
-        x1=-half,
-        y1=0.0,
-        z1=z,
-        x2=half,
-        y2=0.0,
-        z2=z,
-        radius_m=PORT_RADIUS_M,
-    )
-
-
-def _feed_turnstile(egg, spec: DesignSpec, wavelength: float, flip: bool, center_z):
-    """Parallel harness: a quarter-wave Q-section per loop joined at a port.
-
-    Loop B's leg has an extra quarter-wave delay line for the 90 deg. The
-    source drives the port; the transformer to the radio (and the 1:1 choke)
-    do not affect the loop currents, so they are sized analytically like the
-    line feed's match network.
-    """
-    port = _port_wire(PORT_TAG_BASE, 1, center_z, 0)
-    mid = _port_wire(PORT_TAG_BASE + 1, 1, center_z, 1)
-    quarter = PHASING_LINE_WL * wavelength
-    q_z0 = TURNSTILE_Q_COAX.z0_ohm
-    lines = (
-        TransmissionLine(
-            port.tag, 1, egg.loop_a.feed_tag, egg.loop_a.feed_segment, q_z0, quarter
-        ),
-        TransmissionLine(port.tag, 1, mid.tag, 1, TURNSTILE_DELAY_COAX.z0_ohm, quarter),
-        TransmissionLine(
-            mid.tag,
-            1,
-            egg.loop_b.feed_tag,
-            egg.loop_b.feed_segment,
-            -q_z0 if flip else q_z0,
-            quarter,
-        ),
-    )
-    return (port, mid), (Source(port.tag, 1, 1.0, 0.0),), lines
-
-
 def _feed_balun4(egg, spec: DesignSpec, wavelength: float, flip: bool):
     """The ON6WG/F5VIF balanced system.
 
@@ -453,12 +384,10 @@ def _feed_balun4(egg, spec: DesignSpec, wavelength: float, flip: bool):
     return (), (source,), (line,)
 
 
-def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool, center_z: float):
+def _harness(egg, spec: DesignSpec, wavelength: float, flip: bool):
     """Feed harness for the spec's scheme: (port wires, sources, TL cards)."""
     if spec.feed == FEED_LINE:
         return _feed(egg, spec, wavelength, flip)
-    if spec.feed == FEED_TURNSTILE:
-        return _feed_turnstile(egg, spec, wavelength, flip, center_z)
     if spec.feed == FEED_BALUN4:
         return _feed_balun4(egg, spec, wavelength, flip)
     raise ValueError(f"unknown feed scheme: {spec.feed!r}")
@@ -516,8 +445,7 @@ def _build_deck_text(
     grid: RadiationGrid | None,
 ) -> str:
     egg, wavelength = _eggbeater(spec, factor)
-    center_z = _center_z_m(spec, wavelength, factor * wavelength)
-    ports, sources, lines = _harness(egg, spec, wavelength, flip, center_z)
+    ports, sources, lines = _harness(egg, spec, wavelength, flip)
     wires = egg.wires + ports + _reflector_wires(spec, wavelength)
     return build_deck(
         _comment_lines(spec),

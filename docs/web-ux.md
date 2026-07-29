@@ -79,11 +79,10 @@ yields an amber "analyzed -- phase +84.1 deg, not tuned".
 
 ## Feed selection
 
-The three schemes are picker cards named for the hardware -- "Phasing
-line", "Turnstile", "4:1 balun" -- with the spec token (`line`,
-`turnstile`, `balun4`) small in the tag line, a one-line trade-off
-("simplest, one coax" / "best current balance" / "balanced feed, F5VIF"),
-and the scheme's real schematic line art as the card art.
+The feed schemes are picker cards named for the hardware -- "Phasing line",
+"4:1 balun" -- with the spec token (`line`, `balun4`) small in the tag line, a
+one-line trade-off ("simplest, one coax" / "balanced feed, F5VIF"), and the
+scheme's real schematic line art as the card art.
 
 ## Results tabs and the cost tiers
 

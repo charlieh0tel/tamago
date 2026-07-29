@@ -56,19 +56,6 @@ def test_build_and_performance_sections():
     assert perf["sense_achieved"] is True
 
 
-def test_turnstile_build_sections():
-    data = result_to_dict(_result(feed="turnstile"))
-    build = data["build"]
-    assert build["feed"] == "turnstile"
-    assert "phasing_line" not in build
-    harness = build["harness"]
-    assert harness["q_section"]["coax"]["name"] == "RG-59"
-    assert harness["q_section"]["count"] == 2
-    assert harness["delay_line"]["coax"]["name"] == "RG-58"
-    assert harness["balun"] == {"kind": "1:1 current choke"}
-    assert build["match"]["transformer_coax"]["name"] == "RG-59"
-
-
 def test_balun4_build_sections():
     data = result_to_dict(_result(feed="balun4"))
     build = data["build"]

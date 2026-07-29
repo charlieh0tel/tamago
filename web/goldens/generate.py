@@ -33,7 +33,6 @@ from awadateki.conductor import bar_conductor, round_conductor  # noqa: E402
 from awadateki.design import (  # noqa: E402
     FEED_BALUN4,
     FEED_LINE,
-    FEED_TURNSTILE,
     REFLECTOR_GROUND,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
@@ -187,39 +186,6 @@ CASES: list[tuple[str, DesignSpec, bool]] = [
             loop_shape=SHAPE_CIRCLE,
             sense=SENSE_RHCP,
             conductor=BAR_6X3MM,
-        ),
-        False,
-    ),
-    (
-        *_spec(
-            "turnstile_none_circle_rhcp_2m",
-            freq_mhz=BAND_2M,
-            feed=FEED_TURNSTILE,
-            reflector=REFLECTOR_NONE,
-            loop_shape=SHAPE_CIRCLE,
-            sense=SENSE_RHCP,
-        ),
-        False,
-    ),
-    (
-        *_spec(
-            "turnstile_none_circle_lhcp_2m",
-            freq_mhz=BAND_2M,
-            feed=FEED_TURNSTILE,
-            reflector=REFLECTOR_NONE,
-            loop_shape=SHAPE_CIRCLE,
-            sense=SENSE_LHCP,
-        ),
-        False,
-    ),
-    (
-        *_spec(
-            "turnstile_ground_square_rhcp_70cm",
-            freq_mhz=BAND_70CM,
-            feed=FEED_TURNSTILE,
-            reflector=REFLECTOR_GROUND,
-            loop_shape=SHAPE_SQUARE,
-            sense=SENSE_RHCP,
         ),
         False,
     ),

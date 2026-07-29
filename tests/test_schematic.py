@@ -45,14 +45,6 @@ def test_schematic_no_series_element_when_reactance_small():
     assert ">L1<" not in svg and ">C1<" not in svg
 
 
-def test_turnstile_schematic():
-    svg = render_feed_schematic(_result(feed="turnstile", z_in=complex(25.5, 0.0)))
-    assert "Q1" in svg and "Q2" in svg and "DL1" in svg
-    # 25.5 ohm port wants a ~35.7 ohm transformer: the paired-cable suggestion.
-    assert "2x RG-59" in svg
-    assert "1:1 choke" in svg
-
-
 def test_balun4_schematic():
     svg = render_feed_schematic(
         _result(feed="balun4", z_in=complex(46.0, 0.0), crossed_phasing_line=True)

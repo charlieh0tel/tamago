@@ -69,9 +69,9 @@ def test_spec_round_trip_with_optimization():
 
 
 def test_spec_round_trip_feed_scheme():
-    spec = _spec(feed="turnstile")
+    spec = _spec(feed="balun4")
     data = spec_to_dict(spec)
-    assert data["feed"] == "turnstile"
+    assert data["feed"] == "balun4"
     assert spec_from_dict(data) == spec
 
 

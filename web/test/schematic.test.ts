@@ -41,11 +41,6 @@ describe("renderFeedSchematic byte parity", () => {
     expect(renderFeedSchematic(result)).toBe(readFixture("line_crossed.svg"));
   });
 
-  it("turnstile feed", async () => {
-    const result = await design(loadSpec("turnstile_none_circle_rhcp_2m"), runNec);
-    expect(renderFeedSchematic(result)).toBe(readFixture("turnstile.svg"));
-  });
-
   it("balun4 feed, normal connection", async () => {
     const result = await design(loadSpec("balun4_none_circle_rhcp_2m"), runNec);
     expect(renderFeedSchematic(result)).toBe(readFixture("balun4_normal.svg"));

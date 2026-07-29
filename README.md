@@ -58,16 +58,15 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   loop B connection, and the tool models the connection it delivers (the
   offset loops make the two senses slightly different antennas off-axis).
 - `feed`: coax harness scheme. `line` (default): source at the junction across
-  loop A, quarter-wave phasing line to loop B. `turnstile`: a quarter-wave
-  Q-section per loop joined at a harness port, a quarter-wave delay line in
-  loop B's leg, then a quarter-wave transformer and 1:1 current choke to the
-  radio. `balun4`: the ON6WG/F5VIF balanced system -- a quarter-wave 100 ohm
-  balanced phasing line between the loops (two RG-58 side by side, braids
-  bonded), fed through a quarter-wave 100 ohm balanced Q-section and a
-  half-wave 4:1 coax balun ([Appendix
+  loop A, quarter-wave phasing line to loop B, the two ~110 ohm loops paralleled
+  to ~50 ohm (the classic ON6WG/F5VIF/K5OE turnstile feed). `balun4`: the
+  ON6WG/F5VIF balanced system -- a quarter-wave 100 ohm balanced phasing line
+  between the loops (two RG-58 side by side, braids bonded), fed through a
+  quarter-wave 100 ohm balanced Q-section and a half-wave 4:1 coax balun
+  ([Appendix
   A](http://146970.com/PDFs/Antenna%20Egg%20Beater%20Appendix%20A%20-%20English.pdf),
-  courtesy ON6WG/F5VIF). The turnstile drives both loops near-equally; balun4
-  gives a balanced feed (no feedline common-mode) with everyday cable.
+  courtesy ON6WG/F5VIF). balun4 gives a balanced feed (no feedline common-mode)
+  with everyday cable.
 - `loop_shape`: `circle` (default), `square`, or `squircle` (a square with
   radiused corners: four straight sides joined by quarter-circle arcs). The
   loop perimeter is held fixed across shapes; the cut sheet reports the across
@@ -145,14 +144,10 @@ characterized with that delivered connection -- crossing is a mirror image
 only on boresight, since the vertical loop offset makes the two senses
 slightly different antennas off-axis.
 
-The `turnstile` harness models each coax leg as a NEC transmission line
-joined at a tiny isolated port wire that hosts the source (a NEC network port
-must be a wire segment; the port wire sits at the loop centre and radiates
-negligibly). The `balun4` feed is the line feed's model with a 100 ohm
-balanced phasing line; its Q-section and balun sit in series toward the radio
-and do not affect the loop currents, so they are sized analytically
-(junction ~50 ohm -> 200 ohm through the quarter-wave 100 ohm Q-section ->
-50 ohm through the 4:1 balun).
+The `balun4` feed is the line feed's model with a 100 ohm balanced phasing
+line; its Q-section and balun sit in series toward the radio and do not affect
+the loop currents, so they are sized analytically (junction ~50 ohm -> 200 ohm
+through the quarter-wave 100 ohm Q-section -> 50 ohm through the 4:1 balun).
 
 Conductor cross-sections are reduced to a NEC equivalent radius; the loop
 perimeter is then tuned until the two loop currents sit 90 degrees apart
@@ -217,15 +212,13 @@ The generated plot pages render directly in a browser (GitHub Pages):
 
 - [circle pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_circle.html)
 - [squircle pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_squircle.html)
-- [turnstile-fed pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_turnstile.html)
 - [balun-fed pair](https://charlieh0tel.github.io/tamago/designs/satellite_pair_balun4.html)
 
 The variants: `satellite_pair_squircle` is the same pair with squircle
 (rounded-corner square) loops, for building on a square frame;
-`satellite_pair_turnstile` and `satellite_pair_balun4` are the circle pair
-fed by the balanced harnesses (`feed: turnstile` / `feed: balun4`). Predicted
-performance for every pair is in the `.result.json` files and on the plot
-pages.
+`satellite_pair_balun4` is the circle pair fed by the balanced balun harness
+(`feed: balun4`). Predicted performance for every pair is in the
+`.result.json` files and on the plot pages.
 
 ## Building
 

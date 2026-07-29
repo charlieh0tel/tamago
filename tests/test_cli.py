@@ -117,20 +117,6 @@ def test_radial_reflector_runs():
 
 
 @needs_nec2c
-def test_turnstile_feed_designs():
-    # Full resolution: the coarse test polygon shifts the loop impedance the
-    # Q-sections are sized against, wrecking the balance this test checks.
-    result = design(replace(_spec(), reflector="ground", feed="turnstile", segments=36))
-    # Two ~50 ohm Q-section legs parallel to ~25 ohm at the port.
-    assert 20.0 < result.z_in.real < 35.0
-    assert abs(result.z_in.imag) < 5.0
-    # Symmetric legs drive the loops near-equally.
-    assert result.loop_balance < 1.1
-    # The harness adds two port wires to the deck.
-    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2) + 2
-
-
-@needs_nec2c
 def test_balun4_feed_designs():
     result = design(replace(_spec(), reflector="ground", feed="balun4", segments=36))
     # The junction: two ~100 ohm loops paralleled by the 100 ohm balanced
@@ -163,9 +149,9 @@ def test_sense_selection_flips_handedness():
 def test_crossed_design_reports_delivered_pattern():
     from awadateki.design import _coverage_gain_db, _polarization_summary, analyze
 
-    # Turnstile's natural sense is RHCP, so LHCP forces the crossed connection;
+    # The loops' natural sense is RHCP, so LHCP forces the crossed connection;
     # the reported metrics must come from the crossed (delivered) run.
-    spec = replace(_spec(), reflector="ground", feed="turnstile", sense="lhcp")
+    spec = replace(_spec(), reflector="ground", feed="line", sense="lhcp")
     result = design(spec)
     assert result.crossed_phasing_line
     assert result.sense == "LEFT"
@@ -245,13 +231,11 @@ def test_coax_fields_rejected_for_wrong_feed():
 
     # phasing_coax belongs to the line feed only.
     with pytest.raises(ValueError, match="phasing_coax"):
-        _eggbeater(replace(_spec(), feed="turnstile", phasing_coax=RG_62), 1.0)
-    with pytest.raises(ValueError, match="phasing_coax"):
         _eggbeater(replace(_spec(), feed="balun4", phasing_coax=RG_62), 1.0)
-    # match_coax is meaningless for balun4 but valid for turnstile.
+    # match_coax is meaningless for balun4 (the harness matches) but valid for line.
     with pytest.raises(ValueError, match="match_coax"):
         _eggbeater(replace(_spec(), feed="balun4", match_coax=RG_59), 1.0)
-    _eggbeater(replace(_spec(), feed="turnstile", match_coax=RG_59), 1.0)
+    _eggbeater(replace(_spec(), feed="line", match_coax=RG_59), 1.0)
     _eggbeater(replace(_spec(), phasing_coax=RG_62, match_coax=RG_59), 1.0)
 
 

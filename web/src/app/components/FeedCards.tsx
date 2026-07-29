@@ -5,12 +5,7 @@
 // thumbnail legibility.
 
 import type { DesignResult } from "../../engine/index";
-import {
-  FEED_BALUN4,
-  FEED_LINE,
-  FEED_TURNSTILE,
-  renderFeedSchematic,
-} from "../../engine/index";
+import { FEED_BALUN4, FEED_LINE, renderFeedSchematic } from "../../engine/index";
 import { defaultSpec } from "../state/uiSpec";
 
 interface FeedOption {
@@ -100,7 +95,6 @@ function cardArt(feed: string, zReal: number): string {
 }
 
 const LINE_ART = cardArt(FEED_LINE, 45.8);
-const TURNSTILE_ART = cardArt(FEED_TURNSTILE, 25.3);
 const BALUN4_ART = cardArt(FEED_BALUN4, 49.6);
 
 const OPTIONS: FeedOption[] = [
@@ -109,12 +103,6 @@ const OPTIONS: FeedOption[] = [
     name: "Phasing line",
     tradeoff: "simplest, one coax",
     art: LINE_ART,
-  },
-  {
-    token: FEED_TURNSTILE,
-    name: "Turnstile",
-    tradeoff: "best current balance",
-    art: TURNSTILE_ART,
   },
   {
     token: FEED_BALUN4,
