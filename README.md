@@ -265,15 +265,21 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 ## Modeling caveats
 
 - **The loop driving-point impedance does not converge in `segments`, so axial
-  ratio carries several dB of modeling uncertainty and results are only
-  comparable at equal segmentation.** Over `segments` 16 to 96 at fixed
-  geometry the loop impedance drifts monotonically without settling, and since
-  loop current balance is `|Z_loop| / Z0_phasing` and axial ratio follows
-  `20*log10(balance)`, that alone moves the predicted cone axial ratio by
-  roughly 1.7 to 4 dB. Compare designs only at the same `segments`, and treat
-  absolute axial ratio as indicative. See
-  [docs/segmentation.md](docs/segmentation.md) for the diagnostics, including
-  the causes that were ruled out.
+  ratio carries several dB of modeling uncertainty.** Over `segments` 16 to 96 at
+  fixed geometry the loop impedance drifts monotonically without settling, and
+  since loop current balance is `|Z_loop| / Z0_phasing` and axial ratio follows
+  `20*log10(balance)`, that alone moves the predicted cone axial ratio by roughly
+  1.7 to 4 dB. Worse, `segments` is a fixed count rather than a mesh density, so
+  even the two bands of one pair are not comparable at the same value when their
+  conductors differ electrically. Treat absolute axial ratio as indicative. See
+  [docs/segmentation.md](docs/segmentation.md) for the diagnostics, including the
+  causes that were ruled out.
+- Validation against published designs is thin: the ON6WG/F5VIF 2 m case
+  reproduces their stated loop impedance and measured SWR closely, while their
+  70 cm case does not (see
+  [docs/reference-designs.md](docs/reference-designs.md), and
+  `designs/f5vif_reference.input.json` to reproduce). There are no measurements
+  of our own.
 - The phasing line is a NEC ideal transmission line: lossless, with no shield
   or common-mode current (a real build uses a current balun; see TODO). Its
   off-design phase drift matches a real cable exactly, since physical length

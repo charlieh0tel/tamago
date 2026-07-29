@@ -1,0 +1,36 @@
+[
+  {
+    "label": "F5VIF 2 m",
+    "notes": "ON6WG/F5VIF 'Eggbeater Antenna VHF/UHF Part 1' as published, for comparison against our model rather than as an optimized design: reflector geometry is pinned to their stated values, not searched. Flat aluminium rod 10 mm (their VHF prototype), 8 quarter-wave radials, no droop, RG-62 quarter-wave phasing line. Their stated 1/8 wavelength loops-to-reflector distance is measured from the bottom of the loops; reflector_spacing_wl here is our loop-centre convention, so it is 1/8 + loop radius + half the loop offset. Their loop perimeter is 1.0215 wavelengths (1005/F feet); we cannot pin perimeter, so the tool tunes it to quadrature and the difference is itself a finding. See docs/reference-designs.md.",
+    "freq_mhz": 145.0,
+    "conductor": {
+      "kind": "strip",
+      "width_mm": 10.0
+    },
+    "sense": "rhcp",
+    "feed": "line",
+    "reflector": "radials",
+    "reflector_spacing_wl": 0.29,
+    "radial_count": 8,
+    "radial_length_wl": 0.25,
+    "radial_droop_deg": 0.0,
+    "segments": 24
+  },
+  {
+    "label": "F5VIF 70 cm",
+    "notes": "ON6WG/F5VIF Part 1, 70 cm half, as published. Brass tube 4 mm (their UHF prototype), 8 quarter-wave radials, no droop, RG-62 quarter-wave phasing line. Same spacing-convention conversion and same untunable-perimeter caveat as the 2 m entry; see docs/reference-designs.md. Segment count is 24 because that is where our model reproduces their stated 100 ohm loop impedance (see docs/segmentation.md).",
+    "freq_mhz": 435.0,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 4.0
+    },
+    "sense": "rhcp",
+    "feed": "line",
+    "reflector": "radials",
+    "reflector_spacing_wl": 0.29,
+    "radial_count": 8,
+    "radial_length_wl": 0.25,
+    "radial_droop_deg": 0.0,
+    "segments": 24
+  }
+]

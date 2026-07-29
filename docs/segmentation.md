@@ -82,14 +82,37 @@ to 2:1 across the sweep. A NEC applied-field source is sensitive to its segment
 geometry, and this is the one part of the model whose relative proportions change
 throughout the sweep.
 
+## `segments` is the wrong normalization
+
+Checking the F5VIF reference design (see [reference-designs.md](reference-designs.md))
+turned up a sharper version of this problem. At the *same* `segments` value our
+model reproduces their stated 100 ohm loop impedance almost exactly on 2 m
+(101.0 ohm) and misses it by 41% on 70 cm (141.5 ohm) -- because their two
+prototypes use electrically different conductors:
+
+| | conductor equivalent radius | segment length / radius |
+|---|---|---|
+| 2 m, 10 mm flat rod | 0.0012 wavelengths | ~36 |
+| 70 cm, 4 mm tube | 0.0029 wavelengths | ~15 |
+
+A raw segment count is not a band-independent mesh specification. The quantity
+that governs NEC accuracy here is segment length relative to conductor radius,
+and holding `segments` fixed lets it vary by more than a factor of two between
+the bands of a single pair. That is enough to place the two bands at materially
+different points on the divergence curve above.
+
+So the two halves of a pair are **not** comparable at equal `segments` today.
+
 ## What would settle it
 
-1. Validate against the published reference designs (ON6WG/F5VIF, K5OE, the
-   Houston eggbeater). With no measurements of our own, those field-proven
-   geometries are the only external anchor -- and they are the second thing this
-   project has needed them for.
-2. Pin and justify a segment count rather than treating 16, 36, and 50 as
+1. **Respecify the mesh** in terms of segment length per conductor radius (or per
+   wavelength) instead of a fixed count per loop, so a given spec means the same
+   discretization at every band and conductor size.
+2. Validate more broadly against published reference designs (K5OE, the Houston
+   eggbeater). F5VIF's 2 m case already agrees; one band of one design is a thin
+   anchor.
+3. Pin and justify a segment count rather than treating 16, 36, and 50 as
    interchangeable, and make the goldens use one value.
-3. Rework the feed/source construction if the source region is confirmed as the
+4. Rework the feed/source construction if the source region is confirmed as the
    cause: a uniformly segmented loop with the source on an ordinary segment
    removes the changing proportion.
