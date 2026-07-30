@@ -29,6 +29,15 @@
       "perimeter_mm": 826.9871926669827,
       "width_mm": 206.7467981667459
     },
+    "mesh": {
+      "loop_segments": 16,
+      "derived": false,
+      "segment_length_mm": 51.686699541686416,
+      "segment_wl": 0.07517000644550997,
+      "segment_radii": 20.674679816674566,
+      "segment_radii_target": 36.0,
+      "segment_wl_warn": 0.1
+    },
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
     "feed": "line",

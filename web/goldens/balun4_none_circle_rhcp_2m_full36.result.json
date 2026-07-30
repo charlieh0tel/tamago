@@ -29,6 +29,15 @@
       "perimeter_mm": 2196.566693412304,
       "width_mm": 699.1888941751761
     },
+    "mesh": {
+      "loop_segments": 36,
+      "derived": false,
+      "segment_length_mm": 61.01574148367512,
+      "segment_wl": 0.029694531816634957,
+      "segment_radii": 24.406296593470046,
+      "segment_radii_target": 36.0,
+      "segment_wl_warn": 0.1
+    },
     "loop_offset_mm": 10.0,
     "feed_gap_mm": 10.0,
     "feed": "balun4",

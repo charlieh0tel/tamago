@@ -13,6 +13,8 @@ Reflector           : radials
 Both loops          : 740.0 mm perimeter, 208.6 mm width
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
+NEC mesh            : 16 sides/loop (set), 46.3 mm segments = 0.067 wl = 18 radii
+  ! thin-wire ratio 18 below 36: loop impedance overstated
 Phasing line        : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Choke               : 1:1 ferrite choke, 3 x Fair-Rite 2661540002 ferrite cores over RG-58 at the feedpoint
 Pair braids         : bonded to each other at both ends; not grounded

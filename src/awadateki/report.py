@@ -111,7 +111,31 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
         f"Loop offset         : {build['loop_offset_mm']:g} mm (loop A below, "
         "loop B above)",
         f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
+        *_mesh_lines(build["mesh"]),
     ] + _feed_lines(build)
+
+
+def _mesh_lines(mesh: dict) -> list[str]:
+    """The NEC discretization, flagged when it sits outside its valid range."""
+    source = "derived" if mesh["derived"] else "set"
+    flags = []
+    if mesh["segment_radii"] < mesh["segment_radii_target"]:
+        flags.append(
+            f"thin-wire ratio {mesh['segment_radii']:.0f} below "
+            f"{mesh['segment_radii_target']:.0f}: loop impedance overstated"
+        )
+    if mesh["segment_wl"] > mesh["segment_wl_warn"]:
+        flags.append(
+            f"segments {mesh['segment_wl']:.3f} wl long, over "
+            f"{mesh['segment_wl_warn']:g}: loop current under-resolved"
+        )
+    lines = [
+        f"NEC mesh            : {mesh['loop_segments']} sides/loop ({source}), "
+        f"{mesh['segment_length_mm']:.1f} mm segments "
+        f"= {mesh['segment_wl']:.3f} wl = {mesh['segment_radii']:.0f} radii",
+    ]
+    lines += [f"  ! {flag}" for flag in flags]
+    return lines
 
 
 def _match_lines(result: DesignResult, build: dict) -> list[str]:

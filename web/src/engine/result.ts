@@ -8,6 +8,7 @@
 // JSON shape and order match.
 
 import type { Coax } from "./coax";
+import { equivalentRadiusM } from "./conductor";
 import {
   BALUN4_BALUN_COAX,
   BALUN4_PHASING_COAX,
@@ -22,12 +23,16 @@ import {
   FEED_BALUN4,
   FEED_CHOKE,
   FEED_LINE,
+  LOOP_SEGMENT_RADII,
+  LOOP_SEGMENT_WL_WARN,
   NEC_SENSE_TO_HAND,
   REFLECTOR_NONE,
   REFLECTOR_RADIALS,
 } from "./constants";
 import {
   type DesignResult,
+  loopSegmentLengthM,
+  loopSegments,
   matchedVswr,
   phasingLineCoax,
   quarterWaveMatchZ0,
@@ -137,6 +142,24 @@ function harnessDict(result: DesignResult, wavelength: number): JsonObject {
   };
 }
 
+// NEC discretization and the two ratios that bound its validity. segment_radii
+// is the binding one for the loop impedance (the thin-wire kernel); segment_wl
+// bounds current resolution. A thick conductor cannot satisfy both, so both are
+// reported rather than enforced; see docs/segmentation.md.
+function meshDict(result: DesignResult, wavelength: number): JsonObject {
+  const spec = result.spec;
+  const segmentM = loopSegmentLengthM(spec, result.baseFactor * wavelength);
+  return {
+    loop_segments: loopSegments(spec),
+    derived: spec.segments === null,
+    segment_length_mm: segmentM * MM_PER_M,
+    segment_wl: segmentM / wavelength,
+    segment_radii: segmentM / equivalentRadiusM(spec.conductor),
+    segment_radii_target: LOOP_SEGMENT_RADII,
+    segment_wl_warn: LOOP_SEGMENT_WL_WARN,
+  };
+}
+
 function buildDict(result: DesignResult): JsonObject {
   const spec = result.spec;
   const wavelength = wavelengthM(spec.freqMhz);
@@ -164,6 +187,7 @@ function buildDict(result: DesignResult): JsonObject {
     build.corner_radius_mm = cornerRadiusM * MM_PER_M;
   }
   build.loop = loopDims(result.baseFactor * wavelength, shape, cornerRadiusM);
+  build.mesh = meshDict(result, wavelength);
   build.loop_offset_mm = spec.loopOffsetMm;
   build.feed_gap_mm = spec.feedGapMm;
   build.feed = spec.feed;

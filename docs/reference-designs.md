@@ -73,23 +73,24 @@ Two things follow:
 
 ## Where our model agrees and disagrees
 
-Running `designs/f5vif_reference.input.json` (their geometry, `segments` 24)
-against their published figures:
+Running `designs/f5vif_reference.input.json` (their geometry, mesh derived from
+the conductor) against their published figures:
 
 | quantity | F5VIF | ours | |
 |---|---|---|---|
 | 2 m loop impedance | 100 ohm (stated) | 101.0 ohm | agrees |
 | 2 m SWR | 1.1 (measured) | 1.09 | agrees |
 | 2 m loop perimeter | 2112.6 mm | 2165.5 mm | +2.5% |
-| 70 cm loop impedance | 100 ohm (stated) | 141.5 ohm | +41% |
-| 70 cm SWR at 435 MHz | 1.0 (measured) | 1.21 | disagrees |
+| 70 cm loop impedance | 100 ohm (stated) | 115.4 ohm | +15% |
+| 70 cm SWR at 435 MHz | 1.0 (measured) | 1.13 | +0.13 |
 | 70 cm loop perimeter | 704 mm | 730.1 mm | +3.7% |
 
 **2 m validates.** Loop impedance 101.0 against their stated 100, and SWR 1.09
 against their measured 1.1. This is the first time anything in this project has
 been checked against real hardware, and on this band it holds.
 
-**70 cm does not**, and the reason is diagnostic. Both bands run at the same
+**70 cm is within 15%, after a fix this comparison prompted.** It originally
+missed by 41% (141.5 ohm, SWR 1.21). Both bands were running at the same
 `segments`, but a raw segment count is not a band-independent mesh: what NEC
 cares about is segment length relative to the conductor radius, and their two
 prototypes use electrically different conductors.
@@ -99,12 +100,16 @@ prototypes use electrically different conductors.
 | 2 m, 10 mm flat rod | 0.0012 wavelengths | ~36 |
 | 70 cm, 4 mm tube | 0.0029 wavelengths | ~15 |
 
-The 70 cm model therefore sits much further along the divergence curve described
+The 70 cm model therefore sat much further along the divergence curve described
 in [segmentation.md](segmentation.md) -- where finer effective meshing drives the
-loop impedance up -- which is exactly the direction and rough magnitude of the
-141.5 ohm result. **So `segments` should probably be specified as segment length
-per conductor radius (or per wavelength) rather than as a fixed count**, and the
-two bands of a pair are not comparable at equal `segments` today.
+loop impedance up -- which is exactly the direction and magnitude of the original
+141.5 ohm result. `spec.segments` is now derived from the conductor radius so the
+binding ratio, rather than the count, is what a spec holds fixed; that took the
+70 cm error from 41% to 15%. The remaining gap is the underlying
+non-convergence.
+
+Their 70 cm prototype also cannot satisfy both mesh bounds at any count -- 4 mm
+tube at 435 MHz is electrically thick -- so its cut sheet carries a mesh warning.
 
 **Loop perimeter runs 2.5 to 3.7% long** in both bands. Part of that is expected,
 since they size for *resonance* while we solve for *quadrature between the

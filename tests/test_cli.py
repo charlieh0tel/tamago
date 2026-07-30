@@ -286,6 +286,54 @@ def test_loop_must_clear_the_reflector_plane():
     _eggbeater(replace(radials, reflector="none", reflector_spacing_wl=0.15), 1.05)
 
 
+def test_loop_segments_derive_from_conductor():
+    from awadateki.conductor import strip_conductor
+    from awadateki.design import (
+        LOOP_SEGMENT_RADII,
+        MIN_LOOP_SEGMENTS,
+        loop_segments,
+    )
+    from awadateki.geometry import wavelength_m
+
+    # An explicit count is passed through untouched.
+    assert loop_segments(replace(_spec(), segments=36)) == 36
+
+    # Derived: the segment length lands near LOOP_SEGMENT_RADII conductor radii,
+    # which is the ratio that governs the loop impedance.
+    def derived_radii(freq_mhz: float, conductor) -> float:
+        spec = replace(_spec(), freq_mhz=freq_mhz, conductor=conductor, segments=None)
+        segment_m = wavelength_m(freq_mhz) / loop_segments(spec)
+        return segment_m / conductor.equivalent_radius_m
+
+    # The published 2 m reference (10 mm flat rod) is the calibration point.
+    assert (
+        loop_segments(
+            replace(
+                _spec(), freq_mhz=145.0, conductor=strip_conductor(10.0), segments=None
+            )
+        )
+        == 24
+    )
+    assert abs(derived_radii(145.0, strip_conductor(10.0)) - LOOP_SEGMENT_RADII) < 3.0
+
+    # A thicker conductor at a higher band asks for fewer sides, which is the
+    # whole point: a fixed count would leave the two bands incomparable.
+    coarse = loop_segments(
+        replace(_spec(), freq_mhz=435.0, conductor=round_conductor(4.0), segments=None)
+    )
+    assert coarse < 24
+    assert coarse >= MIN_LOOP_SEGMENTS
+    # Never below the polygon floor, however thick the conductor.
+    assert (
+        loop_segments(
+            replace(
+                _spec(), freq_mhz=435.0, conductor=round_conductor(20.0), segments=None
+            )
+        )
+        == MIN_LOOP_SEGMENTS
+    )
+
+
 def test_secant_reports_its_residual():
     # Converged: the residual is within tolerance.
     root, residual = _secant(lambda x: x - 2.0, 0.0, 1.0, (0.0, 5.0), 1e-6)

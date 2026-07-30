@@ -25,7 +25,7 @@ import {
   REFLECTOR_NONE,
   SENSE_RHCP,
 } from "./constants";
-import { DEFAULT_SEGMENTS, SHAPE_CIRCLE } from "./geometry";
+import { SHAPE_CIRCLE } from "./geometry";
 
 // Provenance of a spec produced by the reflector optimizer. Round-tripped
 // verbatim; nothing in this wave produces it.
@@ -68,7 +68,7 @@ export interface DesignSpec {
   feedGapMm: number;
   systemZOhm: number;
   arMarginDb: number;
-  segments: number;
+  segments: number | null;
   radialCount: number;
   radialLengthWl: number;
   radialDroopDeg: number;
@@ -93,7 +93,7 @@ const SPEC_DEFAULTS = {
   feedGapMm: 10.0,
   systemZOhm: 50.0,
   arMarginDb: AR_MARGIN_DB,
-  segments: DEFAULT_SEGMENTS,
+  segments: null,
   radialCount: 8,
   radialLengthWl: 0.27,
   radialDroopDeg: 0.0,

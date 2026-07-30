@@ -10,6 +10,8 @@ Reflector           : none
 Both loops          : 827.0 mm perimeter, 206.7 mm side
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
+NEC mesh            : 16 sides/loop (set), 51.7 mm segments = 0.075 wl = 21 radii
+  ! thin-wire ratio 21 below 36: loop impedance overstated
 Phasing line        : 144.4 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
 Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------

@@ -10,6 +10,7 @@ Reflector           : none
 Both loops          : 2215.4 mm perimeter, 705.2 mm dia
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
+NEC mesh            : 16 sides/loop (set), 138.5 mm segments = 0.067 wl = 54 radii
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
 Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------

@@ -56,6 +56,8 @@ from .design import (
     FEED_BALUN4,
     FEED_CHOKE,
     FEED_LINE,
+    LOOP_SEGMENT_RADII,
+    LOOP_SEGMENT_WL_WARN,
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
     REFLECTOR_RADIALS,
@@ -63,6 +65,8 @@ from .design import (
     DesignResult,
     bandwidth_within,
     frequency_sweep,
+    loop_segment_length_m,
+    loop_segments,
     matched_vswr,
     phasing_line_coax,
     quarter_wave_match_z0,
@@ -166,6 +170,28 @@ def _harness_dict(result: DesignResult, wavelength: float) -> dict:
     }
 
 
+def _mesh_dict(result: DesignResult, wavelength: float) -> dict:
+    """NEC discretization and the two ratios that bound its validity.
+
+    segment_radii is the binding one for the loop impedance (the thin-wire
+    kernel), and segment_wl is the one that bounds current resolution. A thick
+    conductor cannot satisfy both, so both are reported rather than enforced;
+    see docs/segmentation.md.
+    """
+    spec = result.spec
+    sides = loop_segments(spec)
+    segment_m = loop_segment_length_m(spec, result.base_factor * wavelength)
+    return {
+        "loop_segments": sides,
+        "derived": spec.segments is None,
+        "segment_length_mm": segment_m * MM_PER_M,
+        "segment_wl": segment_m / wavelength,
+        "segment_radii": segment_m / spec.conductor.equivalent_radius_m,
+        "segment_radii_target": LOOP_SEGMENT_RADII,
+        "segment_wl_warn": LOOP_SEGMENT_WL_WARN,
+    }
+
+
 def _build_dict(result: DesignResult) -> dict:
     spec = result.spec
     wavelength = wavelength_m(spec.freq_mhz)
@@ -192,6 +218,7 @@ def _build_dict(result: DesignResult) -> dict:
     if shape == SHAPE_SQUIRCLE:
         build["corner_radius_mm"] = corner_radius_m * MM_PER_M
     build["loop"] = _loop_dims(result.base_factor * wavelength, shape, corner_radius_m)
+    build["mesh"] = _mesh_dict(result, wavelength)
     build["loop_offset_mm"] = spec.loop_offset_mm
     build["feed_gap_mm"] = spec.feed_gap_mm
     build["feed"] = spec.feed

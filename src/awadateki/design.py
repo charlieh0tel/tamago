@@ -17,7 +17,6 @@ from dataclasses import dataclass, replace
 from .coax import RG_58, RG_58_BALANCED, RG_62, Coax, nearest_standard_coax
 from .conductor import Conductor
 from .geometry import (
-    DEFAULT_SEGMENTS,
     LOOP_A_TAG_BASE,
     LOOP_B_TAG_BASE,
     SHAPE_CIRCLE,
@@ -49,6 +48,30 @@ NEC_SENSE_TO_HAND = {"RIGHT": SENSE_RHCP, "LEFT": SENSE_LHCP}
 
 # Target NEC segment length along a radial, in wavelengths.
 RADIAL_SEGMENT_WL = 0.05
+
+# Loop mesh density, used when spec.segments is None.
+#
+# NEC wants segments short compared with the wavelength (to resolve the current)
+# but long compared with the conductor radius (the thin-wire kernel). A loop is
+# about one wavelength around at every band, so a fixed segment count already
+# holds the first roughly constant -- but it lets the second vary with the
+# conductor, by more than a factor of two between the bands of one pair. That is
+# what made two halves of a pair incomparable at equal `segments`, so the count
+# is derived from the conductor radius instead, holding the binding ratio fixed.
+#
+# 36 radii reproduces the one design point checked against published hardware
+# (the ON6WG/F5VIF 2 m build; see docs/reference-designs.md). It is a
+# calibration, not a convergence result -- see docs/segmentation.md.
+LOOP_SEGMENT_RADII = 36.0
+# Rounded to a multiple of this so a square loop's corners land on vertices.
+LOOP_SEGMENT_QUANTUM = 4
+# A polygon this coarse barely resembles a circle, so the derived count stops
+# here even for conductors thick enough to ask for fewer.
+MIN_LOOP_SEGMENTS = 12
+# Segment lengths above this fraction of a wavelength under-resolve the loop
+# current; reported as a warning rather than enforced, since a thick conductor
+# cannot satisfy both this and LOOP_SEGMENT_RADII at once.
+LOOP_SEGMENT_WL_WARN = 0.10
 
 # Quarter-wave sections (phasing line, Q-sections, delay line): NEC ideal TLs
 # of this electrical length (free-space wavelengths) give 90 deg each.
@@ -211,7 +234,9 @@ class DesignSpec:
             worst-case AR (and thus more usable bandwidth). It shapes each
             placement; the radial count is then chosen at the knee of the
             worst-case-AR-versus-count curve (see AR_KNEE_DB).
-        segments: polygon sides per loop (at most MAX_SEGMENTS).
+        segments: polygon sides per loop (at most MAX_SEGMENTS), or None to
+            derive a count that holds the segment length at LOOP_SEGMENT_RADII
+            conductor radii, which is what keeps two bands comparable.
         radial_count: number of reflector radials (radials scheme).
         radial_length_wl: length of each radial, wavelengths.
         radial_droop_deg: downward tilt of the radials from horizontal.
@@ -239,7 +264,7 @@ class DesignSpec:
     feed_gap_mm: float = 10.0
     system_z_ohm: float = 50.0
     ar_margin_db: float = AR_MARGIN_DB
-    segments: int = DEFAULT_SEGMENTS
+    segments: int | None = None
     radial_count: int = 8
     radial_length_wl: float = 0.27
     radial_droop_deg: float = 0.0
@@ -397,6 +422,27 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
     return (), (source,), (line,)
 
 
+def loop_segments(spec: DesignSpec) -> int:
+    """Polygon sides per loop: the spec's value, or derived from the conductor.
+
+    Derived from the nominal one-wavelength perimeter rather than the tuned one,
+    so the mesh does not shift underneath the perimeter solver.
+    """
+    if spec.segments is not None:
+        return spec.segments
+    wavelength = wavelength_m(spec.freq_mhz)
+    target = LOOP_SEGMENT_RADII * spec.conductor.equivalent_radius_m
+    sides = wavelength / target
+    quantized = LOOP_SEGMENT_QUANTUM * round(sides / LOOP_SEGMENT_QUANTUM)
+    ceiling = LOOP_SEGMENT_QUANTUM * (MAX_SEGMENTS // LOOP_SEGMENT_QUANTUM)
+    return max(MIN_LOOP_SEGMENTS, min(ceiling, quantized))
+
+
+def loop_segment_length_m(spec: DesignSpec, perimeter_m: float) -> float:
+    """Length of one loop segment at this perimeter."""
+    return perimeter_m / loop_segments(spec)
+
+
 def phasing_line_coax(spec: DesignSpec) -> Coax:
     """The line feed's phasing cable: the spec override or the default."""
     return spec.phasing_coax or LINE_PHASING_COAX
@@ -449,7 +495,7 @@ class DesignInfeasible(ValueError):
 def _eggbeater(spec: DesignSpec, factor: float):
     """Build the crossed-loop geometry for a perimeter factor; returns
     (eggbeater, wavelength)."""
-    if spec.segments > MAX_SEGMENTS:
+    if spec.segments is not None and spec.segments > MAX_SEGMENTS:
         raise ValueError(
             f"segments {spec.segments} exceeds {MAX_SEGMENTS}; the loop wire"
             " tags would collide with the next NEC tag range"
@@ -500,7 +546,7 @@ def _eggbeater(spec: DesignSpec, factor: float):
         perimeter,
         center_z,
         spec.conductor.equivalent_radius_m,
-        spec.segments,
+        loop_segments(spec),
         spec.loop_shape,
         spec.corner_radius_wl * wavelength,
         spec.loop_offset_mm / 1000.0,

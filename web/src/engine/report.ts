@@ -135,6 +135,32 @@ function feedLines(build: JsonObject): string[] {
   ];
 }
 
+// The NEC discretization, flagged when it sits outside its valid range.
+function meshLines(mesh: JsonObject): string[] {
+  const source = mesh.derived ? "derived" : "set";
+  const radii = num(mesh, "segment_radii");
+  const target = num(mesh, "segment_radii_target");
+  const segWl = num(mesh, "segment_wl");
+  const warnWl = num(mesh, "segment_wl_warn");
+  const flags: string[] = [];
+  if (radii < target) {
+    flags.push(
+      `thin-wire ratio ${f(radii, 0)} below ${f(target, 0)}: loop impedance overstated`,
+    );
+  }
+  if (segWl > warnWl) {
+    flags.push(
+      `segments ${f(segWl, 3)} wl long, over ${g(warnWl)}: loop current under-resolved`,
+    );
+  }
+  return [
+    `NEC mesh            : ${num(mesh, "loop_segments")} sides/loop (${source}), ` +
+      `${f(num(mesh, "segment_length_mm"), 1)} mm segments = ${f(segWl, 3)} wl = ` +
+      `${f(radii, 0)} radii`,
+    ...flags.map((flag) => `  ! ${flag}`),
+  ];
+}
+
 function geometryLines(build: JsonObject): string[] {
   const term = WIDTH_TERM[str(build, "loop_shape")] ?? "width";
   const loop = obj(build, "loop");
@@ -143,6 +169,7 @@ function geometryLines(build: JsonObject): string[] {
       `${f(num(loop, "width_mm"), 1)} mm ${term}`,
     `Loop offset         : ${g(num(build, "loop_offset_mm"))} mm (loop A below, loop B above)`,
     `Feed gap            : ${g(num(build, "feed_gap_mm"))} mm at each loop bottom`,
+    ...meshLines(obj(build, "mesh")),
     ...feedLines(build),
   ];
 }

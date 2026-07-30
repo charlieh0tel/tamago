@@ -15,7 +15,7 @@ import type { DesignSpec } from "./spec";
 // Throw if the spec's geometry cannot be built into a valid NEC model. The
 // checks and their order mirror the Python guards so error text is comparable.
 export function validateSpec(spec: DesignSpec): void {
-  if (spec.segments > MAX_SEGMENTS) {
+  if (spec.segments !== null && spec.segments > MAX_SEGMENTS) {
     throw new Error(
       `segments ${spec.segments} exceeds ${MAX_SEGMENTS}; the loop wire tags would collide with the next NEC tag range`,
     );

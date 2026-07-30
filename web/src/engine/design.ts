@@ -34,7 +34,11 @@ import {
   GOLDEN_RATIO,
   HZ_PER_MHZ,
   LINE_PHASING_COAX,
+  LOOP_SEGMENT_QUANTUM,
+  LOOP_SEGMENT_RADII,
   MATCH_REACTANCE_WARN_OHMS,
+  MAX_SEGMENTS,
+  MIN_LOOP_SEGMENTS,
   NEC_SENSE_TO_HAND,
   NULL_GAIN_DB,
   PHASE_TOLERANCE_DEG,
@@ -236,6 +240,27 @@ function commentLines(spec: DesignSpec): string[] {
   ];
 }
 
+// Polygon sides per loop: the spec's value, or derived from the conductor.
+// Derived from the nominal one-wavelength perimeter rather than the tuned one, so
+// the mesh does not shift underneath the perimeter solver.
+export function loopSegments(spec: DesignSpec): number {
+  if (spec.segments !== null) {
+    return spec.segments;
+  }
+  const wavelength = wavelengthM(spec.freqMhz);
+  const target = LOOP_SEGMENT_RADII * equivalentRadiusM(spec.conductor);
+  const sides = wavelength / target;
+  const quantized = LOOP_SEGMENT_QUANTUM * Math.round(sides / LOOP_SEGMENT_QUANTUM);
+  const ceiling =
+    LOOP_SEGMENT_QUANTUM * Math.floor(MAX_SEGMENTS / LOOP_SEGMENT_QUANTUM);
+  return Math.max(MIN_LOOP_SEGMENTS, Math.min(ceiling, quantized));
+}
+
+// Length of one loop segment at this perimeter.
+export function loopSegmentLengthM(spec: DesignSpec, perimeterM: number): number {
+  return perimeterM / loopSegments(spec);
+}
+
 export function phasingLineCoax(spec: DesignSpec): Coax {
   return spec.phasingCoax ?? LINE_PHASING_COAX;
 }
@@ -338,7 +363,7 @@ function buildEggbeater(
     perimeter,
     cz,
     equivalentRadiusM(spec.conductor),
-    spec.segments,
+    loopSegments(spec),
     spec.loopShape,
     spec.cornerRadiusWl * wavelength,
     spec.loopOffsetMm / 1000.0,

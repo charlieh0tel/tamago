@@ -13,12 +13,11 @@
     "reflector_spacing_wl": 0.29,
     "radial_count": 8,
     "radial_length_wl": 0.25,
-    "radial_droop_deg": 0.0,
-    "segments": 24
+    "radial_droop_deg": 0.0
   },
   {
     "label": "F5VIF 70 cm",
-    "notes": "ON6WG/F5VIF Part 1, 70 cm half, as published. Brass tube 4 mm (their UHF prototype), 8 quarter-wave radials, no droop, RG-62 quarter-wave phasing line. Same spacing-convention conversion and same untunable-perimeter caveat as the 2 m entry; see docs/reference-designs.md. Segment count is 24 because that is where our model reproduces their stated 100 ohm loop impedance (see docs/segmentation.md).",
+    "notes": "ON6WG/F5VIF Part 1, 70 cm half, as published. Brass tube 4 mm (their UHF prototype), 8 quarter-wave radials, no droop, RG-62 quarter-wave phasing line. Same spacing-convention conversion and same untunable-perimeter caveat as the 2 m entry; see docs/reference-designs.md. Segment count is left derived from the conductor radius (see docs/segmentation.md).",
     "freq_mhz": 435.0,
     "conductor": {
       "kind": "round",
@@ -30,7 +29,6 @@
     "reflector_spacing_wl": 0.29,
     "radial_count": 8,
     "radial_length_wl": 0.25,
-    "radial_droop_deg": 0.0,
-    "segments": 24
+    "radial_droop_deg": 0.0
   }
 ]

@@ -15,6 +15,7 @@ import {
   SENSE_LHCP,
   SENSE_RHCP,
   SHAPE_SQUIRCLE,
+  loopSegments,
 } from "../../engine/index";
 import type { Action, ProvField, ProvenanceMap, UiState } from "../state/types";
 import { buildConductor } from "../state/uiSpec";
@@ -429,16 +430,24 @@ export function SpecRail({
           </div>
           <div className="inline">
             <div className="field">
-              <label>Segments</label>
+              <label>
+                Segments
+                {spec.segments === null && <span className="unit">derived</span>}
+              </label>
               <input
                 type="number"
-                value={spec.segments}
-                onChange={(e) =>
+                title="polygon sides per loop; blank derives a count that holds the segment length at a fixed number of conductor radii, which is what keeps bands comparable"
+                value={spec.segments ?? loopSegments(spec)}
+                onChange={(e) => {
+                  const raw = e.target.value.trim();
                   dispatch({
                     type: "PATCH_SPEC",
-                    patch: { segments: Math.round(num(e.target.value, spec.segments)) },
-                  })
-                }
+                    patch: {
+                      segments:
+                        raw === "" ? null : Math.round(num(raw, loopSegments(spec))),
+                    },
+                  });
+                }}
               />
             </div>
             <div className="field">

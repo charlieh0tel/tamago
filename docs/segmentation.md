@@ -101,18 +101,41 @@ and holding `segments` fixed lets it vary by more than a factor of two between
 the bands of a single pair. That is enough to place the two bands at materially
 different points on the divergence curve above.
 
-So the two halves of a pair are **not** comparable at equal `segments` today.
+### Addressed: the count is now derived
 
-## What would settle it
+`spec.segments` defaults to None and is derived from the conductor radius
+(`loop_segments`, `LOOP_SEGMENT_RADII`), holding the binding ratio fixed instead
+of the count. An explicit integer still overrides it, which is what the goldens
+use.
 
-1. **Respecify the mesh** in terms of segment length per conductor radius (or per
-   wavelength) instead of a fixed count per loop, so a given spec means the same
-   discretization at every band and conductor size.
-2. Validate more broadly against published reference designs (K5OE, the Houston
-   eggbeater). F5VIF's 2 m case already agrees; one band of one design is a thin
-   anchor.
-3. Pin and justify a segment count rather than treating 16, 36, and 50 as
-   interchangeable, and make the goldens use one value.
-4. Rework the feed/source construction if the source region is confirmed as the
+On the 70 cm reference case that closes most of the gap to the published figure:
+
+| | pinned 24 sides | derived 12 sides | F5VIF |
+|---|---:|---:|---:|
+| loop impedance | 141.5 ohm (+41%) | 115.4 ohm (+15%) | 100 ohm |
+| SWR | 1.21 | 1.13 | 1.0 (measured) |
+| loop balance | 1.522 | 1.241 | -- |
+| worst cone AR | 6.16 dB | 4.37 dB | -- |
+| coverage gain | -0.14 dBi | +1.67 dBi | -- |
+
+The residual 15% is the underlying non-convergence, which the derivation does
+not fix -- it only stops the *bands* from disagreeing for a reason that was
+purely an artifact of the mesh specification.
+
+The cut sheet now reports the mesh and both validity ratios, and flags them when
+out of range, so any design carries its own caveat. The 70 cm reference still
+warns: at 12 sides its segments are 31 radii (under the 36 target) and 0.089
+wavelengths (near the 0.10 ceiling). That conductor is genuinely too thick at
+435 MHz to satisfy both bounds at any count -- a real limit, now visible rather
+than silent.
+
+## What would still settle it
+
+1. Validate more broadly against published reference designs (K5OE, the Houston
+   eggbeater). F5VIF's 2 m case agrees closely and its 70 cm case is now within
+   15%, but one design is a thin anchor.
+2. Justify the 36-radii calibration on more than a single data point, or replace
+   it with a genuine convergence result.
+3. Rework the feed/source construction if the source region is confirmed as the
    cause: a uniformly segmented loop with the source on an ordinary segment
    removes the changing proportion.

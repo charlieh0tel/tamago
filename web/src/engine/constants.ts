@@ -72,6 +72,30 @@ export const MIN_LOOP_OFFSET_DIAMETERS = 1.5;
 // wires per loop, so past this many polygon sides loop A's tags would collide
 // with loop B's and the phasing line would bind to the wrong wire.
 export const MAX_SEGMENTS = 98;
+
+// Loop mesh density, used when spec.segments is null.
+//
+// NEC wants segments short compared with the wavelength (to resolve the current)
+// but long compared with the conductor radius (the thin-wire kernel). A loop is
+// about one wavelength around at every band, so a fixed segment count already
+// holds the first roughly constant -- but it lets the second vary with the
+// conductor, by more than a factor of two between the bands of one pair. That is
+// what made two halves of a pair incomparable at equal `segments`, so the count
+// is derived from the conductor radius instead, holding the binding ratio fixed.
+//
+// 36 radii reproduces the one design point checked against published hardware
+// (the ON6WG/F5VIF 2 m build; see docs/reference-designs.md). It is a
+// calibration, not a convergence result -- see docs/segmentation.md.
+export const LOOP_SEGMENT_RADII = 36.0;
+// Rounded to a multiple of this so a square loop's corners land on vertices.
+export const LOOP_SEGMENT_QUANTUM = 4;
+// A polygon this coarse barely resembles a circle, so the derived count stops
+// here even for conductors thick enough to ask for fewer.
+export const MIN_LOOP_SEGMENTS = 12;
+// Segment lengths above this fraction of a wavelength under-resolve the loop
+// current; reported as a warning rather than enforced, since a thick conductor
+// cannot satisfy both this and LOOP_SEGMENT_RADII at once.
+export const LOOP_SEGMENT_WL_WARN = 0.1;
 export const REFERENCE_IMPEDANCE_OHMS = 50.0;
 export const HZ_PER_MHZ = 1.0e6;
 
