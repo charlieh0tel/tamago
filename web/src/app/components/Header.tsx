@@ -12,18 +12,25 @@ function signed(x: number): string {
   return `${x >= 0 ? "+" : "-"}${Math.abs(x).toFixed(1)}`;
 }
 
-// Balloon whisk, drawn in the same stroked line art as the feed schematics:
-// handle, ferrule, and four wires bowing out to the tip. Decorative -- the
-// brand text alongside already names the thing.
+// Balloon whisk in the same stroked line art as the feed schematics: hanging
+// loop, tapered handle, and four wires bowing out to a common tip. Drawn as the
+// utensil sits (handle up) then turned 180 degrees, which lands it the way the
+// antenna stands -- loops up, mast below. Decorative; the brand text alongside
+// already names the thing.
 function WhiskMark(): JSX.Element {
   return (
     <svg className="whisk" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 2 V7" />
-      <path d="M9.5 7 H14.5" />
-      <path d="M12 7 C5 11 5 18 12 22" />
-      <path d="M12 7 C19 11 19 18 12 22" />
-      <path d="M12 7 C8.5 11 8.5 18.5 12 22" />
-      <path d="M12 7 C15.5 11 15.5 18.5 12 22" />
+      <g transform="rotate(180 12 12)">
+        {/* Hanging loop at the butt of the handle. */}
+        <circle cx="20.7" cy="3.3" r="1.5" />
+        {/* Tapered handle: down one side, across the ferrule, back up the other. */}
+        <path d="M17.9 4.2 L10.9 12.4 L12.7 14 L20.1 6.2 Z" />
+        {/* Wires, from the ferrule out to a common tip. */}
+        <path d="M11.8 13.2 Q13.6 20.2 6.5 19.1" />
+        <path d="M11.8 13.2 Q4.7 12.2 6.5 19.1" />
+        <path d="M11.8 13.2 Q11.1 17.9 6.5 19.1" />
+        <path d="M11.8 13.2 Q7.2 14.4 6.5 19.1" />
+      </g>
     </svg>
   );
 }
