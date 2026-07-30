@@ -75,7 +75,10 @@ body {
 /* header */
 header {
   display: flex;
-  align-items: baseline;
+  /* Centered, not baseline: the whisk mark makes the brand much taller than the
+     chips, and an inline-flex brand does not share their text baseline, so
+     baseline alignment left the chips sitting low. */
+  align-items: center;
   gap: 14px;
   flex-wrap: wrap;
   padding: 18px 2px 14px;
