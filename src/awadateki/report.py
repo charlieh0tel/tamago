@@ -19,6 +19,11 @@ from .result import result_to_dict
 _WIDTH_TERM = {"circle": "dia", "square": "side", "squircle": "width"}
 
 
+def _achieved_sense(result: DesignResult) -> str:
+    """Achieved handedness as a bare token (RHCP/LHCP), for inline use."""
+    return (NEC_SENSE_TO_HAND.get(result.sense) or result.sense).upper()
+
+
 def _format_sense(result: DesignResult) -> str:
     """Achieved polarization sense, flagging any mismatch with the request."""
     achieved = NEC_SENSE_TO_HAND.get(result.sense)
@@ -68,23 +73,23 @@ def _coax_text(piece: dict) -> str:
     )
 
 
-def _loop_b_connection_line(connection: str) -> str:
-    """Build step: how the phasing line's two conductors land on loop B.
-
-    Swapping them reverses loop B's current and so flips the handedness, which
-    is why this gets its own line rather than an enum buried in the feed text.
+def _loop_b_connection_line(connection: str, sense: str) -> str:
+    """The one build step that decides handedness: cross the phasing line at
+    loop B, or do not. Stated as the action and what it gives you, since that is
+    all the builder needs -- get it backwards and the antenna is the other sense.
     """
-    if connection == "crossed":
-        return "Loop B connection   : conductors crossed (this is what sets the sense)"
-    return "Loop B connection   : conductors straight through"
+    action = (
+        "cross the two conductors" if connection == "crossed" else "straight through"
+    )
+    return f"Loop B connection   : {action}, gives {sense}"
 
 
-def _feed_lines(build: dict) -> list[str]:
+def _feed_lines(build: dict, sense: str) -> list[str]:
     if "phasing_line" in build:
         line = build["phasing_line"]
         return [
             f"Phasing line        : {_coax_text(line)}",
-            _loop_b_connection_line(line["connection"]),
+            _loop_b_connection_line(line["connection"], sense),
             "Feed                : feedline to the junction across loop A",
         ]
     harness = build["harness"]
@@ -98,7 +103,7 @@ def _feed_lines(build: dict) -> list[str]:
             f"Balun               : {balun['kind']}, {balun['length_mm']:.1f} mm "
             f"{balun['coax']['name']} (VF {balun['coax']['vf']:g}); braid bonds "
             "to the feedline braid",
-            _loop_b_connection_line(harness["connection"]),
+            _loop_b_connection_line(harness["connection"], sense),
             "Feed                : balun then Q-section to the junction across loop A",
         ]
     # The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
@@ -108,7 +113,7 @@ def _feed_lines(build: dict) -> list[str]:
         f"{balun['core_pn']} ferrite cores over {balun['coax']['name']} at the "
         "feedpoint",
         "Pair braids         : bonded to each other at both ends; not grounded",
-        _loop_b_connection_line(harness["connection"]),
+        _loop_b_connection_line(harness["connection"], sense),
         f"Feed                : {balun['coax']['name']} through the choke to the "
         "junction across loop A",
     ]
@@ -124,7 +129,7 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
         "loop B above)",
         f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
         *_mesh_lines(build["mesh"]),
-    ] + _feed_lines(build)
+    ] + _feed_lines(build, _achieved_sense(result))
 
 
 def _mesh_lines(mesh: dict) -> list[str]:

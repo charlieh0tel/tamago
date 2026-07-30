@@ -105,21 +105,26 @@ function coaxText(piece: JsonObject): string {
   );
 }
 
-// Build step: how the phasing line's two conductors land on loop B. Swapping
-// them reverses loop B's current and so flips the handedness, which is why this
-// gets its own line rather than an enum buried in the feed text.
-function loopBConnectionLine(connection: string): string {
-  return connection === "crossed"
-    ? "Loop B connection   : conductors crossed (this is what sets the sense)"
-    : "Loop B connection   : conductors straight through";
+// The one build step that decides handedness: cross the phasing line at loop B,
+// or do not. Stated as the action and what it gives you, since that is all the
+// builder needs -- get it backwards and the antenna is the other sense.
+function loopBConnectionLine(connection: string, sense: string): string {
+  const action =
+    connection === "crossed" ? "cross the two conductors" : "straight through";
+  return `Loop B connection   : ${action}, gives ${sense}`;
 }
 
-function feedLines(build: JsonObject): string[] {
+// Achieved handedness as a bare token (RHCP/LHCP), for inline use.
+function achievedSense(result: DesignResult): string {
+  return (NEC_SENSE_TO_HAND[result.sense] ?? result.sense).toUpperCase();
+}
+
+function feedLines(build: JsonObject, sense: string): string[] {
   if ("phasing_line" in build) {
     const line = obj(build, "phasing_line");
     return [
       `Phasing line        : ${coaxText(line)}`,
-      loopBConnectionLine(str(line, "connection")),
+      loopBConnectionLine(str(line, "connection"), sense),
       "Feed                : feedline to the junction across loop A",
     ];
   }
@@ -132,7 +137,7 @@ function feedLines(build: JsonObject): string[] {
       `Q-section           : ${coaxText(obj(harness, "q_section"))}`,
       "Pair braids         : bonded to each other at both ends; not grounded",
       `Balun               : ${str(balun, "kind")}, ${f(num(balun, "length_mm"), 1)} mm ${str(obj(balun, "coax"), "name")} (VF ${g(num(obj(balun, "coax"), "vf"))}); braid bonds to the feedline braid`,
-      loopBConnectionLine(str(harness, "connection")),
+      loopBConnectionLine(str(harness, "connection"), sense),
       "Feed                : balun then Q-section to the junction across loop A",
     ];
   }
@@ -142,7 +147,7 @@ function feedLines(build: JsonObject): string[] {
     `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
     `Choke               : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
     "Pair braids         : bonded to each other at both ends; not grounded",
-    loopBConnectionLine(str(harness, "connection")),
+    loopBConnectionLine(str(harness, "connection"), sense),
     `Feed                : ${chokeCoax} through the choke to the junction across loop A`,
   ];
 }
@@ -173,7 +178,7 @@ function meshLines(mesh: JsonObject): string[] {
   ];
 }
 
-function geometryLines(build: JsonObject): string[] {
+function geometryLines(result: DesignResult, build: JsonObject): string[] {
   const term = WIDTH_TERM[str(build, "loop_shape")] ?? "width";
   const loop = obj(build, "loop");
   return [
@@ -182,7 +187,7 @@ function geometryLines(build: JsonObject): string[] {
     `Loop offset         : ${g(num(build, "loop_offset_mm"))} mm (loop A below, loop B above)`,
     `Feed gap            : ${g(num(build, "feed_gap_mm"))} mm at each loop bottom`,
     ...meshLines(obj(build, "mesh")),
-    ...feedLines(build),
+    ...feedLines(build, achievedSense(result)),
   ];
 }
 
@@ -256,7 +261,7 @@ function performanceLines(result: DesignResult, perf: JsonObject): string[] {
 function buildLines(result: DesignResult, build: JsonObject): string[] {
   const lines = headerLines(result, build);
   lines.push("-".repeat(40));
-  lines.push(...geometryLines(build));
+  lines.push(...geometryLines(result, build));
   lines.push("-".repeat(40));
   lines.push(...matchLines(result, build));
   return lines;

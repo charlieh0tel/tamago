@@ -15,7 +15,7 @@ Phasing line        : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Q-section           : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Pair braids         : bonded to each other at both ends; not grounded
 Balun               : half-wave 4:1, 678.1 mm RG-58 (VF 0.66); braid bonds to the feedline braid
-Loop B connection   : conductors crossed (this is what sets the sense)
+Loop B connection   : cross the two conductors, gives LHCP
 Feed                : balun then Q-section to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:

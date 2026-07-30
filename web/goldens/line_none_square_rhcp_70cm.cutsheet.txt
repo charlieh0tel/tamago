@@ -13,7 +13,7 @@ Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 51.3 mm segments = 0.075 wl = 21 radii
   ! thin-wire ratio 21 below 36: loop impedance overstated
 Phasing line        : 144.4 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-Loop B connection   : conductors straight through
+Loop B connection   : straight through, gives RHCP
 Feed                : feedline to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
