@@ -202,13 +202,13 @@ function feedLines(build: JsonObject, sense: string): string[] {
 function meshLines(mesh: JsonObject): string[] {
   const source = mesh.derived ? "derived" : "set";
   const radii = num(mesh, "segment_radii");
-  const target = num(mesh, "segment_radii_target");
+  const warn = num(mesh, "segment_radii_warn");
   const segWl = num(mesh, "segment_wl");
   const warnWl = num(mesh, "segment_wl_warn");
   const flags: string[] = [];
-  if (radii < target - 0.5) {
+  if (radii < warn - 0.5) {
     flags.push(
-      `thin-wire ratio ${f(radii, 0)} below ${f(target, 0)}: loop impedance overstated`,
+      `thin-wire ratio ${f(radii, 0)} below ${f(warn, 0)}: loop impedance unreliable`,
     );
   }
   if (segWl > warnWl) {

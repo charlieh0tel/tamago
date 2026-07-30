@@ -42,7 +42,7 @@
       "segment_length_mm": 134.5000997307582,
       "segment_wl": 0.06545716553922654,
       "segment_radii": 53.800039892303275,
-      "segment_radii_target": 36.0,
+      "segment_radii_warn": 20.0,
       "segment_wl_warn": 0.1
     },
     "loop_offset_mm": 10.0,

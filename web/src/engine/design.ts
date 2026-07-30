@@ -34,6 +34,7 @@ import {
   GOLDEN_RATIO,
   HZ_PER_MHZ,
   LINE_PHASING_COAX,
+  LOOP_SAGITTA_RADII,
   LOOP_SEGMENT_QUANTUM,
   LOOP_SEGMENT_RADII,
   MATCH_REACTANCE_WARN_OHMS,
@@ -63,6 +64,8 @@ import {
   type Eggbeater,
   LOOP_A_TAG_BASE,
   LOOP_B_TAG_BASE,
+  SHAPE_CIRCLE,
+  SHAPE_SQUARE,
   type Wire,
   loopExtentM,
   loopRadiusM,
@@ -244,17 +247,55 @@ function commentLines(spec: DesignSpec): string[] {
 // Polygon sides per loop: the spec's value, or derived from the conductor.
 // Derived from the nominal one-wavelength perimeter rather than the tuned one, so
 // the mesh does not shift underneath the perimeter solver.
+// Segments per full turn to keep a polygon within LOOP_SAGITTA_RADII of a curve
+// of this radius. The chord of a segment subtending 2*half sits
+// curveRadius*(1 - cos(half)) inside the curve.
+function sagittaSegments(curveRadiusM: number, conductorRadiusM: number): number {
+  if (curveRadiusM <= 0.0) {
+    return 0.0;
+  }
+  const tolerance = LOOP_SAGITTA_RADII * conductorRadiusM;
+  const half = Math.acos(Math.max(-1.0, 1.0 - Math.min(1.0, tolerance / curveRadiusM)));
+  return half <= 0.0 ? Number.POSITIVE_INFINITY : Math.PI / half;
+}
+
+// Sides needed for the polygon to track this shape's outline.
+function geometricSegments(spec: DesignSpec, wavelength: number): number {
+  const radius = equivalentRadiusM(spec.conductor);
+  if (spec.loopShape === SHAPE_SQUARE) {
+    return 0.0; // straight sides: exact at any multiple of the quantum
+  }
+  if (spec.loopShape === SHAPE_CIRCLE) {
+    return sagittaSegments(loopRadiusM(wavelength), radius);
+  }
+  // Squircle: only the four corner arcs are curved, and together they are one
+  // full turn of the corner radius. Segments are spread evenly along the
+  // perimeter, so scale up by the arcs' share of it.
+  const cornerRadius = spec.cornerRadiusWl * wavelength;
+  const arcLength = 2.0 * Math.PI * cornerRadius;
+  if (!(arcLength > 0.0 && arcLength < wavelength)) {
+    return sagittaSegments(loopRadiusM(wavelength), radius);
+  }
+  return (sagittaSegments(cornerRadius, radius) * wavelength) / arcLength;
+}
+
 export function loopSegments(spec: DesignSpec): number {
   if (spec.segments !== null) {
     return spec.segments;
   }
   const wavelength = wavelengthM(spec.freqMhz);
   const target = LOOP_SEGMENT_RADII * equivalentRadiusM(spec.conductor);
-  const sides = wavelength / target;
-  const quantized = LOOP_SEGMENT_QUANTUM * Math.round(sides / LOOP_SEGMENT_QUANTUM);
+  // The conductor-radius target is a preference, so it rounds; the geometric
+  // requirement is a floor, so it rounds up.
+  const fromRadii =
+    LOOP_SEGMENT_QUANTUM * Math.round(wavelength / target / LOOP_SEGMENT_QUANTUM);
+  const geometric = geometricSegments(spec, wavelength);
+  const fromShape = Number.isFinite(geometric)
+    ? LOOP_SEGMENT_QUANTUM * Math.ceil(geometric / LOOP_SEGMENT_QUANTUM)
+    : MAX_SEGMENTS;
   const ceiling =
     LOOP_SEGMENT_QUANTUM * Math.floor(MAX_SEGMENTS / LOOP_SEGMENT_QUANTUM);
-  return Math.max(MIN_LOOP_SEGMENTS, Math.min(ceiling, quantized));
+  return Math.max(MIN_LOOP_SEGMENTS, Math.min(ceiling, Math.max(fromRadii, fromShape)));
 }
 
 // Length of one loop segment at this perimeter.

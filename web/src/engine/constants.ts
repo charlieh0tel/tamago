@@ -87,8 +87,21 @@ export const MAX_SEGMENTS = 99;
 // (the ON6WG/F5VIF 2 m build; see docs/reference-designs.md). It is a
 // calibration, not a convergence result -- see docs/segmentation.md.
 export const LOOP_SEGMENT_RADII = 36.0;
+// Below this, the thin-wire kernel itself is marginal and the loop impedance is
+// not to be trusted. Separate from the target above: that one is a preference for
+// where to put segments, this one is a validity limit. NEC guidance puts the hard
+// floor near 8 radii; 20 is where accuracy stops being comfortable.
+export const LOOP_SEGMENT_RADII_WARN = 20.0;
 // Rounded to a multiple of this so a square loop's corners land on vertices.
 export const LOOP_SEGMENT_QUANTUM = 4;
+// The polygon must also track the intended outline, not just carry a sensible
+// current. It is required to stay within this many conductor radii of the true
+// curve, so the discretization error is smaller than the conductor itself. This
+// only binds on curved outlines: a square is exact at any multiple of four, a
+// circle needs roughly 28 sides, and a squircle needs the most of the three --
+// its curvature is concentrated in four tight corners while segments are spread
+// evenly along the perimeter, so the corners get under a third of them.
+export const LOOP_SAGITTA_RADII = 1.0;
 // A polygon this coarse barely resembles a circle, so the derived count stops
 // here even for conductors thick enough to ask for fewer.
 export const MIN_LOOP_SEGMENTS = 12;

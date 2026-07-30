@@ -340,40 +340,67 @@ def test_loop_segments_derive_from_conductor():
     # An explicit count is passed through untouched.
     assert loop_segments(replace(_spec(), segments=36)) == 36
 
-    # Derived: the segment length lands near LOOP_SEGMENT_RADII conductor radii,
-    # which is the ratio that governs the loop impedance.
-    def derived_radii(freq_mhz: float, conductor) -> float:
-        spec = replace(_spec(), freq_mhz=freq_mhz, conductor=conductor, segments=None)
-        segment_m = wavelength_m(freq_mhz) / loop_segments(spec)
-        return segment_m / conductor.equivalent_radius_m
-
-    # The published 2 m reference (10 mm flat rod) is the calibration point.
-    assert (
-        loop_segments(
-            replace(
-                _spec(), freq_mhz=145.0, conductor=strip_conductor(10.0), segments=None
-            )
-        )
-        == 24
+    # A square has straight sides, so only the conductor-radius target applies and
+    # the derived segment length lands near LOOP_SEGMENT_RADII radii. Curved
+    # outlines carry an extra geometric floor -- see
+    # test_derived_segments_track_the_shape.
+    square = replace(
+        _spec(),
+        freq_mhz=145.0,
+        conductor=strip_conductor(10.0),
+        loop_shape="square",
+        segments=None,
     )
-    assert abs(derived_radii(145.0, strip_conductor(10.0)) - LOOP_SEGMENT_RADII) < 3.0
+    assert loop_segments(square) == 24
+    segment_m = wavelength_m(145.0) / loop_segments(square)
+    radii = segment_m / square.conductor.equivalent_radius_m
+    assert abs(radii - LOOP_SEGMENT_RADII) < 3.0
 
     # A thicker conductor at a higher band asks for fewer sides, which is the
     # whole point: a fixed count would leave the two bands incomparable.
     coarse = loop_segments(
-        replace(_spec(), freq_mhz=435.0, conductor=round_conductor(4.0), segments=None)
+        replace(
+            _spec(),
+            freq_mhz=435.0,
+            conductor=round_conductor(4.0),
+            loop_shape="square",
+            segments=None,
+        )
     )
     assert coarse < 24
     assert coarse >= MIN_LOOP_SEGMENTS
     # Never below the polygon floor, however thick the conductor.
-    assert (
-        loop_segments(
-            replace(
-                _spec(), freq_mhz=435.0, conductor=round_conductor(20.0), segments=None
-            )
-        )
-        == MIN_LOOP_SEGMENTS
+    thick = replace(
+        _spec(),
+        freq_mhz=435.0,
+        conductor=round_conductor(20.0),
+        loop_shape="square",
+        segments=None,
     )
+    assert loop_segments(thick) == MIN_LOOP_SEGMENTS
+
+
+def test_derived_segments_track_the_shape():
+    from awadateki.design import MIN_LOOP_SEGMENTS, loop_segments
+
+    def sides(shape: str, **extra) -> int:
+        extra.setdefault("conductor", round_conductor(5.0))
+        return loop_segments(
+            replace(_spec(), freq_mhz=145.9, loop_shape=shape, segments=None, **extra)
+        )
+
+    square = sides("square")
+    circle = sides("circle")
+    squircle = sides("squircle", corner_radius_wl=0.05)
+    # A square's straight sides are exact at any multiple of the quantum, so only
+    # the conductor-radius target applies; a circle has to track a curve; and a
+    # squircle needs the most, because its curvature is concentrated in four
+    # tight corners while segments are spread evenly along the perimeter.
+    assert square < circle < squircle
+    # Each is a whole number of quantums.
+    assert all(n % 4 == 0 for n in (square, circle, squircle))
+    # A conductor thick enough to want fewer sides still gets the polygon floor.
+    assert sides("circle", conductor=round_conductor(40.0)) == MIN_LOOP_SEGMENTS
 
 
 def test_secant_reports_its_residual():

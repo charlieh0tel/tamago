@@ -103,10 +103,15 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   the knee of the worst-case-AR-versus-count curve -- the fewest radials past
   which adding more buys less than a small AR improvement.
 - `segments`: polygon sides per loop (maximum 99). Omit it and the count is
-  derived from the conductor radius, so a spec means the same discretization at
-  every band and conductor size; set it to pin a count. Non-circular shapes
-  resample to equal-length sides; a multiple of 4 lands a square's corners on
-  vertices.
+  derived, from two requirements: segment length held at a fixed number of
+  conductor radii (so a spec means the same discretization at every band and
+  conductor size), and enough sides for the polygon to stay within one conductor
+  radius of the intended outline. The second binds only on curved shapes, and
+  hardest on the squircle -- its curvature sits in four tight corners while
+  segments spread evenly, so a 5 mm conductor at 2 m derives 24 sides for a
+  square, 28 for a circle and 48 for a squircle. Set the field to pin a count
+  instead. Non-circular shapes resample to equal-length sides; a multiple of 4
+  lands a square's corners on vertices.
 - `label`: optional name for output; defaults to none.
 - `notes`: optional free-text design intent; carried through optimization.
 - `optimization`: output-only provenance, written by `--optimize-reflector` (the

@@ -57,7 +57,7 @@ from .design import (
     FEED_BALUN4,
     FEED_CHOKE,
     FEED_LINE,
-    LOOP_SEGMENT_RADII,
+    LOOP_SEGMENT_RADII_WARN,
     LOOP_SEGMENT_WL_WARN,
     NEC_SENSE_TO_HAND,
     REFLECTOR_NONE,
@@ -193,7 +193,7 @@ def _mesh_dict(result: DesignResult, wavelength: float) -> dict:
         "segment_length_mm": segment_m * MM_PER_M,
         "segment_wl": segment_m / wavelength,
         "segment_radii": segment_m / spec.conductor.equivalent_radius_m,
-        "segment_radii_target": LOOP_SEGMENT_RADII,
+        "segment_radii_warn": LOOP_SEGMENT_RADII_WARN,
         "segment_wl_warn": LOOP_SEGMENT_WL_WARN,
     }
 

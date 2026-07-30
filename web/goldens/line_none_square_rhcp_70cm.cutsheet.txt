@@ -11,7 +11,6 @@ Both loops          : 820.6 mm perimeter, 205.1 mm side
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 51.3 mm segments = 0.075 wl = 21 radii
-  ! thin-wire ratio 21 below 36: loop impedance overstated
 Phasing line        : 144.4 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
   drive split       : 93 ohm line vs 140 ohm loop (modeled), balance 1.50
   ! 3.5 dB of axial ratio from that split alone; equal drive wants a ~140 ohm line

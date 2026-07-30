@@ -20,6 +20,7 @@ from .geometry import (
     LOOP_A_TAG_BASE,
     LOOP_B_TAG_BASE,
     SHAPE_CIRCLE,
+    SHAPE_SQUARE,
     Wire,
     loop_extent_m,
     loop_radius_m,
@@ -59,18 +60,33 @@ RADIAL_SEGMENT_WL = 0.05
 # what made two halves of a pair incomparable at equal `segments`, so the count
 # is derived from the conductor radius instead, holding the binding ratio fixed.
 #
-# 36 radii reproduces the one design point checked against published hardware
-# (the ON6WG/F5VIF 2 m build; see docs/reference-designs.md). It is a
-# calibration, not a convergence result -- see docs/segmentation.md.
+# 36 radii was originally calibrated so the buggy model reproduced a published
+# design point. That role is gone: since the feed-region fix the model converges,
+# so refining the mesh no longer changes the answer and this is just a preference
+# for where to put segments. The geometric floor below is what actually binds on
+# curved outlines. See docs/segmentation.md.
 LOOP_SEGMENT_RADII = 36.0
+# Below this, the thin-wire kernel itself is marginal and the loop impedance is
+# not to be trusted. Separate from the target above: that one is a preference for
+# where to put segments, this one is a validity limit. NEC guidance puts the hard
+# floor near 8 radii; 20 is where accuracy stops being comfortable.
+LOOP_SEGMENT_RADII_WARN = 20.0
 # Rounded to a multiple of this so a square loop's corners land on vertices.
 LOOP_SEGMENT_QUANTUM = 4
+# The polygon must also track the intended outline, not just carry a sensible
+# current. It is required to stay within this many conductor radii of the true
+# curve, so the discretization error is smaller than the conductor itself. This
+# only binds on curved outlines: a square is exact at any multiple of four, a
+# circle needs roughly 28 sides, and a squircle needs the most of the three --
+# its curvature is concentrated in four tight corners while segments are spread
+# evenly along the perimeter, so the corners get under a third of them.
+LOOP_SAGITTA_RADII = 1.0
 # A polygon this coarse barely resembles a circle, so the derived count stops
 # here even for conductors thick enough to ask for fewer.
 MIN_LOOP_SEGMENTS = 12
 # Segment lengths above this fraction of a wavelength under-resolve the loop
 # current; reported as a warning rather than enforced, since a thick conductor
-# cannot satisfy both this and LOOP_SEGMENT_RADII at once.
+# cannot satisfy both this and LOOP_SEGMENT_RADII_WARN at once.
 LOOP_SEGMENT_WL_WARN = 0.10
 
 # Quarter-wave sections (phasing line, Q-sections, delay line): NEC ideal TLs
@@ -435,6 +451,34 @@ def _feed(egg, spec: DesignSpec, wavelength: float, flip: bool):
     return (), (source,), (line,)
 
 
+def _sagitta_segments(curve_radius_m: float, conductor_radius_m: float) -> float:
+    """Segments per full turn to keep a polygon within LOOP_SAGITTA_RADII of a
+    curve of this radius. The chord of a segment subtending 2*half sits
+    curve_radius*(1 - cos(half)) inside the curve."""
+    if curve_radius_m <= 0.0:
+        return 0.0
+    tolerance = LOOP_SAGITTA_RADII * conductor_radius_m
+    half = math.acos(max(-1.0, 1.0 - min(1.0, tolerance / curve_radius_m)))
+    return math.inf if half <= 0.0 else math.pi / half
+
+
+def _geometric_segments(spec: DesignSpec, wavelength: float) -> float:
+    """Sides needed for the polygon to track this shape's outline."""
+    radius = spec.conductor.equivalent_radius_m
+    if spec.loop_shape == SHAPE_SQUARE:
+        return 0.0  # straight sides: exact at any multiple of the quantum
+    if spec.loop_shape == SHAPE_CIRCLE:
+        return _sagitta_segments(loop_radius_m(wavelength), radius)
+    # Squircle: only the four corner arcs are curved, and together they are one
+    # full turn of the corner radius. Segments are spread evenly along the
+    # perimeter, so scale up by the arcs' share of it.
+    corner_radius = spec.corner_radius_wl * wavelength
+    arc_length = 2.0 * math.pi * corner_radius
+    if not 0.0 < arc_length < wavelength:
+        return _sagitta_segments(loop_radius_m(wavelength), radius)
+    return _sagitta_segments(corner_radius, radius) * wavelength / arc_length
+
+
 def loop_segments(spec: DesignSpec) -> int:
     """Polygon sides per loop: the spec's value, or derived from the conductor.
 
@@ -445,10 +489,19 @@ def loop_segments(spec: DesignSpec) -> int:
         return spec.segments
     wavelength = wavelength_m(spec.freq_mhz)
     target = LOOP_SEGMENT_RADII * spec.conductor.equivalent_radius_m
-    sides = wavelength / target
-    quantized = LOOP_SEGMENT_QUANTUM * round(sides / LOOP_SEGMENT_QUANTUM)
+    # The conductor-radius target is a preference, so it rounds; the geometric
+    # requirement is a floor, so it rounds up.
+    from_radii = LOOP_SEGMENT_QUANTUM * round(
+        (wavelength / target) / LOOP_SEGMENT_QUANTUM
+    )
+    geometric = _geometric_segments(spec, wavelength)
+    from_shape = (
+        LOOP_SEGMENT_QUANTUM * math.ceil(geometric / LOOP_SEGMENT_QUANTUM)
+        if math.isfinite(geometric)
+        else MAX_SEGMENTS
+    )
     ceiling = LOOP_SEGMENT_QUANTUM * (MAX_SEGMENTS // LOOP_SEGMENT_QUANTUM)
-    return max(MIN_LOOP_SEGMENTS, min(ceiling, quantized))
+    return max(MIN_LOOP_SEGMENTS, min(ceiling, max(from_radii, from_shape)))
 
 
 def loop_segment_length_m(spec: DesignSpec, perimeter_m: float) -> float:

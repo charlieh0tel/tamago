@@ -155,12 +155,18 @@ discrepancy.
 
 ## What is still open
 
-1. **Re-purpose the mesh derivation.** `LOOP_SEGMENT_RADII` was calibrated
-   against the buggy model. Now that refining is safe, the count should be
-   chosen for accuracy instead: enough segments for the shape's geometry (a
-   circle needs roughly 28 to sit within a wire radius of the true curve, a
-   squircle more, a square none) and long enough against the conductor radius
-   for the thin-wire kernel.
+1. ~~Re-purpose the mesh derivation.~~ Done. The derived count now carries a
+   geometric floor as well as the conductor-radius preference: the polygon has to
+   stay within one conductor radius of the intended outline
+   (`LOOP_SAGITTA_RADII`). That is free now that refining does not move the answer
+   -- at the F5VIF 2 m geometry the loop impedance shifts 0.3% between 20 and 40
+   sides. It gives, for a 5 mm conductor at 2 m: square 24 sides, circle 28,
+   squircle 48. The squircle needs the most, not the least, because its curvature
+   is concentrated in four tight corners while segments are spread evenly along
+   the perimeter, so the corners receive under a third of them. The thin-wire
+   flag also moved off the old calibration value (36 radii) onto a real validity
+   limit (`LOOP_SEGMENT_RADII_WARN`, 20), so it stops firing on meshes that are
+   simply fine.
 2. **Reconcile ~143 ohm against their stated 100 ohm.** Independent NEC modeling
    puts resonant full-wave loops at 121-134 ohm for triangle through hexagon,
    rising with side count, so a circle near 143 ohm is in line -- but that is the

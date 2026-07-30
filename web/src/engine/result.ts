@@ -23,7 +23,7 @@ import {
   FEED_BALUN4,
   FEED_CHOKE,
   FEED_LINE,
-  LOOP_SEGMENT_RADII,
+  LOOP_SEGMENT_RADII_WARN,
   LOOP_SEGMENT_WL_WARN,
   NEC_SENSE_TO_HAND,
   REFLECTOR_NONE,
@@ -161,7 +161,7 @@ function meshDict(result: DesignResult, wavelength: number): JsonObject {
     segment_length_mm: segmentM * MM_PER_M,
     segment_wl: segmentM / wavelength,
     segment_radii: segmentM / equivalentRadiusM(spec.conductor),
-    segment_radii_target: LOOP_SEGMENT_RADII,
+    segment_radii_warn: LOOP_SEGMENT_RADII_WARN,
     segment_wl_warn: LOOP_SEGMENT_WL_WARN,
   };
 }
