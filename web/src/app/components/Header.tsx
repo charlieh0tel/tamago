@@ -12,25 +12,24 @@ function signed(x: number): string {
   return `${x >= 0 ? "+" : "-"}${Math.abs(x).toFixed(1)}`;
 }
 
-// Balloon whisk in the same stroked line art as the feed schematics: hanging
-// loop, tapered handle, and four wires bowing out to a common tip. Drawn as the
-// utensil sits (handle up) then turned 180 degrees, which lands it the way the
-// antenna stands -- loops up, mast below. Decorative; the brand text alongside
-// already names the thing.
+// Balloon whisk in the same stroked line art as the feed schematics: a tapered
+// handle at the lower left and four wires bowing into a long teardrop at the
+// upper right, the way the antenna stands -- loops up, mast below. Decorative;
+// the brand text alongside already names the thing.
+//
+// The wire cubics share their along-axis control fractions (0.30 and 0.72) and
+// differ only in how far they bow off it, which is what puts the widest part of
+// the teardrop past the midpoint instead of at it.
 function WhiskMark(): JSX.Element {
   return (
     <svg className="whisk" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <g transform="rotate(180 12 12)">
-        {/* Hanging loop at the butt of the handle. */}
-        <circle cx="20.7" cy="3.3" r="1.5" />
-        {/* Tapered handle: down one side, across the ferrule, back up the other. */}
-        <path d="M17.9 4.2 L10.9 12.4 L12.7 14 L20.1 6.2 Z" />
-        {/* Wires, from the ferrule out to a common tip. */}
-        <path d="M11.8 13.2 Q13.6 20.2 6.5 19.1" />
-        <path d="M11.8 13.2 Q4.7 12.2 6.5 19.1" />
-        <path d="M11.8 13.2 Q11.1 17.9 6.5 19.1" />
-        <path d="M11.8 13.2 Q7.2 14.4 6.5 19.1" />
-      </g>
+      {/* Tapered handle: up one side, across the ferrule, back down the other. */}
+      <path d="M2.4 19.4 L10.2 12.2 L11.8 13.8 L4.6 21.6 Z" />
+      {/* Wires, ferrule to a common tip, two bows per side. */}
+      <path d="M11 13 C16.1 12.1 21.9 9.5 21 3" />
+      <path d="M11 13 C11.9 7.9 14.5 2.1 21 3" />
+      <path d="M11 13 C14.9 10.9 19.9 7.5 21 3" />
+      <path d="M11 13 C13.1 9.1 16.5 4.1 21 3" />
     </svg>
   );
 }
