@@ -112,9 +112,9 @@ async function handleAnalyze(
 async function handleOptimize(id: number, spec: DesignSpec): Promise<void> {
   const start = Date.now();
   const reflector = spec.reflector !== REFLECTOR_NONE;
-  let stage = reflector
-    ? "searching reflector placement..."
-    : "tuning perimeter to quadrature...";
+  // One label for every phase of Optimize: which solver is running is an
+  // implementation detail, and the run counter already shows progress.
+  const stage = "whisking...";
   const runner = instrumentedRunner(id, (runs) => {
     post({
       id,
@@ -127,7 +127,6 @@ async function handleOptimize(id: number, spec: DesignSpec): Promise<void> {
   let optimizedSpec: DesignSpec;
   if (reflector) {
     optimizedSpec = await optimizeReflector(spec, runner);
-    stage = "tuning final placement...";
     tuned = await design(optimizedSpec, runner);
   } else {
     // No reflector: Optimize only tunes the perimeter to quadrature.
