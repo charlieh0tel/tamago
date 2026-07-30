@@ -130,6 +130,10 @@ MAX_SEGMENTS = 98
 REFERENCE_IMPEDANCE_OHMS = 50.0
 # Residual feedpoint reactance above which a series tuning element is sized.
 MATCH_REACTANCE_WARN_OHMS = 10.0
+# The quarter-wave match must beat a direct connection by at least this much
+# VSWR to be worth specifying; below it the section is inert (see
+# match_is_useful) and the cut sheet says to connect the feedline directly.
+MATCH_VSWR_MARGIN = 0.02
 HZ_PER_MHZ = 1.0e6
 
 # Upper-hemisphere sampling grid: theta 0..80 deg, phi 0..90 deg.
@@ -938,13 +942,32 @@ def _balun4_radio_z(
     return half * z_via_line / (half + z_via_line)
 
 
+def match_is_useful(spec: DesignSpec, z: complex) -> bool:
+    """Whether the quarter-wave match beats connecting the feedline directly.
+
+    A turnstile's junction already lands near the system impedance by
+    construction, so the computed transformer usually snaps to a catalog cable
+    equal to it -- an identity transform. Specifying it anyway would hand the
+    builder an inert section of coax to cut, which is not what the published
+    designs do. An explicitly requested match_coax is always honored.
+    """
+    if spec.feed in BALANCED_FEEDS:
+        return False  # their harness or choke is the match
+    if spec.match_coax is not None:
+        return True
+    direct = vswr(z, spec.system_z_ohm)
+    matched = post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
+    return matched < direct - MATCH_VSWR_MARGIN
+
+
 def matched_vswr(spec: DesignSpec, z: complex) -> float:
-    """Post-match VSWR at the radio for the spec's feed scheme.
+    """VSWR at the radio for the spec's feed scheme, as actually built.
 
     The balun4 feed reaches the radio through the quarter-wave balanced
     Q-section and the half-wave 4:1 balun; the choke feed uses a 1:1 ferrite
     choke balun (no impedance transform), so the radio sees the feedpoint
-    impedance directly; the line feed uses the series-element/transformer match.
+    impedance directly; the line feed uses the series-element/transformer match,
+    but only when that improves on a direct connection (see match_is_useful).
     """
     if spec.feed == FEED_BALUN4:
         if z.real <= 0.0:
@@ -952,6 +975,8 @@ def matched_vswr(spec: DesignSpec, z: complex) -> float:
         z_radio = _balun4_radio_z(z, spec.freq_mhz, spec.freq_mhz)
         return vswr(z_radio, spec.system_z_ohm)
     if spec.feed == FEED_CHOKE:
+        return vswr(z, spec.system_z_ohm)
+    if not match_is_useful(spec, z):
         return vswr(z, spec.system_z_ohm)
     return post_match_vswr(z, spec.system_z_ohm, spec.match_coax)
 

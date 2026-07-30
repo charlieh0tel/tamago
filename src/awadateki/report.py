@@ -147,6 +147,9 @@ def _match_lines(result: DesignResult, build: dict) -> list[str]:
     if match.get("network") == "choke":
         lines.append("  none; the 1:1 ferrite choke presents the feed Z directly")
         return lines
+    if match.get("network") == "direct":
+        lines.append("  none needed; connect the feedline straight to the junction")
+        return lines
     series = match["series_element"]
     if series is not None:
         sized = (

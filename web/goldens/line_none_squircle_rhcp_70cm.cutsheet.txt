@@ -17,8 +17,7 @@ Phasing line        : 144.4 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
 Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------
 Match to 50 ohm:
-  1/4-wave Z0       : 47.1 ohms (use RG-58, 50 ohm)
-  1/4-wave length   : 113.5 mm (VF 0.66)
+  none needed; connect the feedline straight to the junction
 ----------------------------------------
 Predicted performance:
   feedpoint Z       : 44.5 +0.0j ohms

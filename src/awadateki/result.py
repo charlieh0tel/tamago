@@ -67,6 +67,7 @@ from .design import (
     frequency_sweep,
     loop_segment_length_m,
     loop_segments,
+    match_is_useful,
     matched_vswr,
     phasing_line_coax,
     quarter_wave_match_z0,
@@ -110,6 +111,10 @@ def _match_dict(result: DesignResult, wavelength: float) -> dict:
     if spec.feed == FEED_CHOKE:
         # A 1:1 ferrite choke: no impedance transform, the radio sees z_in.
         return {"system_z_ohm": spec.system_z_ohm, "network": "choke"}
+    if not match_is_useful(spec, z):
+        # The junction already sits at the system impedance; a transformer here
+        # would be an inert section of coax.
+        return {"system_z_ohm": spec.system_z_ohm, "network": "direct"}
     z0 = quarter_wave_match_z0(z, spec.system_z_ohm)
     coax = transformer_coax(z, spec.system_z_ohm, spec.match_coax)
     series = None

@@ -106,6 +106,10 @@ export const AR_TARGET_DB = 3.0;
 
 // Residual feedpoint reactance above which a series tuning element is sized.
 export const MATCH_REACTANCE_WARN_OHMS = 10.0;
+// The quarter-wave match must beat a direct connection by at least this much
+// VSWR to be worth specifying; below it the section is inert (see
+// matchIsUseful) and the cut sheet says to connect the feedline directly.
+export const MATCH_VSWR_MARGIN = 0.02;
 
 // Target NEC segment length along a radial, in wavelengths.
 export const RADIAL_SEGMENT_WL = 0.05;

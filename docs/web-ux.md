@@ -81,7 +81,7 @@ yields an amber "analyzed -- phase +84.1 deg, not tuned".
 
 The feed schemes are picker cards named for the hardware -- "Phasing line",
 "4:1 balun", "Ferrite choke" -- with the spec token (`line`, `balun4`,
-`choke`) small in the tag line, a one-line trade-off ("simplest, one coax" /
+`choke`) small in the tag line, a one-line trade-off ("simplest, unbalanced" /
 "balanced feed (F5VIF)" / "balanced, 1:1 (F5VIF)"), and the scheme's real
 schematic line art as the card art. `balun4` and `choke` share the balanced
 phasing-line model and differ only in the match hardware.

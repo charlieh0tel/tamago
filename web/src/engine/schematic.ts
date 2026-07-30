@@ -309,11 +309,14 @@ function linePhased(build: JsonObject): [string, number, number] {
   const xSwap = 634.0;
   const loopBCx = 696.0;
 
-  const tlCoax = obj(match.transformer_coax);
-  const tlLabel = [
-    `TL1  ${tlCoax.name} (${formatG(tlCoax.z0_ohm as number)} &#8486;)`,
-    `1/4 wave  ${(match.transformer_length_mm as number).toFixed(0)} mm`,
-  ];
+  const direct = match.network === "direct";
+  const tlCoax = direct ? ({} as JsonObject) : obj(match.transformer_coax);
+  const tlLabel = direct
+    ? []
+    : [
+        `TL1  ${tlCoax.name} (${formatG(tlCoax.z0_ohm as number)} &#8486;)`,
+        `1/4 wave  ${(match.transformer_length_mm as number).toFixed(0)} mm`,
+      ];
   const phCoax = obj(phasing.coax);
   const phLabel = [
     `TL2  ${phCoax.name} (${formatG(phCoax.z0_ohm as number)} &#8486;)`,
@@ -321,19 +324,30 @@ function linePhased(build: JsonObject): [string, number, number] {
   ];
 
   const rig = `to rig (${formatG(match.system_z_ohm as number)} &#8486;)`;
+  const feedRun = direct
+    ? [
+        // The junction already sits at the system impedance, so the feedline
+        // runs straight onto the loop A leads: no transformer, no series
+        // element (see matchIsUseful).
+        line(xTerm + TERMINAL_RADIUS, yA, xRailEnd, yA),
+        line(xTerm + TERMINAL_RADIUS, yA + RAIL_GAP, xRailEnd, yA + RAIL_GAP),
+      ]
+    : [
+        // Hot rail (the center conductor): terminal, through the transformer
+        // shield, series element, on to the loop A leads.
+        line(xTerm + TERMINAL_RADIUS, yA, xSer0, yA),
+        seriesElement(match.series_element as JsonObject | null, xSer0, xSer1, yA),
+        line(xSer1, yA, xRailEnd, yA),
+        // Return conductor stops at the shield pigtails; inside the coax run the
+        // shield is the return path.
+        line(xTerm + TERMINAL_RADIUS, yA + RAIL_GAP, xTl0, yA + RAIL_GAP),
+        line(xTl1, yA + RAIL_GAP, xRailEnd, yA + RAIL_GAP),
+        unbalancedSection(xTl0, xTl1, yA, yA + RAIL_GAP, tlLabel, tlCoax),
+      ];
   const parts = [
     text(xTerm - 24.0, yA + RAIL_GAP + 30.0, rig, "start"),
     terminalPair(xTerm, yA),
-    // Hot rail (the center conductor): terminal, through the transformer
-    // shield, series element, on to the loop A leads.
-    line(xTerm + TERMINAL_RADIUS, yA, xSer0, yA),
-    seriesElement(match.series_element as JsonObject | null, xSer0, xSer1, yA),
-    line(xSer1, yA, xRailEnd, yA),
-    // Return conductor stops at the shield pigtails; inside the coax run the
-    // shield is the return path.
-    line(xTerm + TERMINAL_RADIUS, yA + RAIL_GAP, xTl0, yA + RAIL_GAP),
-    line(xTl1, yA + RAIL_GAP, xRailEnd, yA + RAIL_GAP),
-    unbalancedSection(xTl0, xTl1, yA, yA + RAIL_GAP, tlLabel, tlCoax),
+    ...feedRun,
     // Junction: the phasing line tees off both conductors.
     dot(xTeeA, yA),
     dot(xTeeB, yA + RAIL_GAP),

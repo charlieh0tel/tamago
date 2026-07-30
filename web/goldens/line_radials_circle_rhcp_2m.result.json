@@ -59,14 +59,7 @@
     },
     "match": {
       "system_z_ohm": 50.0,
-      "series_element": null,
-      "transformer_z0_ohm": 47.60042016621282,
-      "transformer_coax": {
-        "name": "RG-58",
-        "z0_ohm": 50.0,
-        "vf": 0.66
-      },
-      "transformer_length_mm": 339.0387633310487
+      "network": "direct"
     }
   },
   "performance": {
@@ -76,7 +69,7 @@
     },
     "feed_z_kind": "feedpoint",
     "vswr_unmatched": 1.1033822207525636,
-    "vswr_matched": 1.1033822207525634,
+    "vswr_matched": 1.1033822207525636,
     "loop_current_phase_deg": 90.38989015808221,
     "loop_balance": 0.8369851745953772,
     "loop_a_feed_z_ohm": {

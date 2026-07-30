@@ -107,7 +107,7 @@ const OPTIONS: FeedOption[] = [
   {
     token: FEED_LINE,
     name: "Phasing line",
-    tradeoff: "simplest, one coax",
+    tradeoff: "simplest, unbalanced",
     art: LINE_ART,
   },
   {

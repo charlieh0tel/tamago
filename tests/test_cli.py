@@ -178,6 +178,46 @@ def test_crossed_design_reports_delivered_pattern():
     assert math.isclose(result.coverage_gain_db, _coverage_gain_db(nec), abs_tol=1e-9)
 
 
+def test_match_omitted_when_it_does_not_help():
+    from awadateki.coax import RG_59
+    from awadateki.design import match_is_useful
+    from awadateki.result import result_to_dict
+
+    line = replace(_spec(), feed="line")
+    # A turnstile junction already near 50 ohm: the transformer snaps to a
+    # catalog cable equal to the system impedance and does nothing.
+    assert not match_is_useful(line, complex(46.0, 0.0))
+    # A junction far from 50 ohm: the transformer earns its place.
+    assert match_is_useful(line, complex(25.0, 0.0))
+    assert match_is_useful(line, complex(112.5, 0.0))
+    # An explicitly requested cable is always honored.
+    assert match_is_useful(replace(line, match_coax=RG_59), complex(46.0, 0.0))
+    # The balanced feeds match through their own harness.
+    assert not match_is_useful(replace(line, feed="choke"), complex(46.0, 0.0))
+
+    # The reported match and VSWR agree with that decision.
+    result = DesignResult(
+        spec=line,
+        base_factor=1.05,
+        z_in=complex(46.0, 0.0),
+        phase_diff_deg=90.0,
+        loop_balance=1.0,
+        crossed_phasing_line=False,
+        sense="RIGHT",
+        ar_boresight_db=1.0,
+        ar_cone_worst_db=2.0,
+        ar_peak_db=0.5,
+        coverage_gain_db=1.0,
+        deck="",
+    )
+    build = result_to_dict(result)["build"]
+    assert build["match"] == {"system_z_ohm": 50.0, "network": "direct"}
+    assert "transformer_coax" not in build["match"]
+    from awadateki.design import matched_vswr, vswr
+
+    assert matched_vswr(line, complex(46.0, 0.0)) == vswr(complex(46.0, 0.0), 50.0)
+
+
 def test_post_match_vswr_ideal():
     # 112.5 ohm transforms through a 75 ohm quarter wave to exactly 50 ohm.
     assert math.isclose(post_match_vswr(complex(112.5, 0.0)), 1.0, abs_tol=1e-6)

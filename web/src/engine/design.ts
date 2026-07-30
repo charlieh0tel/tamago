@@ -37,6 +37,7 @@ import {
   LOOP_SEGMENT_QUANTUM,
   LOOP_SEGMENT_RADII,
   MATCH_REACTANCE_WARN_OHMS,
+  MATCH_VSWR_MARGIN,
   MAX_SEGMENTS,
   MIN_LOOP_SEGMENTS,
   NEC_SENSE_TO_HAND,
@@ -756,6 +757,25 @@ export function balun4RadioZ(
   return cDiv(cMul(half, zViaLine), cAdd(half, zViaLine));
 }
 
+// Whether the quarter-wave match beats connecting the feedline directly.
+//
+// A turnstile's junction already lands near the system impedance by
+// construction, so the computed transformer usually snaps to a catalog cable
+// equal to it -- an identity transform. Specifying it anyway would hand the
+// builder an inert section of coax to cut, which is not what the published
+// designs do. An explicitly requested matchCoax is always honored.
+export function matchIsUseful(spec: DesignSpec, z: Complex): boolean {
+  if (isBalancedFeed(spec.feed)) {
+    return false; // their harness or choke is the match
+  }
+  if (spec.matchCoax !== null) {
+    return true;
+  }
+  const direct = vswr(z, spec.systemZOhm);
+  const matched = postMatchVswr(z, spec.systemZOhm, spec.matchCoax);
+  return matched < direct - MATCH_VSWR_MARGIN;
+}
+
 export function matchedVswr(spec: DesignSpec, z: Complex): number {
   if (spec.feed === FEED_BALUN4) {
     if (z.re <= 0.0) {
@@ -766,6 +786,9 @@ export function matchedVswr(spec: DesignSpec, z: Complex): number {
   }
   if (spec.feed === FEED_CHOKE) {
     // A 1:1 ferrite choke: no impedance transform, the radio sees z.
+    return vswr(z, spec.systemZOhm);
+  }
+  if (!matchIsUseful(spec, z)) {
     return vswr(z, spec.systemZOhm);
   }
   return postMatchVswr(z, spec.systemZOhm, spec.matchCoax);

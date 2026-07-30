@@ -261,10 +261,15 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
     x_swap0, x_swap = 610.0, 634.0
     loop_b_cx = 696.0
 
-    tl_coax = match["transformer_coax"]
+    direct = match.get("network") == "direct"
+    tl_coax = None if direct else match["transformer_coax"]
     tl_label = (
-        f"TL1  {tl_coax['name']} ({tl_coax['z0_ohm']:g} &#8486;)",
-        f"1/4 wave  {match['transformer_length_mm']:.0f} mm",
+        ()
+        if direct
+        else (
+            f"TL1  {tl_coax['name']} ({tl_coax['z0_ohm']:g} &#8486;)",
+            f"1/4 wave  {match['transformer_length_mm']:.0f} mm",
+        )
     )
     ph_coax = phasing["coax"]
     ph_label = (
@@ -276,16 +281,29 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
     parts = [
         _text(x_term - 24.0, y_a + RAIL_GAP + 30.0, rig, "start"),
         _terminal_pair(x_term, y_a),
-        # Hot rail (the center conductor): terminal, through the transformer
-        # shield, series element, on to the loop A leads.
-        _line(x_term + TERMINAL_RADIUS, y_a, x_ser0, y_a),
-        _series_element(match["series_element"], x_ser0, x_ser1, y_a),
-        _line(x_ser1, y_a, x_rail_end, y_a),
-        # Return conductor stops at the shield pigtails; inside the coax run
-        # the shield is the return path.
-        _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_tl0, y_a + RAIL_GAP),
-        _line(x_tl1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
-        _unbalanced_section(x_tl0, x_tl1, y_a, y_a + RAIL_GAP, tl_label, tl_coax),
+    ]
+    if direct:
+        # The junction already sits at the system impedance, so the feedline
+        # runs straight onto the loop A leads: no transformer, no series
+        # element (see match_is_useful).
+        parts += [
+            _line(x_term + TERMINAL_RADIUS, y_a, x_rail_end, y_a),
+            _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
+        ]
+    else:
+        parts += [
+            # Hot rail (the center conductor): terminal, through the transformer
+            # shield, series element, on to the loop A leads.
+            _line(x_term + TERMINAL_RADIUS, y_a, x_ser0, y_a),
+            _series_element(match["series_element"], x_ser0, x_ser1, y_a),
+            _line(x_ser1, y_a, x_rail_end, y_a),
+            # Return conductor stops at the shield pigtails; inside the coax run
+            # the shield is the return path.
+            _line(x_term + TERMINAL_RADIUS, y_a + RAIL_GAP, x_tl0, y_a + RAIL_GAP),
+            _line(x_tl1, y_a + RAIL_GAP, x_rail_end, y_a + RAIL_GAP),
+            _unbalanced_section(x_tl0, x_tl1, y_a, y_a + RAIL_GAP, tl_label, tl_coax),
+        ]
+    parts += [
         # Junction: the phasing line tees off both conductors.
         _dot(x_tee_a, y_a),
         _dot(x_tee_b, y_a + RAIL_GAP),

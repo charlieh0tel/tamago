@@ -185,6 +185,10 @@ function matchLines(result: DesignResult, build: JsonObject): string[] {
     lines.push("  none; the 1:1 ferrite choke presents the feed Z directly");
     return lines;
   }
+  if (match.network === "direct") {
+    lines.push("  none needed; connect the feedline straight to the junction");
+    return lines;
+  }
   const series = match.series_element as JsonObject | null;
   if (series !== null) {
     const sized =

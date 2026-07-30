@@ -33,6 +33,7 @@ import {
   type DesignResult,
   loopSegmentLengthM,
   loopSegments,
+  matchIsUseful,
   matchedVswr,
   phasingLineCoax,
   quarterWaveMatchZ0,
@@ -81,6 +82,11 @@ function matchDict(result: DesignResult, wavelength: number): JsonObject {
   if (spec.feed === FEED_CHOKE) {
     // A 1:1 ferrite choke: no impedance transform, the radio sees z.
     return { system_z_ohm: spec.systemZOhm, network: "choke" };
+  }
+  if (!matchIsUseful(spec, z)) {
+    // The junction already sits at the system impedance; a transformer here
+    // would be an inert section of coax.
+    return { system_z_ohm: spec.systemZOhm, network: "direct" };
   }
   const z0 = quarterWaveMatchZ0(z, spec.systemZOhm);
   const coax = transformerCoax(z, spec.systemZOhm, spec.matchCoax);

@@ -53,14 +53,7 @@
     },
     "match": {
       "system_z_ohm": 50.0,
-      "series_element": null,
-      "transformer_z0_ohm": 48.18039020182381,
-      "transformer_coax": {
-        "name": "RG-58",
-        "z0_ohm": 50.0,
-        "vf": 0.66
-      },
-      "transformer_length_mm": 339.0387633310487
+      "network": "direct"
     }
   },
   "performance": {
