@@ -13,12 +13,11 @@
     "feed_gap_mm": 10.0,
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.22788237343631706,
+    "reflector_spacing_wl": 0.19672942406179023,
     "ar_margin_db": 0.5,
-    "segments": 36,
-    "radial_count": 3,
+    "radial_count": 4,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 34.423525312736594,
+    "radial_droop_deg": 24.59346906221083,
     "label": "2 m",
     "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
@@ -38,14 +37,13 @@
         "reflector": "radials",
         "reflector_spacing_wl": 0.25,
         "ar_margin_db": 0.5,
-        "segments": 36,
         "radial_count": 8,
         "radial_length_wl": 0.27,
         "radial_droop_deg": 0.0,
         "label": "2 m",
         "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 0.91,
+      "elapsed_s": 5.527,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -69,7 +67,7 @@
         "ar_margin_db": 0.5,
         "ar_penalty_per_db": 1.0,
         "feasible_vswr": 1.5,
-        "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
+        "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
       }
     }
   },
@@ -87,12 +85,11 @@
     "feed_gap_mm": 10.0,
     "system_z_ohm": 50.0,
     "reflector": "radials",
-    "reflector_spacing_wl": 0.20408363781378808,
+    "reflector_spacing_wl": 0.20001832843589645,
     "ar_margin_db": 0.5,
-    "segments": 36,
-    "radial_count": 3,
+    "radial_count": 4,
     "radial_length_wl": 0.27,
-    "radial_droop_deg": 26.315561749642487,
+    "radial_droop_deg": 24.59346906221083,
     "label": "70 cm",
     "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.",
     "optimization": {
@@ -112,14 +109,13 @@
         "reflector": "radials",
         "reflector_spacing_wl": 0.25,
         "ar_margin_db": 0.5,
-        "segments": 36,
         "radial_count": 8,
         "radial_length_wl": 0.27,
         "radial_droop_deg": 0.0,
         "label": "70 cm",
         "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 1.122,
+      "elapsed_s": 4.911,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -143,7 +139,7 @@
         "ar_margin_db": 0.5,
         "ar_penalty_per_db": 1.0,
         "feasible_vswr": 1.5,
-        "objective": "fewest radials meeting AR and VSWR, then minimize match cost"
+        "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
       }
     }
   }
