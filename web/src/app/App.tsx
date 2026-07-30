@@ -187,7 +187,7 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
 
   return (
     <div className="app">
-      <Header state={state} onCopyLink={() => void copyLink()} />
+      <Header onCopyLink={() => void copyLink()} />
       {badLink && (
         <div className="link-banner" role="alert">
           <span>That design link couldn't be read — showing the default design.</span>

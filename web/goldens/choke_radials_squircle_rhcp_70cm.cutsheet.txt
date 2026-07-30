@@ -18,7 +18,8 @@ NEC mesh            : 16 sides/loop (set), 46.0 mm segments = 0.067 wl = 18 radi
 Phasing line        : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Choke               : 1:1 ferrite choke, 3 x Fair-Rite 2661540002 ferrite cores over RG-58 at the feedpoint
 Pair braids         : bonded to each other at both ends; not grounded
-Feed                : RG-58 through the choke to the junction across loop A; normal phasing line to loop B
+Loop B connection   : conductors straight through
+Feed                : RG-58 through the choke to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   none; the 1:1 ferrite choke presents the feed Z directly

@@ -35,7 +35,7 @@ describe("optimize cancel-on-edit", () => {
     const { container } = render(<App engine={engine} />);
 
     clickText(container, "Optimize");
-    await waitFor(() => expect(container.textContent).toContain("whisking"));
+    await waitFor(() => expect(container.textContent).toContain("cancel"));
 
     // Edit during the run.
     const freq = container.querySelector<HTMLInputElement>("#freq");
@@ -58,7 +58,7 @@ describe("optimize cancel-on-edit", () => {
 
     const { container } = render(<App engine={engine} />);
     clickText(container, "Optimize");
-    await waitFor(() => expect(container.textContent).toContain("whisking"));
+    await waitFor(() => expect(container.textContent).toContain("cancel"));
 
     const freq = container.querySelector<HTMLInputElement>("#freq");
     fireEvent.change(freq as HTMLInputElement, { target: { value: "146.2" } });

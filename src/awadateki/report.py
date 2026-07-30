@@ -68,13 +68,24 @@ def _coax_text(piece: dict) -> str:
     )
 
 
+def _loop_b_connection_line(connection: str) -> str:
+    """Build step: how the phasing line's two conductors land on loop B.
+
+    Swapping them reverses loop B's current and so flips the handedness, which
+    is why this gets its own line rather than an enum buried in the feed text.
+    """
+    if connection == "crossed":
+        return "Loop B connection   : conductors crossed (this is what sets the sense)"
+    return "Loop B connection   : conductors straight through"
+
+
 def _feed_lines(build: dict) -> list[str]:
     if "phasing_line" in build:
         line = build["phasing_line"]
         return [
             f"Phasing line        : {_coax_text(line)}",
-            f"Feed                : feedline (via match) to junction across "
-            f"loop A; {line['connection']} line to loop B",
+            _loop_b_connection_line(line["connection"]),
+            "Feed                : feedline to the junction across loop A",
         ]
     harness = build["harness"]
     balun = harness["balun"]
@@ -87,8 +98,8 @@ def _feed_lines(build: dict) -> list[str]:
             f"Balun               : {balun['kind']}, {balun['length_mm']:.1f} mm "
             f"{balun['coax']['name']} (VF {balun['coax']['vf']:g}); braid bonds "
             "to the feedline braid",
-            f"Feed                : balun then Q-section to the junction across "
-            f"loop A; {harness['connection']} phasing line to loop B",
+            _loop_b_connection_line(harness["connection"]),
+            "Feed                : balun then Q-section to the junction across loop A",
         ]
     # The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
     return [
@@ -97,8 +108,9 @@ def _feed_lines(build: dict) -> list[str]:
         f"{balun['core_pn']} ferrite cores over {balun['coax']['name']} at the "
         "feedpoint",
         "Pair braids         : bonded to each other at both ends; not grounded",
+        _loop_b_connection_line(harness["connection"]),
         f"Feed                : {balun['coax']['name']} through the choke to the "
-        f"junction across loop A; {harness['connection']} phasing line to loop B",
+        "junction across loop A",
     ]
 
 

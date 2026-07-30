@@ -12,7 +12,8 @@ Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-Feed                : feedline (via match) to junction across loop A; crossed line to loop B
+Loop B connection   : conductors crossed (this is what sets the sense)
+Feed                : feedline to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   none needed; connect the feedline straight to the junction

@@ -16,16 +16,20 @@ document is the contract it converged to.
   ordinary, editable form fields; there is no hidden derived state. The spec
   (JSON) remains the canonical representation; a raw-JSON editor is
   available.
-- Honest status, always visible: tuned/not-tuned, achieved sense, and the
-  delivered (normal/crossed) loop B connection are shown as header chips.
+- Honest status, always visible -- but each fact has exactly one home. The
+  results summary owns the numbers (including a warning flag when the achieved
+  sense is not the requested one); the cut sheet and schematic own the loop B
+  connection, since it is a build step; the stale banner owns freshness, because
+  it explains itself and offers the fix. The header is identity and global
+  actions only. (Status chips in the header were tried first and removed: they
+  restated all of the above with less context.)
 
 ## Layout
 
 Two panes under a header strip.
 
-- Header: title (tamago + Japanese), repo link, tool version chip
-  ("v0.1.0 - 7af9063": semver plus git hash), status chips, copy-design-link
-  button.
+- Header: whisk mark, title (tamago + Japanese), repo link, tool version chip
+  ("v0.1.0 - 7af9063": semver plus git hash), copy-design-link button.
 - Left rail (sticky): the spec editor in collapsible groups mirroring the
   spec's progressive disclosure -- Basics (frequency, label, conductor, loop
   perimeter, shape, corner radius when shape is squircle, sense), Feed,

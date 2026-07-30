@@ -105,12 +105,22 @@ function coaxText(piece: JsonObject): string {
   );
 }
 
+// Build step: how the phasing line's two conductors land on loop B. Swapping
+// them reverses loop B's current and so flips the handedness, which is why this
+// gets its own line rather than an enum buried in the feed text.
+function loopBConnectionLine(connection: string): string {
+  return connection === "crossed"
+    ? "Loop B connection   : conductors crossed (this is what sets the sense)"
+    : "Loop B connection   : conductors straight through";
+}
+
 function feedLines(build: JsonObject): string[] {
   if ("phasing_line" in build) {
     const line = obj(build, "phasing_line");
     return [
       `Phasing line        : ${coaxText(line)}`,
-      `Feed                : feedline (via match) to junction across loop A; ${str(line, "connection")} line to loop B`,
+      loopBConnectionLine(str(line, "connection")),
+      "Feed                : feedline to the junction across loop A",
     ];
   }
   const harness = obj(build, "harness");
@@ -122,7 +132,8 @@ function feedLines(build: JsonObject): string[] {
       `Q-section           : ${coaxText(obj(harness, "q_section"))}`,
       "Pair braids         : bonded to each other at both ends; not grounded",
       `Balun               : ${str(balun, "kind")}, ${f(num(balun, "length_mm"), 1)} mm ${str(obj(balun, "coax"), "name")} (VF ${g(num(obj(balun, "coax"), "vf"))}); braid bonds to the feedline braid`,
-      `Feed                : balun then Q-section to the junction across loop A; ${str(harness, "connection")} phasing line to loop B`,
+      loopBConnectionLine(str(harness, "connection")),
+      "Feed                : balun then Q-section to the junction across loop A",
     ];
   }
   // The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
@@ -131,7 +142,8 @@ function feedLines(build: JsonObject): string[] {
     `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
     `Choke               : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
     "Pair braids         : bonded to each other at both ends; not grounded",
-    `Feed                : ${chokeCoax} through the choke to the junction across loop A; ${str(harness, "connection")} phasing line to loop B`,
+    loopBConnectionLine(str(harness, "connection")),
+    `Feed                : ${chokeCoax} through the choke to the junction across loop A`,
   ];
 }
 

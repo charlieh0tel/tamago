@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // Analyze flow with a mocked engine: pressing Analyze renders the cut sheet and
-// reports an "analyzed -- not quadrature" status for a non-opt perimeter.
+// flags a non-opt perimeter as off-quadrature on the summary metric.
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { App } from "../src/app/App";
@@ -13,7 +13,7 @@ beforeEach(() => {
 
 describe("analyze flow", () => {
   it("renders the cut sheet and an analyzed-not-tuned status", async () => {
-    const { container, getByText } = render(<App engine={makeFakeEngine()} />);
+    const { container } = render(<App engine={makeFakeEngine()} />);
 
     const analyze = Array.from(container.querySelectorAll("button")).find(
       (b) => b.textContent === "Analyze",
@@ -29,8 +29,12 @@ describe("analyze flow", () => {
         "Eggbeater cut sheet: FAKE",
       );
     });
-    // A non-opt (estimated) perimeter analyzes but is not quadrature-tuned.
-    expect(getByText(/not quadrature/)).toBeInTheDocument();
+    // A non-opt (estimated) perimeter analyzes but is not quadrature-tuned,
+    // which the summary's Quadrature metric flags (it carries the phase too).
+    const quadrature = Array.from(container.querySelectorAll(".metric")).find((m) =>
+      m.textContent?.includes("Quadrature"),
+    );
+    expect(quadrature?.className).toContain("warn");
   });
 
   it("switches to the report view from the cut sheet print action", async () => {
