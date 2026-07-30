@@ -146,12 +146,12 @@ With the mesh converged the model is self-consistent across bands: the two
 halves of the F5VIF reference now land within 0.2% of each other (142.8 and
 142.5 ohm) where they were 41% apart. That is the point of the exercise.
 
-It also moved us away from F5VIF's stated 100 ohm per loop, to about 143 ohm.
-The previous close agreement came from the buggy mesh happening to pass through
-100 ohm near 24 segments; it was coincidence, and the `LOOP_SEGMENT_RADII`
-calibration that pinned us there was compensating the bug. See
-[reference-designs.md](reference-designs.md) for what to make of the
-discrepancy.
+It also moved us away from F5VIF's stated 100 ohm per loop, to about 143 ohm at
+their stated reflector spacing. The previous close agreement came from the buggy
+mesh happening to pass through 100 ohm near 24 segments; it was coincidence, and
+the `LOOP_SEGMENT_RADII` calibration that pinned us there was compensating the
+bug. The gap turned out to be mostly about reflector height rather than about the
+loop -- see [reference-designs.md](reference-designs.md).
 
 ## What is still open
 
@@ -167,12 +167,16 @@ discrepancy.
    flag also moved off the old calibration value (36 radii) onto a real validity
    limit (`LOOP_SEGMENT_RADII_WARN`, 20), so it stops firing on meshes that are
    simply fine.
-2. **Reconcile ~143 ohm against their stated 100 ohm.** Independent NEC modeling
-   puts resonant full-wave loops at 121-134 ohm for triangle through hexagon,
-   rising with side count, so a circle near 143 ohm is in line -- but that is the
-   same method agreeing with itself, not corroboration of the physics, and a
-   point-fed closed loop is the case NEC-2 handles worst. A bridge reading would
-   settle it; `measured_loop_z_ohm` takes one. See
+2. ~~Reconcile ~143 ohm against their stated 100 ohm.~~ Largely dissolved. The
+   loop impedance is dominated by reflector height -- 62 to 143 ohm across a 0.09
+   wavelength span -- so the two numbers are not rival estimates of one quantity.
+   We get 143 ohm at F5VIF's stated 1/8 wavelength of clearance and 99 ohm at
+   about 1/16; their published spacing and their published impedance are mutually
+   inconsistent in our model, and a bare "100 ohms per loop" does not identify an
+   antenna. What remains open is the absolute value at any given spacing, where
+   confidence is low for the same reason as before: a point-fed closed loop is
+   NEC-2's worst case, and the corroborating models are the same method. A bridge
+   reading still settles it; `measured_loop_z_ohm` takes one. See
    [reference-designs.md](reference-designs.md).
 3. Validate against more published designs (K5OE, the Houston eggbeater). One
    design is a thin anchor.

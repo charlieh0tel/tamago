@@ -279,15 +279,20 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   refinement), so the loop is meshed uniformly instead. With that fixed the
   impedance settles within 1% and the two bands of a pair agree within 0.2%; see
   [docs/segmentation.md](docs/segmentation.md).
-- We predict about 143 ohm per loop where the eggbeater literature states 100,
-  and the disagreement is unresolved. Other NEC models of resonant full-wave loops
-  agree with ours, but that is one method agreeing with itself; a point-fed closed
-  loop is the case NEC-2 handles worst. It matters because the loop current split
-  is |Z_loop| / Z0_phasing exactly, so at 143 ohm a 93 ohm phasing line costs
-  about 3.7 dB of axial ratio and at 100 ohm it costs 0.6 dB. The cut sheet
-  reports the split, which value it used, and both figures. Set
-  `measured_loop_z_ohm` from a bridge reading to replace the estimate -- there are
-  no measurements of our own. See
+- The loop impedance is mostly set by the reflector height, and quoting one
+  number for it is meaningless without that height. It runs 62 to 143 ohm over a
+  0.09 wavelength span of spacing, monotonically. So the eggbeater literature's
+  "100 ohm per loop" is underdetermined rather than wrong: we get 143 ohm at
+  F5VIF's stated 1/8 wavelength of clearance and 99 ohm at about 1/16, and cannot
+  honor both of their published numbers at once. It matters because the loop
+  current split is |Z_loop| / Z0_phasing exactly, so a 93 ohm phasing line costs
+  about 3.7 dB of axial ratio at 143 ohm and 0.6 dB at 100 ohm -- which makes
+  reflector height the axial-ratio knob, and is why the optimizer settles near
+  0.20 wavelengths where the loops are close to the phasing cable. Absolute
+  confidence is still low: a point-fed closed loop is the case NEC-2 handles
+  worst, and we have no measurements of our own. The cut sheet reports the split,
+  which value it used, and both figures; set `measured_loop_z_ohm` from a bridge
+  reading to replace the estimate. See
   [docs/reference-designs.md](docs/reference-designs.md).
 - Absolute figures are less trustworthy than comparisons. Systematic model error
   largely cancels when asking "is this placement better than that one", so treat

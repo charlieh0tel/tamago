@@ -65,7 +65,9 @@ Our `reflector_spacing_wl` is the **loop-centre** height. Converting:
 Two things follow:
 
 - The F5VIF design sits at about **0.29 wavelengths** in our convention, not
-  0.125. It is inside our search bounds and slightly above our 0.25 default.
+  0.125. It is inside our search bounds and above our 0.25 default -- and well
+  above the 0.19 to 0.20 our optimizer picks when left free, which is the next
+  section's subject.
 - Their convention is the one a builder can actually measure -- you put a tape
   from the reflector to the bottom of the loops -- while ours is referenced to a
   point in mid air whose height also moves when the perimeter is tuned. Worth
@@ -90,15 +92,52 @@ were 41% apart until the feed-region bug was fixed; see
 [segmentation.md](segmentation.md). Self-consistency across bands is what makes
 the numbers arguable at all, and it is the main thing that changed.
 
-**We disagree with their stated 100 ohm per loop, by about 43% -- and the
-disagreement appears to be theirs.** An earlier version of this file reported
-close agreement (101.0 ohm against 100). That was an artifact: the unfixed
-model's loop impedance drifted with the mesh and happened to pass through 100 ohm
-near 24 segments, which is also where the mesh calibration had pinned it. With
-the mesh converged we say ~143 ohm at any count.
+### The loop impedance is mostly a statement about reflector spacing
 
-Three things point toward the ~143 ohm, though none of them is decisive, and the
-first is weaker than it looks:
+The 43% gap above is not the model disagreeing with a measurement. Sweeping the
+reflector height with everything else pinned to their design (2 m, 10 mm flat
+conductor, 8 flat radials):
+
+| centre height | loop-bottom clearance | \|Z_loop\| |
+|---|---|---|
+| 0.200 wl | 0.035 wl | 61.5 ohm |
+| 0.215 wl | 0.050 wl | 82.0 ohm |
+| 0.230 wl | 0.065 wl | 98.9 ohm |
+| 0.245 wl | 0.080 wl | 112.9 ohm |
+| 0.260 wl | 0.095 wl | 124.7 ohm |
+| 0.275 wl | 0.110 wl | 134.5 ohm |
+| 0.290 wl | 0.125 wl | 142.7 ohm |
+
+The loop impedance more than doubles over a 0.09 wavelength span of reflector
+height, monotonically and with no plateau. The reflector is not a bystander here;
+it is the dominant term in the loop impedance, ahead of shape and conductor size.
+Making the reflector a solid screen instead of bare radials shifts the curve but
+does not flatten it (152 ohm rather than 143 at 0.29).
+
+That changes what the discrepancy *is*. We do not disagree with F5VIF about a
+loop; we disagree about which of their two published numbers to honor, because in
+our model the two are mutually inconsistent:
+
+- Honor their **spacing** (1/8 wavelength of clearance, our 0.29) and the loop is
+  143 ohm, not 100.
+- Honor their **impedance** (100 ohm) and the clearance is about 0.066
+  wavelengths -- nearer 1/16 than 1/8.
+
+Our 1/8-wavelength conversion is the most natural reading of their text and their
+photographs, so `designs/f5vif_reference.input.json` keeps it -- but it is now
+flagged in that file as the least certain number in the fixture, because the
+impedance it produces is so sensitive to it. An earlier version of this file
+reported close agreement (101.0 ohm against 100); that was an artifact of the
+unfixed model drifting through 100 ohm near 24 segments, where the mesh
+calibration had pinned it.
+
+**The sensitivity is itself the finding.** A single "100 ohms per loop" is not
+wrong so much as underdetermined: without a reflector height attached, it does
+not identify an antenna. That is the mechanism behind the misconception the
+literature names below, rather than an appeal to authority about it.
+
+Three things point toward ~143 ohm *at their stated 1/8 wavelength*, though none
+of them is decisive, and the first is weaker than it looks:
 
 - **Independent NEC modeling agrees with us -- but it is the same method.** This
   is agreement with our *implementation*, not corroboration of the *physics*: if
@@ -123,12 +162,14 @@ first is weaker than it looks:
   below a VHF meter's resolution is compatible with the 1.18 to 1.22 we predict,
   so it does not discriminate.
 
-**So this is not settled, and an earlier version of this file said it was.** What
-we have is one method agreeing with itself. A point-fed closed loop is exactly the
-case NEC-2 handles worst -- we spent a long investigation watching one
-feed-modeling choice move the same number by 92% -- so its absolute value here
-deserves little confidence. The relation that uses it (balance = |Z_loop| / Z0) is
-transmission-line theory and is not in doubt; only the impedance is.
+**The absolute value is still not settled, and an earlier version of this file
+said it was.** What we have is one method agreeing with itself. A point-fed closed
+loop is exactly the case NEC-2 handles worst -- we spent a long investigation
+watching one feed-modeling choice move the same number by 92% -- so the impedance
+at any particular spacing deserves little confidence, even though the *trend* with
+spacing is steep enough to be robust to that. The relation that uses it (balance =
+|Z_loop| / Z0) is transmission-line theory and is not in doubt; only the impedance
+is.
 
 That is why `measured_loop_z_ohm` exists: put a bridge across one loop and the
 tool will use the reading instead, and the cut sheet reports which it used. Until
@@ -141,14 +182,23 @@ larger circumference for resonance", which is why our loops resonate longer than
 the 1005/F starting length. F5VIF build long and trim ("shortening is easier then
 lengthening"), so their finished loops are not 1.0215 wavelengths either.
 
-**If the impedance holds up, the consequence is a real design finding.** If the
-loops really are ~143 ohm, then the classic 93 ohm RG-62 phasing line splits the
-loop currents 1.5:1, and that imbalance alone sets about 3.7 dB of axial ratio --
-which is consistent with the eggbeater's reputation as a serviceable rather than
-high-purity circular antenna. Equal drive would want a phasing line near the loop
-impedance; nothing in our catalog is close (the highest is the 100 ohm bonded
-pair), which is worth noting for anyone chasing better axial ratio. The cut sheet
-now reports this split explicitly.
+**The consequence is a real design finding: reflector height is the axial-ratio
+knob.** Because balance = |Z_loop| / Z0 and the reflector sets |Z_loop|, moving
+the reflector is how you match the loops to whatever phasing cable you have --
+rather than hunting for a cable near the loop impedance, which is the conclusion
+we drew when we thought the impedance was a fixed ~143 ohm. At their 1/8
+wavelength the classic 93 ohm RG-62 splits the loop currents 1.5:1, which alone
+sets about 3.7 dB of axial ratio, consistent with the eggbeater's reputation as a
+serviceable rather than high-purity circular antenna. Lower the reflector to about
+0.21 wavelengths and the same cable is nearly balanced.
+
+Our optimizer finds this without being told: left free, all three worked designs
+in `designs/` settle at **0.19 to 0.20 wavelengths** with about 24 degrees of
+droop, where the loops land at 83 to 98 ohm against a 93 or 100 ohm phasing line
+-- balance 0.89 to 0.98, worst-case cone axial ratio 2.7 to 3.2 dB. It is using
+reflector height as an impedance transformer, and the spacing it picks is
+independent evidence that the neighborhood of the literature's 100 ohm is where a
+good eggbeater actually wants to be. The cut sheet reports the split explicitly.
 
 **Loop perimeter runs 2.5 to 3.7% long** in both bands. Part of that is expected,
 since they size for *resonance* while we solve for *quadrature between the
