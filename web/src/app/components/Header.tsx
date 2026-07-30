@@ -12,6 +12,22 @@ function signed(x: number): string {
   return `${x >= 0 ? "+" : "-"}${Math.abs(x).toFixed(1)}`;
 }
 
+// Balloon whisk, drawn in the same stroked line art as the feed schematics:
+// handle, ferrule, and four wires bowing out to the tip. Decorative -- the
+// brand text alongside already names the thing.
+function WhiskMark(): JSX.Element {
+  return (
+    <svg className="whisk" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 2 V7" />
+      <path d="M9.5 7 H14.5" />
+      <path d="M12 7 C5 11 5 18 12 22" />
+      <path d="M12 7 C19 11 19 18 12 22" />
+      <path d="M12 7 C8.5 11 8.5 18.5 12 22" />
+      <path d="M12 7 C15.5 11 15.5 18.5 12 22" />
+    </svg>
+  );
+}
+
 function TuningChip({ state }: { state: UiState }): JSX.Element {
   const { status, analysis } = state;
   const phase = analysis ? signed(analysis.result.phaseDiffDeg) : "";
@@ -84,6 +100,7 @@ export function Header({
   return (
     <header>
       <span className="brand">
+        <WhiskMark />
         tamago awadateki
         <span className="jp" lang="ja">
           卵泡立て器

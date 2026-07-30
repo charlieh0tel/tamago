@@ -86,6 +86,19 @@ header {
   font-size: 17px;
   font-weight: 700;
 }
+/* Stroke and fill are inherited, so the paths need no rules of their own. */
+.whisk {
+  width: 19px;
+  height: 19px;
+  margin-right: 7px;
+  vertical-align: -3px;
+  color: var(--teal);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .brand .jp {
   color: var(--muted);
   font-weight: 500;
