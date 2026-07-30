@@ -15,6 +15,10 @@ import type { NecRunner } from "./nec";
 import { resultToDict } from "./result";
 import type { JsonObject } from "./spec";
 
+// Above this, the drive imbalance is called out: it is then the dominant term in
+// the axial ratio rather than a rounding detail.
+const DRIVE_AR_FLOOR_WARN_DB = 1.0;
+
 // Shape-appropriate label for the loop's across dimension (width_mm).
 const WIDTH_TERM: Record<string, string> = {
   circle: "dia",
@@ -105,6 +109,25 @@ function coaxText(piece: JsonObject): string {
   );
 }
 
+// Where the loop current split, and so the axial ratio, comes from.
+function driveLines(drive: JsonObject): string[] {
+  const ideal = drive.equal_drive_z0_ohm as number | null;
+  const z0 = num(drive, "phasing_z0_ohm");
+  const balance = num(drive, "balance");
+  const floor = num(drive, "ar_floor_db");
+  const detail =
+    ideal === null
+      ? `balance ${f(balance, 2)}`
+      : `${f(ideal, 0)} ohm wanted for equal drive, balance ${f(balance, 2)}`;
+  const lines = [`  drive split       : ${g(z0)} ohm line, ${detail}`];
+  if (floor > DRIVE_AR_FLOOR_WARN_DB) {
+    lines.push(
+      `  ! that imbalance alone sets ${f(floor, 1)} dB of axial ratio on axis`,
+    );
+  }
+  return lines;
+}
+
 // The one build step that decides handedness: cross the phasing line at loop B,
 // or do not. Stated as the action and what it gives you, since that is all the
 // builder needs -- get it backwards and the antenna is the other sense.
@@ -124,6 +147,7 @@ function feedLines(build: JsonObject, sense: string): string[] {
     const line = obj(build, "phasing_line");
     return [
       `Phasing line        : ${coaxText(line)}`,
+      ...driveLines(obj(build, "drive")),
       loopBConnectionLine(str(line, "connection"), sense),
       "Feed                : feedline to the junction across loop A",
     ];
@@ -134,6 +158,7 @@ function feedLines(build: JsonObject, sense: string): string[] {
     // The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
     return [
       `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
+      ...driveLines(obj(build, "drive")),
       `Q-section           : ${coaxText(obj(harness, "q_section"))}`,
       "Pair braids         : bonded to each other at both ends; not grounded",
       `Balun               : ${str(balun, "kind")}, ${f(num(balun, "length_mm"), 1)} mm ${str(obj(balun, "coax"), "name")} (VF ${g(num(obj(balun, "coax"), "vf"))}); braid bonds to the feedline braid`,
@@ -145,6 +170,7 @@ function feedLines(build: JsonObject, sense: string): string[] {
   const chokeCoax = str(obj(balun, "coax"), "name");
   return [
     `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
+    ...driveLines(obj(build, "drive")),
     `Choke               : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
     "Pair braids         : bonded to each other at both ends; not grounded",
     loopBConnectionLine(str(harness, "connection"), sense),

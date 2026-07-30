@@ -166,6 +166,25 @@ function meshDict(result: DesignResult, wavelength: number): JsonObject {
   };
 }
 
+// Where the loop current split -- and so the axial ratio -- comes from.
+//
+// A quarter-wave phasing line converts junction voltage to loop-B current
+// through its own Z0, while loop A is driven directly, so the split is exactly
+// |Z_loop| / Z0. Equal drive therefore wants a cable matching the loop
+// impedance, and any shortfall shows up as axial ratio: on axis the ratio of two
+// quadrature fields of unequal amplitude is |20*log10(balance)| dB.
+function driveDict(result: DesignResult, phasingZ0Ohm: number): JsonObject {
+  const loopZ = result.loopAFeedZ;
+  const balance = result.loopBalance;
+  return {
+    phasing_z0_ohm: phasingZ0Ohm,
+    equal_drive_z0_ohm: loopZ !== null ? Math.hypot(loopZ.re, loopZ.im) : null,
+    balance,
+    ar_floor_db:
+      balance > 0.0 ? Math.abs(20.0 * Math.log10(balance)) : Number.POSITIVE_INFINITY,
+  };
+}
+
 function buildDict(result: DesignResult): JsonObject {
   const spec = result.spec;
   const wavelength = wavelengthM(spec.freqMhz);
@@ -197,15 +216,19 @@ function buildDict(result: DesignResult): JsonObject {
   build.loop_offset_mm = spec.loopOffsetMm;
   build.feed_gap_mm = spec.feedGapMm;
   build.feed = spec.feed;
+  let phasing: Coax;
   if (spec.feed === FEED_LINE) {
+    phasing = phasingLineCoax(spec);
     build.phasing_line = {
-      coax: coaxDict(phasingLineCoax(spec)),
-      length_mm: quarterWaveMm(wavelength, phasingLineCoax(spec)),
+      coax: coaxDict(phasing),
+      length_mm: quarterWaveMm(wavelength, phasing),
       connection: result.crossedPhasingLine ? "crossed" : "normal",
     };
   } else {
     build.harness = harnessDict(result, wavelength);
+    phasing = spec.feed === FEED_CHOKE ? CHOKE_PHASING_COAX : BALUN4_PHASING_COAX;
   }
+  build.drive = driveDict(result, phasing.z0Ohm);
   build.match = matchDict(result, wavelength);
   return build;
 }

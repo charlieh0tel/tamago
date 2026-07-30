@@ -15,6 +15,10 @@ from .design import (
 )
 from .result import result_to_dict
 
+# Above this, the drive imbalance is called out: it is then the dominant term in
+# the axial ratio rather than a rounding detail.
+DRIVE_AR_FLOOR_WARN_DB = 1.0
+
 # Shape-appropriate label for the loop's across dimension (width_mm).
 _WIDTH_TERM = {"circle": "dia", "square": "side", "squircle": "width"}
 
@@ -89,6 +93,7 @@ def _feed_lines(build: dict, sense: str) -> list[str]:
         line = build["phasing_line"]
         return [
             f"Phasing line        : {_coax_text(line)}",
+            *_drive_lines(build["drive"]),
             _loop_b_connection_line(line["connection"], sense),
             "Feed                : feedline to the junction across loop A",
         ]
@@ -98,6 +103,7 @@ def _feed_lines(build: dict, sense: str) -> list[str]:
         # The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
         return [
             f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+            *_drive_lines(build["drive"]),
             f"Q-section           : {_coax_text(harness['q_section'])}",
             "Pair braids         : bonded to each other at both ends; not grounded",
             f"Balun               : {balun['kind']}, {balun['length_mm']:.1f} mm "
@@ -109,6 +115,7 @@ def _feed_lines(build: dict, sense: str) -> list[str]:
     # The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
     return [
         f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+        *_drive_lines(build["drive"]),
         f"Choke               : {balun['kind']}, {balun['cores']} x "
         f"{balun['core_pn']} ferrite cores over {balun['coax']['name']} at the "
         "feedpoint",
@@ -130,6 +137,24 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
         f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
         *_mesh_lines(build["mesh"]),
     ] + _feed_lines(build, _achieved_sense(result))
+
+
+def _drive_lines(drive: dict) -> list[str]:
+    """Where the loop current split, and so the axial ratio, comes from."""
+    ideal = drive["equal_drive_z0_ohm"]
+    z0 = drive["phasing_z0_ohm"]
+    balance = drive["balance"]
+    floor = drive["ar_floor_db"]
+    if ideal is None:
+        detail = f"balance {balance:.2f}"
+    else:
+        detail = f"{ideal:.0f} ohm wanted for equal drive, balance {balance:.2f}"
+    lines = [f"  drive split       : {z0:g} ohm line, {detail}"]
+    if floor > DRIVE_AR_FLOOR_WARN_DB:
+        lines.append(
+            f"  ! that imbalance alone sets {floor:.1f} dB of axial ratio on axis"
+        )
+    return lines
 
 
 def _mesh_lines(mesh: dict) -> list[str]:

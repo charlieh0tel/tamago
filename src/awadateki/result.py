@@ -39,6 +39,7 @@ only when a frequency sweep is requested):
 """
 
 import json
+import math
 
 from .coax import Coax
 from .design import (
@@ -197,6 +198,26 @@ def _mesh_dict(result: DesignResult, wavelength: float) -> dict:
     }
 
 
+def _drive_dict(result: DesignResult, phasing_z0_ohm: float) -> dict:
+    """Where the loop current split -- and so the axial ratio -- comes from.
+
+    A quarter-wave phasing line converts junction voltage to loop-B current
+    through its own Z0, while loop A is driven directly, so the split is exactly
+    |Z_loop| / Z0. Equal drive therefore wants a cable matching the loop
+    impedance, and any shortfall shows up as axial ratio: on axis the ratio of
+    two quadrature fields of unequal amplitude is |20*log10(balance)| dB.
+    """
+    loop_z = result.loop_a_feed_z
+    balance = result.loop_balance
+    floor = abs(20.0 * math.log10(balance)) if balance > 0.0 else math.inf
+    return {
+        "phasing_z0_ohm": phasing_z0_ohm,
+        "equal_drive_z0_ohm": abs(loop_z) if loop_z is not None else None,
+        "balance": balance,
+        "ar_floor_db": floor,
+    }
+
+
 def _build_dict(result: DesignResult) -> dict:
     spec = result.spec
     wavelength = wavelength_m(spec.freq_mhz)
@@ -228,13 +249,16 @@ def _build_dict(result: DesignResult) -> dict:
     build["feed_gap_mm"] = spec.feed_gap_mm
     build["feed"] = spec.feed
     if spec.feed == FEED_LINE:
+        phasing = phasing_line_coax(spec)
         build["phasing_line"] = {
-            "coax": _coax_dict(phasing_line_coax(spec)),
-            "length_mm": _quarter_wave_mm(wavelength, phasing_line_coax(spec)),
+            "coax": _coax_dict(phasing),
+            "length_mm": _quarter_wave_mm(wavelength, phasing),
             "connection": "crossed" if result.crossed_phasing_line else "normal",
         }
     else:
         build["harness"] = _harness_dict(result, wavelength)
+        phasing = CHOKE_PHASING_COAX if spec.feed == FEED_CHOKE else BALUN4_PHASING_COAX
+    build["drive"] = _drive_dict(result, phasing.z0_ohm)
     build["match"] = _match_dict(result, wavelength)
     return build
 

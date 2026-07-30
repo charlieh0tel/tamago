@@ -50,6 +50,12 @@
       "length_mm": 144.39544995412842,
       "connection": "normal"
     },
+    "drive": {
+      "phasing_z0_ohm": 93.0,
+      "equal_drive_z0_ohm": 139.54123339318022,
+      "balance": 1.5005449318054815,
+      "ar_floor_db": 3.5249800864273566
+    },
     "match": {
       "system_z_ohm": 50.0,
       "network": "direct"

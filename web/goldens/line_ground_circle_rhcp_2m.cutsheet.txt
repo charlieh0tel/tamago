@@ -13,6 +13,8 @@ Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 134.0 mm segments = 0.065 wl = 54 radii
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
+  drive split       : 93 ohm line, 128 ohm wanted for equal drive, balance 1.38
+  ! that imbalance alone sets 2.8 dB of axial ratio on axis
 Loop B connection   : straight through, gives RHCP
 Feed                : feedline to the junction across loop A
 ----------------------------------------
