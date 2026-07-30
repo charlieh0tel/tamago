@@ -161,9 +161,11 @@ discrepancy.
    circle needs roughly 28 to sit within a wire radius of the true curve, a
    squircle more, a square none) and long enough against the conductor radius
    for the thin-wire kernel.
-2. **Reconcile ~143 ohm against their stated 100 ohm.** Their figure reads like
-   a design idealization ("two 100 ohm loops in parallel give 50 ohm") rather
-   than a measurement; their measured datum is SWR, where we now predict
-   1.19-1.22 against their 1.0-1.1.
+2. ~~Reconcile ~143 ohm against their stated 100 ohm.~~ Settled: independent NEC
+   modeling puts resonant full-wave loops at 121-134 ohm for triangle through
+   hexagon, rising with side count, so a circle near 143 ohm is in line. The
+   single "100 ohms" figure is the misconception, and their SWR "1.0" is an
+   uncalibrated needle reading. See
+   [reference-designs.md](reference-designs.md).
 3. Validate against more published designs (K5OE, the Houston eggbeater). One
    design is a thin anchor.

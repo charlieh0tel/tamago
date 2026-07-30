@@ -274,12 +274,16 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   refinement), so the loop is meshed uniformly instead. With that fixed the
   impedance settles within 1% and the two bands of a pair agree within 0.2%; see
   [docs/segmentation.md](docs/segmentation.md).
-- Validation against published designs is thin, and where we can check we
-  disagree: the ON6WG/F5VIF build states 100 ohm per loop and measures SWR 1.0
-  to 1.1, while we predict about 143 ohm and SWR 1.19 to 1.22. See
+- We predict about 143 ohm per loop where the eggbeater literature states 100.
+  Independent NEC modeling of resonant full-wave loops (121 to 134 ohm for
+  triangle through hexagon, rising with side count) supports ours, and the single
+  "100 ohms" figure looks like folklore; the published SWR it is paired with is an
+  uncalibrated needle reading. The consequence is real: a 93 ohm phasing line
+  against a 143 ohm loop splits the currents 1.5:1, which alone sets about 3.7 dB
+  of axial ratio, and the cut sheet reports that split. See
   [docs/reference-designs.md](docs/reference-designs.md), and
-  `designs/f5vif_reference.input.json` to reproduce. There are no measurements of
-  our own.
+  `designs/f5vif_reference.input.json` to reproduce. There are still no
+  measurements of our own.
 - The phasing line is a NEC ideal transmission line: lossless, with no shield
   or common-mode current (a real build uses a current balun; see TODO). Its
   off-design phase drift matches a real cable exactly, since physical length
