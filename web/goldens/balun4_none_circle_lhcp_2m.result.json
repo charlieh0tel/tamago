@@ -71,7 +71,8 @@
     },
     "drive": {
       "phasing_z0_ohm": 100.0,
-      "equal_drive_z0_ohm": 142.6500601139782,
+      "loop_z_ohm": 142.6500601139782,
+      "loop_z_source": "modeled",
       "balance": 1.4264718773509395,
       "ar_floor_db": 3.085264280721401
     },

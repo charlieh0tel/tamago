@@ -166,22 +166,37 @@ function meshDict(result: DesignResult, wavelength: number): JsonObject {
   };
 }
 
+// On-axis axial ratio implied by a current-amplitude split alone.
+function arFloorDb(balance: number): number {
+  return balance > 0.0
+    ? Math.abs(20.0 * Math.log10(balance))
+    : Number.POSITIVE_INFINITY;
+}
+
 // Where the loop current split -- and so the axial ratio -- comes from.
 //
 // A quarter-wave phasing line converts junction voltage to loop-B current
 // through its own Z0, while loop A is driven directly, so the split is exactly
-// |Z_loop| / Z0. Equal drive therefore wants a cable matching the loop
-// impedance, and any shortfall shows up as axial ratio: on axis the ratio of two
-// quadrature fields of unequal amplitude is |20*log10(balance)| dB.
+// |Z_loop| / Z0. That relation is transmission-line theory and holds whatever one
+// thinks of the model; the loop impedance in it is the shakiest number we
+// produce, because a point-fed closed loop is a case NEC handles poorly. So a
+// measured value (spec.measuredLoopZOhm) is used in preference, and the source is
+// reported either way.
 function driveDict(result: DesignResult, phasingZ0Ohm: number): JsonObject {
   const loopZ = result.loopAFeedZ;
-  const balance = result.loopBalance;
+  const modeled = loopZ !== null ? Math.hypot(loopZ.re, loopZ.im) : null;
+  const measured = result.spec.measuredLoopZOhm;
+  const used = measured !== null ? measured : modeled;
+  const source = measured !== null ? "measured" : modeled !== null ? "modeled" : null;
+  // Recompute from the relation when measured, so the reading -- not the model --
+  // sets the reported split.
+  const balance = measured !== null ? measured / phasingZ0Ohm : result.loopBalance;
   return {
     phasing_z0_ohm: phasingZ0Ohm,
-    equal_drive_z0_ohm: loopZ !== null ? Math.hypot(loopZ.re, loopZ.im) : null,
+    loop_z_ohm: used,
+    loop_z_source: source,
     balance,
-    ar_floor_db:
-      balance > 0.0 ? Math.abs(20.0 * Math.log10(balance)) : Number.POSITIVE_INFINITY,
+    ar_floor_db: arFloorDb(balance),
   };
 }
 
@@ -263,6 +278,8 @@ function performanceDict(result: DesignResult): JsonObject {
 // Serialize a tuned design's cut list and performance to a plain object. The
 // optional frequency-sweep bandwidth section is added by bandwidthDict, which
 // is async (it runs extra nec2c jobs); this function is synchronous.
+export { arFloorDb };
+
 export function resultToDict(result: DesignResult): JsonObject {
   return {
     spec: specToDict(result.spec),

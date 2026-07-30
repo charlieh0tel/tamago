@@ -203,19 +203,34 @@ def _drive_dict(result: DesignResult, phasing_z0_ohm: float) -> dict:
 
     A quarter-wave phasing line converts junction voltage to loop-B current
     through its own Z0, while loop A is driven directly, so the split is exactly
-    |Z_loop| / Z0. Equal drive therefore wants a cable matching the loop
-    impedance, and any shortfall shows up as axial ratio: on axis the ratio of
-    two quadrature fields of unequal amplitude is |20*log10(balance)| dB.
+    |Z_loop| / Z0. That relation is transmission-line theory and holds whatever
+    one thinks of the model; the loop impedance in it is the shakiest number we
+    produce, because a point-fed closed loop is a case NEC handles poorly. So a
+    measured value (spec.measured_loop_z_ohm) is used in preference, and the
+    source is reported either way.
     """
-    loop_z = result.loop_a_feed_z
-    balance = result.loop_balance
-    floor = abs(20.0 * math.log10(balance)) if balance > 0.0 else math.inf
+    spec = result.spec
+    modeled = abs(result.loop_a_feed_z) if result.loop_a_feed_z is not None else None
+    measured = spec.measured_loop_z_ohm
+    loop_z = measured if measured is not None else modeled
+    source = "measured" if measured is not None else ("modeled" if modeled else None)
+    # Recompute from the relation when measured, so the reading -- not the
+    # model -- sets the reported split.
+    balance = loop_z / phasing_z0_ohm if measured is not None else result.loop_balance
     return {
         "phasing_z0_ohm": phasing_z0_ohm,
-        "equal_drive_z0_ohm": abs(loop_z) if loop_z is not None else None,
+        "loop_z_ohm": loop_z,
+        "loop_z_source": source,
         "balance": balance,
-        "ar_floor_db": floor,
+        "ar_floor_db": _ar_floor_db(balance),
     }
+
+
+def _ar_floor_db(balance: float) -> float:
+    """On-axis axial ratio implied by a current-amplitude split alone."""
+    if balance <= 0.0:
+        return math.inf
+    return abs(20.0 * math.log10(balance))
 
 
 def _build_dict(result: DesignResult) -> dict:

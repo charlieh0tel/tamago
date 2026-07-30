@@ -32,6 +32,7 @@ _OPTIONAL_FIELDS = (
     "feed_gap_mm",
     "phasing_coax",
     "match_coax",
+    "measured_loop_z_ohm",
     "system_z_ohm",
     "reflector",
     "reflector_spacing_wl",

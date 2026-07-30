@@ -274,16 +274,20 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   refinement), so the loop is meshed uniformly instead. With that fixed the
   impedance settles within 1% and the two bands of a pair agree within 0.2%; see
   [docs/segmentation.md](docs/segmentation.md).
-- We predict about 143 ohm per loop where the eggbeater literature states 100.
-  Independent NEC modeling of resonant full-wave loops (121 to 134 ohm for
-  triangle through hexagon, rising with side count) supports ours, and the single
-  "100 ohms" figure looks like folklore; the published SWR it is paired with is an
-  uncalibrated needle reading. The consequence is real: a 93 ohm phasing line
-  against a 143 ohm loop splits the currents 1.5:1, which alone sets about 3.7 dB
-  of axial ratio, and the cut sheet reports that split. See
-  [docs/reference-designs.md](docs/reference-designs.md), and
-  `designs/f5vif_reference.input.json` to reproduce. There are still no
-  measurements of our own.
+- We predict about 143 ohm per loop where the eggbeater literature states 100,
+  and the disagreement is unresolved. Other NEC models of resonant full-wave loops
+  agree with ours, but that is one method agreeing with itself; a point-fed closed
+  loop is the case NEC-2 handles worst. It matters because the loop current split
+  is |Z_loop| / Z0_phasing exactly, so at 143 ohm a 93 ohm phasing line costs
+  about 3.7 dB of axial ratio and at 100 ohm it costs 0.6 dB. The cut sheet
+  reports the split, which value it used, and both figures. Set
+  `measured_loop_z_ohm` from a bridge reading to replace the estimate -- there are
+  no measurements of our own. See
+  [docs/reference-designs.md](docs/reference-designs.md).
+- Absolute figures are less trustworthy than comparisons. Systematic model error
+  largely cancels when asking "is this placement better than that one", so treat
+  the optimizer's rankings as more reliable than the axial ratio or impedance it
+  prints.
 - The phasing line is a NEC ideal transmission line: lossless, with no shield
   or common-mode current (a real build uses a current balun; see TODO). Its
   off-design phase drift matches a real cable exactly, since physical length

@@ -97,9 +97,13 @@ model's loop impedance drifted with the mesh and happened to pass through 100 oh
 near 24 segments, which is also where the mesh calibration had pinned it. With
 the mesh converged we say ~143 ohm at any count.
 
-Three things say the ~143 ohm is right and the 100 ohm is folklore:
+Three things point toward the ~143 ohm, though none of them is decisive, and the
+first is weaker than it looks:
 
-- **Independent NEC modeling agrees with us.** For resonant full-wave loops in
+- **Independent NEC modeling agrees with us -- but it is the same method.** This
+  is agreement with our *implementation*, not corroboration of the *physics*: if
+  NEC-2 is systematically off for a point-fed closed loop, both models share the
+  error. Treat it as a code check, not a validation. For resonant full-wave loops in
   free space (#12 wire at 18 MHz), <https://practicalantennas.com/theory/loop/full-wave/>
   reports 121 ohm (triangle, corner fed), 126 (square, side fed), 129 (square,
   corner fed) and 134 (hexagon, corner fed) -- rising with side count.
@@ -111,18 +115,33 @@ Three things say the ~143 ohm is right and the 100 ohm is folklore:
   loops do not have the same feedpoint impedance. These are common
   misconceptions." A single "100 ohms" for any full-wave loop is the
   misconception; F5VIF uses it to motivate "two in parallel give 50 ohms", which
-  is an argument rather than a measurement.
+  is an argument rather than a measurement. Against that: whatever its provenance,
+  the amateur figure may descend from people putting a bridge across a real loop,
+  and a measurement beats any number of NEC runs.
 - **Their SWR figure is not a calibrated measurement.** They write: "A SWR of 1.0
   means that there was no deflection of the needle on the SWR meter." A reading
   below a VHF meter's resolution is compatible with the 1.18 to 1.22 we predict,
   so it does not discriminate.
+
+**So this is not settled, and an earlier version of this file said it was.** What
+we have is one method agreeing with itself. A point-fed closed loop is exactly the
+case NEC-2 handles worst -- we spent a long investigation watching one
+feed-modeling choice move the same number by 92% -- so its absolute value here
+deserves little confidence. The relation that uses it (balance = |Z_loop| / Z0) is
+transmission-line theory and is not in doubt; only the impedance is.
+
+That is why `measured_loop_z_ohm` exists: put a bridge across one loop and the
+tool will use the reading instead, and the cut sheet reports which it used. Until
+someone does, the cut sheet also shows what the axial ratio would be at the
+literature's 100 ohm, since the difference (about 3.7 dB against 0.6 dB) changes
+the conclusion entirely.
 
 It also confirms our resonant perimeter: "larger diameter conductors require a
 larger circumference for resonance", which is why our loops resonate longer than
 the 1005/F starting length. F5VIF build long and trim ("shortening is easier then
 lengthening"), so their finished loops are not 1.0215 wavelengths either.
 
-**The consequence is a real design finding, not a modeling artifact.** If the
+**If the impedance holds up, the consequence is a real design finding.** If the
 loops really are ~143 ohm, then the classic 93 ohm RG-62 phasing line splits the
 loop currents 1.5:1, and that imbalance alone sets about 3.7 dB of axial ratio --
 which is consistent with the eggbeater's reputation as a serviceable rather than

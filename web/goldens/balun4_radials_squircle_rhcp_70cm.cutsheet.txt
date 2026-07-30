@@ -16,8 +16,9 @@ Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 46.0 mm segments = 0.067 wl = 18 radii
   ! thin-wire ratio 18 below 36: loop impedance overstated
 Phasing line        : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-  drive split       : 100 ohm line, 120 ohm wanted for equal drive, balance 1.20
-  ! that imbalance alone sets 1.6 dB of axial ratio on axis
+  drive split       : 100 ohm line vs 120 ohm loop (modeled), balance 1.20
+  ! 1.6 dB of axial ratio from that split alone; equal drive wants a ~120 ohm line
+  ! loop Z modeled: at the literature's 100 ohm it would be 0.0 dB (set measured_loop_z_ohm)
 Q-section           : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Pair braids         : bonded to each other at both ends; not grounded
 Balun               : half-wave 4:1, 226.9 mm RG-58 (VF 0.66); braid bonds to the feedline braid

@@ -12,12 +12,16 @@ import {
 import { type DesignResult, bandwidthWithin, frequencySweep } from "./design";
 import { formatG } from "./format";
 import type { NecRunner } from "./nec";
-import { resultToDict } from "./result";
+import { arFloorDb, resultToDict } from "./result";
 import type { JsonObject } from "./spec";
 
 // Above this, the drive imbalance is called out: it is then the dominant term in
 // the axial ratio rather than a rounding detail.
 const DRIVE_AR_FLOOR_WARN_DB = 1.0;
+// The per-loop impedance the eggbeater literature states. Used only to show how
+// far the axial-ratio conclusion moves if the modeled loop impedance is wrong;
+// the evidence is discussed in docs/reference-designs.md.
+const LITERATURE_LOOP_Z_OHM = 100.0;
 
 // Shape-appropriate label for the loop's across dimension (width_mm).
 const WIDTH_TERM: Record<string, string> = {
@@ -110,19 +114,35 @@ function coaxText(piece: JsonObject): string {
 }
 
 // Where the loop current split, and so the axial ratio, comes from.
+//
+// The split follows from |Z_loop| / Z0 exactly, so when the loop impedance is
+// only modeled the sensitivity is shown as well: the figure the eggbeater
+// literature states is far enough away to change the conclusion, and a point-fed
+// loop is not something NEC is reliable about.
 function driveLines(drive: JsonObject): string[] {
-  const ideal = drive.equal_drive_z0_ohm as number | null;
   const z0 = num(drive, "phasing_z0_ohm");
+  const loopZ = drive.loop_z_ohm as number | null;
+  const source = drive.loop_z_source as string | null;
   const balance = num(drive, "balance");
   const floor = num(drive, "ar_floor_db");
-  const detail =
-    ideal === null
-      ? `balance ${f(balance, 2)}`
-      : `${f(ideal, 0)} ohm wanted for equal drive, balance ${f(balance, 2)}`;
-  const lines = [`  drive split       : ${g(z0)} ohm line, ${detail}`];
+  if (loopZ === null) {
+    return [`  drive split       : ${g(z0)} ohm line, balance ${f(balance, 2)}`];
+  }
+  const lines = [
+    `  drive split       : ${g(z0)} ohm line vs ${f(loopZ, 0)} ohm loop ` +
+      `(${source}), balance ${f(balance, 2)}`,
+  ];
   if (floor > DRIVE_AR_FLOOR_WARN_DB) {
     lines.push(
-      `  ! that imbalance alone sets ${f(floor, 1)} dB of axial ratio on axis`,
+      `  ! ${f(floor, 1)} dB of axial ratio from that split alone; equal drive ` +
+        `wants a ~${f(loopZ, 0)} ohm line`,
+    );
+  }
+  if (source === "modeled") {
+    const alt = arFloorDb(LITERATURE_LOOP_Z_OHM / z0);
+    lines.push(
+      `  ! loop Z modeled: at the literature's ${g(LITERATURE_LOOP_Z_OHM)} ohm ` +
+        `it would be ${f(alt, 1)} dB (set measured_loop_z_ohm)`,
     );
   }
   return lines;

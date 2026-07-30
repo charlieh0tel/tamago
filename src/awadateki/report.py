@@ -13,11 +13,15 @@ from .design import (
     bandwidth_within,
     frequency_sweep,
 )
-from .result import result_to_dict
+from .result import _ar_floor_db, result_to_dict
 
 # Above this, the drive imbalance is called out: it is then the dominant term in
 # the axial ratio rather than a rounding detail.
 DRIVE_AR_FLOOR_WARN_DB = 1.0
+# The per-loop impedance the eggbeater literature states. Used only to show how
+# far the axial-ratio conclusion moves if the modeled loop impedance is wrong;
+# the evidence is discussed in docs/reference-designs.md.
+LITERATURE_LOOP_Z_OHM = 100.0
 
 # Shape-appropriate label for the loop's across dimension (width_mm).
 _WIDTH_TERM = {"circle": "dia", "square": "side", "squircle": "width"}
@@ -140,19 +144,34 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
 
 
 def _drive_lines(drive: dict) -> list[str]:
-    """Where the loop current split, and so the axial ratio, comes from."""
-    ideal = drive["equal_drive_z0_ohm"]
+    """Where the loop current split, and so the axial ratio, comes from.
+
+    The split follows from |Z_loop| / Z0 exactly, so when the loop impedance is
+    only modeled the sensitivity is shown as well: the figure the eggbeater
+    literature states is far enough away to change the conclusion, and a point-fed
+    loop is not something NEC is reliable about.
+    """
     z0 = drive["phasing_z0_ohm"]
+    loop_z = drive["loop_z_ohm"]
+    source = drive["loop_z_source"]
     balance = drive["balance"]
     floor = drive["ar_floor_db"]
-    if ideal is None:
-        detail = f"balance {balance:.2f}"
-    else:
-        detail = f"{ideal:.0f} ohm wanted for equal drive, balance {balance:.2f}"
-    lines = [f"  drive split       : {z0:g} ohm line, {detail}"]
+    if loop_z is None:
+        return [f"  drive split       : {z0:g} ohm line, balance {balance:.2f}"]
+    lines = [
+        f"  drive split       : {z0:g} ohm line vs {loop_z:.0f} ohm loop "
+        f"({source}), balance {balance:.2f}"
+    ]
     if floor > DRIVE_AR_FLOOR_WARN_DB:
         lines.append(
-            f"  ! that imbalance alone sets {floor:.1f} dB of axial ratio on axis"
+            f"  ! {floor:.1f} dB of axial ratio from that split alone; equal drive "
+            f"wants a ~{loop_z:.0f} ohm line"
+        )
+    if source == "modeled":
+        alt = _ar_floor_db(LITERATURE_LOOP_Z_OHM / z0)
+        lines.append(
+            f"  ! loop Z modeled: at the literature's {LITERATURE_LOOP_Z_OHM:g} ohm "
+            f"it would be {alt:.1f} dB (set measured_loop_z_ohm)"
         )
     return lines
 

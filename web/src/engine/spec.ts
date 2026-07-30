@@ -57,6 +57,7 @@ export interface DesignSpec {
   feed: string;
   phasingCoax: Coax | null;
   matchCoax: Coax | null;
+  measuredLoopZOhm: number | null;
   sense: string;
   loopShape: string;
   cornerRadiusWl: number;
@@ -85,6 +86,7 @@ const SPEC_DEFAULTS = {
   feed: FEED_LINE,
   phasingCoax: null,
   matchCoax: null,
+  measuredLoopZOhm: null,
   sense: SENSE_RHCP,
   loopShape: SHAPE_CIRCLE,
   cornerRadiusWl: 0.05,
@@ -125,6 +127,7 @@ const OPTIONAL_FIELDS: Array<[keyof DesignSpec, string]> = [
   ["feedGapMm", "feed_gap_mm"],
   ["phasingCoax", "phasing_coax"],
   ["matchCoax", "match_coax"],
+  ["measuredLoopZOhm", "measured_loop_z_ohm"],
   ["systemZOhm", "system_z_ohm"],
   ["reflector", "reflector"],
   ["reflectorSpacingWl", "reflector_spacing_wl"],

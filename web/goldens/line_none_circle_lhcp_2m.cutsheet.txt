@@ -12,8 +12,9 @@ Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
 NEC mesh            : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-  drive split       : 93 ohm line, 143 ohm wanted for equal drive, balance 1.53
-  ! that imbalance alone sets 3.7 dB of axial ratio on axis
+  drive split       : 93 ohm line vs 143 ohm loop (modeled), balance 1.53
+  ! 3.7 dB of axial ratio from that split alone; equal drive wants a ~143 ohm line
+  ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB (set measured_loop_z_ohm)
 Loop B connection   : cross the two conductors, gives LHCP
 Feed                : feedline to the junction across loop A
 ----------------------------------------

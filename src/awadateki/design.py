@@ -212,6 +212,11 @@ class DesignSpec:
             line, fed through a 1:1 ferrite current choke with no Q-section or
             4:1 balun). balun4 and choke share the same balanced NEC model and
             differ only in the match hardware.
+        measured_loop_z_ohm: magnitude of a bridge reading of one loop's feed
+            impedance, in ohms, or None to use the modeled value. The loop
+            current split is exactly |Z_loop| / Z0_phasing, so a measurement
+            replaces the shakiest number in the model (NEC handles a point-fed
+            closed loop poorly) without needing the rest of it.
         phasing_coax: cable of the quarter-wave phasing line feeding loop B,
             or None for the scheme default (RG-62). FEED_LINE only; setting
             it for a harness feed is an error, since those harnesses fix
@@ -264,6 +269,7 @@ class DesignSpec:
     feed: str = FEED_LINE
     phasing_coax: Coax | None = None
     match_coax: Coax | None = None
+    measured_loop_z_ohm: float | None = None
     sense: str = SENSE_RHCP
     loop_shape: str = SHAPE_CIRCLE
     corner_radius_wl: float = 0.05
