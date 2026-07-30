@@ -72,7 +72,7 @@ function TuningChip({ state }: { state: UiState }): JSX.Element {
         className="chip"
         title="Tuning the perimeter to quadrature and searching the reflector…"
       >
-        optimizing…
+        whisking…
       </span>
     );
   }

@@ -114,7 +114,7 @@ async function handleOptimize(id: number, spec: DesignSpec): Promise<void> {
   const reflector = spec.reflector !== REFLECTOR_NONE;
   // One label for every phase of Optimize: which solver is running is an
   // implementation detail, and the run counter already shows progress.
-  const stage = "whisking...";
+  const stage = "whisking…";
   const runner = instrumentedRunner(id, (runs) => {
     post({
       id,
