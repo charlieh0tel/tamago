@@ -21,12 +21,12 @@ Match to 50 ohm:
   via the harness Q-section and 4:1 balun (see above)
 ----------------------------------------
 Predicted performance:
-  feedpoint Z      : 49.6 +0.0j ohms
-  loop A feed Z    : 88.3 +0.1j ohms
-  loop B feed Z    : 88.3 +0.1j ohms
-  VSWR (unmatched) : 1.01
+  feedpoint Z       : 49.6 +0.0j ohms
+  loop A feed Z     : 88.3 +0.1j ohms
+  loop B feed Z     : 88.3 +0.1j ohms
+  VSWR (unmatched)  : 1.01
   loop current phase: -90.1 deg (target +/-90)
-  loop balance     : 0.883 |Ib/Ia| (1.0 = equal drive)
+  loop balance      : 0.883 |Ib/Ia| (1.0 = equal drive)
   polarization sense: LHCP
   axial ratio (cone): 1.89 dB mean, 3.98 dB worst (<= 30 deg from zenith)
   axial ratio (peak): 34.61 dB

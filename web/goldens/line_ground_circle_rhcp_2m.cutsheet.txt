@@ -20,12 +20,12 @@ Match to 50 ohm:
   1/4-wave length   : 339.0 mm (VF 0.66)
 ----------------------------------------
 Predicted performance:
-  feedpoint Z      : 45.5 +0.1j ohms
-  loop A feed Z    : 79.6 -0.1j ohms
-  loop B feed Z    : 81.7 -0.6j ohms
-  VSWR (unmatched) : 1.10
+  feedpoint Z       : 45.5 +0.1j ohms
+  loop A feed Z     : 79.6 -0.1j ohms
+  loop B feed Z     : 81.7 -0.6j ohms
+  VSWR (unmatched)  : 1.10
   loop current phase: +90.0 deg (target +/-90)
-  loop balance     : 0.856 |Ib/Ia| (1.0 = equal drive)
+  loop balance      : 0.856 |Ib/Ia| (1.0 = equal drive)
   polarization sense: RHCP
   axial ratio (cone): 1.75 dB mean, 3.67 dB worst (<= 30 deg from zenith)
   axial ratio (peak): 2.39 dB

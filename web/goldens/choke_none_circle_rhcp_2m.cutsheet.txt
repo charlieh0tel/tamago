@@ -20,12 +20,12 @@ Match to 50 ohm:
   none; the 1:1 ferrite choke presents the feed Z directly
 ----------------------------------------
 Predicted performance:
-  feedpoint Z      : 49.6 +0.0j ohms
-  loop A feed Z    : 88.3 +0.1j ohms
-  loop B feed Z    : 88.3 +0.1j ohms
-  VSWR (unmatched) : 1.01
+  feedpoint Z       : 49.6 +0.0j ohms
+  loop A feed Z     : 88.3 +0.1j ohms
+  loop B feed Z     : 88.3 +0.1j ohms
+  VSWR (unmatched)  : 1.01
   loop current phase: +89.9 deg (target +/-90)
-  loop balance     : 0.883 |Ib/Ia| (1.0 = equal drive)
+  loop balance      : 0.883 |Ib/Ia| (1.0 = equal drive)
   polarization sense: RHCP
   axial ratio (cone): 1.69 dB mean, 3.98 dB worst (<= 30 deg from zenith)
   axial ratio (peak): 34.61 dB

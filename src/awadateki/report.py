@@ -172,18 +172,18 @@ def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
     z = perf["feed_z_ohm"]
     lines = [
         "Predicted performance:",
-        f"  feedpoint Z      : {z['real']:.1f} {z['imag']:+.1f}j ohms",
+        f"  feedpoint Z       : {z['real']:.1f} {z['imag']:+.1f}j ohms",
     ]
     za = perf["loop_a_feed_z_ohm"]
     zb = perf["loop_b_feed_z_ohm"]
     if za is not None and zb is not None:
-        lines.append(f"  loop A feed Z    : {za['real']:.1f} {za['imag']:+.1f}j ohms")
-        lines.append(f"  loop B feed Z    : {zb['real']:.1f} {zb['imag']:+.1f}j ohms")
+        lines.append(f"  loop A feed Z     : {za['real']:.1f} {za['imag']:+.1f}j ohms")
+        lines.append(f"  loop B feed Z     : {zb['real']:.1f} {zb['imag']:+.1f}j ohms")
     lines += [
-        f"  VSWR (unmatched) : {perf['vswr_unmatched']:.2f}",
+        f"  VSWR (unmatched)  : {perf['vswr_unmatched']:.2f}",
         f"  loop current phase: {perf['loop_current_phase_deg']:+.1f} deg "
         "(target +/-90)",
-        f"  loop balance     : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = equal drive)",
+        f"  loop balance      : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = equal drive)",
         f"  polarization sense: {_format_sense(result)}",
         f"  axial ratio (cone): {perf['axial_ratio_cone_db']:.2f} dB mean, "
         f"{perf['axial_ratio_cone_worst_db']:.2f} dB worst "
