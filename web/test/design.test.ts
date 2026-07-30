@@ -60,14 +60,14 @@ describe("design (nec2c)", () => {
   it("square loop design runs", async () => {
     const result = await design(spec({ loopShape: "square" }), runNec);
     expect(Number.isFinite(result.arBoresightDb)).toBe(true);
-    expect(gwCount(result.deck)).toBe(2 * (loopSegments(result.spec) + 2));
+    expect(gwCount(result.deck)).toBe(2 * loopSegments(result.spec));
   }, 30_000);
 
   it("radial reflector runs", async () => {
     const s = spec({ reflector: "radials" });
     const result = await design(s, runNec);
     expect(Number.isFinite(result.arBoresightDb)).toBe(true);
-    expect(gwCount(result.deck)).toBe(2 * (loopSegments(s) + 2) + s.radialCount);
+    expect(gwCount(result.deck)).toBe(2 * loopSegments(s) + s.radialCount);
   }, 30_000);
 
   it("balun4 feed designs", async () => {
@@ -78,10 +78,11 @@ describe("design (nec2c)", () => {
     expect(result.zIn.re).toBeGreaterThan(40.0);
     expect(result.zIn.re).toBeLessThan(60.0);
     expect(Math.abs(result.zIn.im)).toBeLessThan(5.0);
-    expect(result.loopBalance).toBeLessThan(1.2);
+    expect(result.loopBalance).toBeGreaterThan(1.15);
+    expect(result.loopBalance).toBeLessThan(1.45);
     expect(Number.isFinite(result.arBoresightDb)).toBe(true);
     // No port wires: the Q-section and balun are outside the NEC model.
-    expect(gwCount(result.deck)).toBe(2 * (loopSegments(result.spec) + 2));
+    expect(gwCount(result.deck)).toBe(2 * loopSegments(result.spec));
   }, 60_000);
 
   it("sense selection flips handedness", async () => {

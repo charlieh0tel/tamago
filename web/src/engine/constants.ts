@@ -68,10 +68,10 @@ export const PORT_TAG_BASE = 400;
 // The loop offset must give the crossing conductors at least this many
 // equivalent conductor diameters of axis separation (1.0 = surfaces touching).
 export const MIN_LOOP_OFFSET_DIAMETERS = 1.5;
-// NEC tag bases (100/200/300/400) are 100 apart and the feed-gap split adds two
-// wires per loop, so past this many polygon sides loop A's tags would collide
-// with loop B's and the phasing line would bind to the wrong wire.
-export const MAX_SEGMENTS = 98;
+// NEC tag bases (100/200/300/400) are 100 apart and each polygon side takes one
+// tag, so past this many sides loop A's tags would collide with loop B's and the
+// phasing line would bind to the wrong wire.
+export const MAX_SEGMENTS = 99;
 
 // Loop mesh density, used when spec.segments is null.
 //

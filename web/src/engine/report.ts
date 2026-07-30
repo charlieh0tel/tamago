@@ -143,7 +143,7 @@ function meshLines(mesh: JsonObject): string[] {
   const segWl = num(mesh, "segment_wl");
   const warnWl = num(mesh, "segment_wl_warn");
   const flags: string[] = [];
-  if (radii < target) {
+  if (radii < target - 0.5) {
     flags.push(
       `thin-wire ratio ${f(radii, 0)} below ${f(target, 0)}: loop impedance overstated`,
     );

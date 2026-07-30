@@ -254,11 +254,17 @@ function loopOutlinePoints(
 
 // Build one polygonal loop of the given outline in the "xz" or "yz" plane.
 //
-// The bottom side carries the feed. When feedGapM > 0 and fits within that
-// side, the side is split into a short feed segment of that length centered on
-// the bottom (where the line connects) flanked by two approach segments, so the
-// segment lengths step gently into the gap (NEC's segment-grading rule). The
-// feed wire keeps tagBase; the remaining wires take the following tags.
+// Every side is one segment of equal length and the bottom side carries the
+// feed, keeping tagBase; the rest take the following tags.
+//
+// The physical feed gap is deliberately not modeled. NEC's applied-field source
+// already is a delta-gap feed, and carving a short fixed-length wire out of the
+// bottom side to represent the gap leaves the source segment a fixed length
+// while its neighbours shrink with the segment count -- which made the loop
+// impedance drift by 92% over a 7x mesh refinement instead of converging. With a
+// uniform mesh the same loop settles within 2% (see docs/segmentation.md). The
+// gap remains a reported build dimension; at ~0.5% of the circumference its
+// geometric effect is far below that error.
 function makeLoop(
   plane: "xz" | "yz",
   perimeterM: number,
@@ -268,7 +274,6 @@ function makeLoop(
   tagBase: number,
   segments: number,
   shape: string,
-  feedGapM = 0.0,
 ): Loop {
   const points: Point3[] = [];
   for (const [across, upOffset] of loopOutlinePoints(
@@ -291,30 +296,9 @@ function makeLoop(
   if (a === undefined || b === undefined) {
     throw new Error("degenerate loop outline");
   }
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const dz = b[2] - a[2];
-  const sideLen = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
   // Each segment: [tag, startPoint, endPoint].
-  const segs: Array<[number, Point3, Point3]> = [];
-  let nextTag: number;
-  if (feedGapM > 0.0 && feedGapM < sideLen) {
-    const mx = (a[0] + b[0]) / 2;
-    const my = (a[1] + b[1]) / 2;
-    const mz = (a[2] + b[2]) / 2;
-    const ux = dx / sideLen;
-    const uy = dy / sideLen;
-    const uz = dz / sideLen;
-    const h = feedGapM / 2.0;
-    const t0: Point3 = [mx - ux * h, my - uy * h, mz - uz * h];
-    const t1: Point3 = [mx + ux * h, my + uy * h, mz + uz * h];
-    segs.push([tagBase + 1, a, t0], [tagBase, t0, t1], [tagBase + 2, t1, b]);
-    nextTag = tagBase + 3;
-  } else {
-    segs.push([tagBase, a, b]); // whole bottom side is the feed segment
-    nextTag = tagBase + 1;
-  }
+  const segs: Array<[number, Point3, Point3]> = [[tagBase, a, b]];
+  let nextTag = tagBase + 1;
   for (let k = 1; k < segments; k++) {
     const p = points[k];
     const q = points[k + 1];
@@ -350,8 +334,7 @@ function makeLoop(
 // above, each by half the offset) so the crossed conductors clear at the top
 // and bottom crossings; the mean height stays at centerZM.
 //
-// feedGapM is the width of the feed gap at the bottom of each loop (where the
-// line connects); see makeLoop.
+// The physical feed gap is not modeled; see makeLoop for why.
 export function makeEggbeater(
   perimeterAM: number,
   perimeterBM: number,
@@ -361,7 +344,6 @@ export function makeEggbeater(
   shape: string = SHAPE_CIRCLE,
   cornerRadiusM = 0.0,
   loopOffsetM = 0.0,
-  feedGapM = 0.0,
 ): Eggbeater {
   if (!(LOOP_SHAPES as readonly string[]).includes(shape)) {
     throw new Error(`unknown loop shape: ${JSON.stringify(shape)}`);
@@ -385,7 +367,6 @@ export function makeEggbeater(
     LOOP_A_TAG_BASE,
     segments,
     shape,
-    feedGapM,
   );
   const loopB = makeLoop(
     "yz",
@@ -396,7 +377,6 @@ export function makeEggbeater(
     LOOP_B_TAG_BASE,
     segments,
     shape,
-    feedGapM,
   );
   return { loopA, loopB, wires: [...loopA.wires, ...loopB.wires] };
 }

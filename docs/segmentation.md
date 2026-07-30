@@ -1,14 +1,43 @@
-# Segmentation convergence: an open modeling limitation
+# Segmentation convergence: found and fixed
 
-Status: open (2026-07-29). The loop driving-point impedance this model predicts
-does not converge as `segments` increases. Axial ratio is derived from it, so
-absolute axial-ratio figures carry several dB of uncertainty, and two designs are
-only comparable when their `segments` match.
+Status: resolved (2026-07-30). The loop driving-point impedance used not to
+converge as `segments` rose, which put several dB of uncertainty on every axial
+ratio and made two designs incomparable unless their `segments` matched.
 
-This note records the measurements and, more usefully, the causes that were
-ruled out, so the next attempt does not repeat them.
+The cause was the feed gap: it was modeled as a short wire of fixed length
+carrying the source, so the source segment stayed 10 mm while its neighbours
+shrank with the segment count. NEC's applied-field source is sensitive to the
+segment geometry at the feed, and that growing length discontinuity moved the
+answer the whole way. The gap is no longer modeled -- NEC's source already is a
+delta-gap feed -- and the loop is meshed uniformly.
 
-## The observation
+This note keeps the measurements, the causes that were ruled out along the way,
+and the decisive experiment, because the ruled-out list is what stopped the
+search going in circles.
+
+## The decisive experiment
+
+One full-wave loop in free space, no crossed pair, no reflector, no
+transmission line, fed two ways as the mesh is refined:
+
+| segments | source on an ordinary segment | source on a fixed 10 mm gap wire |
+|---------:|------------------------------:|---------------------------------:|
+| 12 | 128.4 -88.8j | 67.9 -51.5j |
+| 16 | 128.0 -77.5j | 75.7 -49.8j |
+| 24 | 127.4 -69.6j | 87.5 -51.1j |
+| 32 | 127.0 -66.8j | 96.7 -53.8j |
+| 48 | 126.4 -65.1j | 110.8 -59.5j |
+| 64 | 126.0 -64.6j | 121.7 -64.5j |
+| 80 | 125.7 -64.4j | 130.4 -68.7j |
+
+The uniform mesh settles within 2% across a 7x refinement, in the textbook
+100-130 ohm band for a one-wavelength loop. The gapped model swings 92% and
+crosses the right answer around 64 segments rather than converging to it.
+
+In the full eggbeater the fix takes the drift over `segments` 16 to 96 from 14%
+to 0.7% on the junction impedance, and from 79% to 1.2% on loop balance.
+
+## The observation, before the fix
 
 Perimeter held fixed at 1.05 wavelengths (no quadrature re-tune), free space,
 5 mm round conductor, `line` feed. Only the segment count varies:
@@ -73,69 +102,68 @@ Each of these was tested and is *not* the cause:
 - **Feed-gap to segment-length ratio.** Scaling `feed_gap_mm` to hold the ratio
   constant across segment counts does not converge either.
 
-## Still suspected
+## Confirmed cause
 
-The source region. The feed gap is modeled as a single-segment wire of fixed
-length carrying the voltage source, while the loop segments around it shrink as
-`segments` grows -- the source-to-neighbour length ratio moves from about 13:1
-to 2:1 across the sweep. A NEC applied-field source is sensitive to its segment
-geometry, and this is the one part of the model whose relative proportions change
-throughout the sweep.
+The source region, as suspected. The feed gap was a single-segment wire of fixed
+length carrying the voltage source while the loop segments around it shrank with
+`segments`, taking the source-to-neighbour length ratio from about 13:1 to 2:1
+across the sweep. That was the only part of the model whose proportions changed
+throughout, and removing it removes the divergence.
 
-## `segments` is the wrong normalization
+## `segments` was also the wrong normalization
 
-Checking the F5VIF reference design (see [reference-designs.md](reference-designs.md))
-turned up a sharper version of this problem. At the *same* `segments` value our
-model reproduces their stated 100 ohm loop impedance almost exactly on 2 m
-(101.0 ohm) and misses it by 41% on 70 cm (141.5 ohm) -- because their two
-prototypes use electrically different conductors:
+Before the cause was found, the F5VIF reference exposed a sharper symptom: at the
+*same* `segments` the model reproduced their stated 100 ohm on 2 m (101.0 ohm)
+and missed by 41% on 70 cm (141.5 ohm), because their two prototypes use
+electrically different conductors:
 
 | | conductor equivalent radius | segment length / radius |
 |---|---|---|
 | 2 m, 10 mm flat rod | 0.0012 wavelengths | ~36 |
 | 70 cm, 4 mm tube | 0.0029 wavelengths | ~15 |
 
-A raw segment count is not a band-independent mesh specification. The quantity
-that governs NEC accuracy here is segment length relative to conductor radius,
-and holding `segments` fixed lets it vary by more than a factor of two between
-the bands of a single pair. That is enough to place the two bands at materially
-different points on the divergence curve above.
+A fixed count let that ratio vary by more than 2x between the bands of one pair,
+placing them at different points on the divergence curve. So `spec.segments`
+defaults to None and is derived from the conductor radius (`loop_segments`),
+holding the ratio fixed rather than the count; an explicit integer still
+overrides, which is what the goldens use.
 
-### Addressed: the count is now derived
+That was a mitigation, not the cure -- it narrowed the 70 cm gap from 41% to 15%
+without removing the drift. Fixing the feed region removed it outright: the two
+bands now agree within 0.2% at whatever mesh they are given. The derivation is
+still worth keeping so a spec means the same discretization everywhere, but
+`LOOP_SEGMENT_RADII` no longer has to carry the accuracy of the model on its own.
 
-`spec.segments` defaults to None and is derived from the conductor radius
-(`loop_segments`, `LOOP_SEGMENT_RADII`), holding the binding ratio fixed instead
-of the count. An explicit integer still overrides it, which is what the goldens
-use.
+The cut sheet reports the mesh and both validity ratios, flagged when out of
+range, so a design carries its own caveat. The F5VIF 70 cm case still warns: at
+12 sides its segments are 31 radii (under the 36 target) and 0.089 wavelengths
+(near the 0.10 ceiling). A 4 mm tube at 435 MHz cannot satisfy both bounds at any
+count -- a real limit, now visible rather than silent.
 
-On the 70 cm reference case that closes most of the gap to the published figure:
+## What the fix changed downstream
 
-| | pinned 24 sides | derived 12 sides | F5VIF |
-|---|---:|---:|---:|
-| loop impedance | 141.5 ohm (+41%) | 115.4 ohm (+15%) | 100 ohm |
-| SWR | 1.21 | 1.13 | 1.0 (measured) |
-| loop balance | 1.522 | 1.241 | -- |
-| worst cone AR | 6.16 dB | 4.37 dB | -- |
-| coverage gain | -0.14 dBi | +1.67 dBi | -- |
+With the mesh converged the model is self-consistent across bands: the two
+halves of the F5VIF reference now land within 0.2% of each other (142.8 and
+142.5 ohm) where they were 41% apart. That is the point of the exercise.
 
-The residual 15% is the underlying non-convergence, which the derivation does
-not fix -- it only stops the *bands* from disagreeing for a reason that was
-purely an artifact of the mesh specification.
+It also moved us away from F5VIF's stated 100 ohm per loop, to about 143 ohm.
+The previous close agreement came from the buggy mesh happening to pass through
+100 ohm near 24 segments; it was coincidence, and the `LOOP_SEGMENT_RADII`
+calibration that pinned us there was compensating the bug. See
+[reference-designs.md](reference-designs.md) for what to make of the
+discrepancy.
 
-The cut sheet now reports the mesh and both validity ratios, and flags them when
-out of range, so any design carries its own caveat. The 70 cm reference still
-warns: at 12 sides its segments are 31 radii (under the 36 target) and 0.089
-wavelengths (near the 0.10 ceiling). That conductor is genuinely too thick at
-435 MHz to satisfy both bounds at any count -- a real limit, now visible rather
-than silent.
+## What is still open
 
-## What would still settle it
-
-1. Validate more broadly against published reference designs (K5OE, the Houston
-   eggbeater). F5VIF's 2 m case agrees closely and its 70 cm case is now within
-   15%, but one design is a thin anchor.
-2. Justify the 36-radii calibration on more than a single data point, or replace
-   it with a genuine convergence result.
-3. Rework the feed/source construction if the source region is confirmed as the
-   cause: a uniformly segmented loop with the source on an ordinary segment
-   removes the changing proportion.
+1. **Re-purpose the mesh derivation.** `LOOP_SEGMENT_RADII` was calibrated
+   against the buggy model. Now that refining is safe, the count should be
+   chosen for accuracy instead: enough segments for the shape's geometry (a
+   circle needs roughly 28 to sit within a wire radius of the true curve, a
+   squircle more, a square none) and long enough against the conductor radius
+   for the thin-wire kernel.
+2. **Reconcile ~143 ohm against their stated 100 ohm.** Their figure reads like
+   a design idealization ("two 100 ohm loops in parallel give 50 ohm") rather
+   than a measurement; their measured datum is SWR, where we now predict
+   1.19-1.22 against their 1.0-1.1.
+3. Validate against more published designs (K5OE, the Houston eggbeater). One
+   design is a thin anchor.

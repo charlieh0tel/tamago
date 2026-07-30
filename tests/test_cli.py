@@ -109,8 +109,8 @@ def test_square_loop_design_runs():
     # 16 segments divides by 4, so the square's corners land on vertices.
     result = design(replace(_spec(), loop_shape="square"))
     assert math.isfinite(result.ar_boresight_db)
-    # The feed gap splits each loop's bottom side into three, adding 2 wires.
-    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
+    # One wire per polygon side, per loop; the feed gap is not modeled.
+    assert result.deck.count("\nGW ") == 2 * result.spec.segments
 
 
 @needs_nec2c
@@ -118,7 +118,7 @@ def test_radial_reflector_runs():
     spec = replace(_spec(), reflector="radials")
     result = design(spec)
     assert math.isfinite(result.ar_boresight_db)
-    assert result.deck.count("\nGW ") == 2 * (spec.segments + 2) + spec.radial_count
+    assert result.deck.count("\nGW ") == 2 * spec.segments + spec.radial_count
 
 
 @needs_nec2c
@@ -128,11 +128,13 @@ def test_balun4_feed_designs():
     # phasing line land near 50 ohm (F5VIF's stated figure).
     assert 40.0 < result.z_in.real < 60.0
     assert abs(result.z_in.imag) < 5.0
-    # Balance follows |Z_loop| / 100 ohm, near unity.
-    assert result.loop_balance < 1.2
+    # Balance is |Z_loop| / 100 ohm. With the mesh converged the loop settles
+    # near 128 ohm, so the 100 ohm phasing line leaves it around 1.28 rather
+    # than at unity -- see docs/reference-designs.md.
+    assert 1.15 < result.loop_balance < 1.45
     assert math.isfinite(result.ar_boresight_db)
     # No port wires: the Q-section and balun are outside the NEC model.
-    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
+    assert result.deck.count("\nGW ") == 2 * result.spec.segments
 
 
 @needs_nec2c
@@ -142,8 +144,8 @@ def test_choke_feed_designs():
     result = design(replace(_spec(), reflector="ground", feed="choke", segments=36))
     assert 40.0 < result.z_in.real < 60.0
     assert abs(result.z_in.imag) < 5.0
-    assert result.loop_balance < 1.2
-    assert result.deck.count("\nGW ") == 2 * (result.spec.segments + 2)
+    assert 1.15 < result.loop_balance < 1.45
+    assert result.deck.count("\nGW ") == 2 * result.spec.segments
 
 
 def test_unknown_feed_rejected():
@@ -296,11 +298,11 @@ def test_coax_fields_rejected_for_wrong_feed():
 
 
 def test_segment_count_validated():
-    # Past 98 sides, loop A's tags (with the feed-gap split) would collide
-    # with loop B's tag base and mis-wire the phasing line.
+    # One tag per side, so past 99 sides loop A's tags would collide with loop
+    # B's tag base and mis-wire the phasing line.
     with pytest.raises(ValueError, match="segments"):
-        _eggbeater(replace(_spec(), segments=99), 1.0)
-    _eggbeater(replace(_spec(), segments=98), 1.0)
+        _eggbeater(replace(_spec(), segments=100), 1.0)
+    _eggbeater(replace(_spec(), segments=99), 1.0)
 
 
 def test_loop_offset_clearance_validated():

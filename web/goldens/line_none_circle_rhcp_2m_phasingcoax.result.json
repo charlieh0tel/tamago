@@ -31,15 +31,15 @@
     "loop_shape": "circle",
     "reflector": "none",
     "loop": {
-      "perimeter_mm": 2213.994271335393,
-      "width_mm": 704.7362645203334
+      "perimeter_mm": 2205.06734185688,
+      "width_mm": 701.8947346140573
     },
     "mesh": {
       "loop_segments": 16,
       "derived": false,
-      "segment_length_mm": 138.37464195846206,
-      "segment_wl": 0.06734278906289101,
-      "segment_radii": 55.34985678338482,
+      "segment_length_mm": 137.816708866055,
+      "segment_wl": 0.06707125975649934,
+      "segment_radii": 55.126683546421994,
       "segment_radii_target": 36.0,
       "segment_wl_warn": 0.1
     },
@@ -58,10 +58,10 @@
     "match": {
       "system_z_ohm": 50.0,
       "series_element": null,
-      "transformer_z0_ohm": 32.739883933819925,
+      "transformer_z0_ohm": 27.93564031841762,
       "transformer_coax": {
-        "name": "2x RG-59 (parallel)",
-        "z0_ohm": 37.5,
+        "name": "2x RG-58 (parallel)",
+        "z0_ohm": 25.0,
         "vf": 0.66
       },
       "transformer_length_mm": 339.0387633310487
@@ -69,28 +69,28 @@
   },
   "performance": {
     "feed_z_ohm": {
-      "real": 21.438,
-      "imag": -0.017724
+      "real": 15.608,
+      "imag": -0.011774
     },
     "feed_z_kind": "feedpoint",
-    "vswr_unmatched": 2.3323074772813963,
-    "vswr_matched": 1.3119239974781598,
-    "loop_current_phase_deg": 89.90792105098808,
-    "loop_balance": 1.7660023340073234,
+    "vswr_unmatched": 3.203485588920878,
+    "vswr_matched": 1.24864198140438,
+    "loop_current_phase_deg": 89.94466994640482,
+    "loop_balance": 2.852862544450387,
     "loop_a_feed_z_ohm": {
-      "real": 88.303,
-      "imag": 0.1357
+      "real": 142.64,
+      "imag": 0.12155
     },
     "loop_b_feed_z_ohm": {
-      "real": 88.303,
-      "imag": 0.1357
+      "real": 142.64,
+      "imag": 0.12155
     },
     "sense": "RHCP",
     "sense_requested": "RHCP",
     "sense_achieved": true,
-    "axial_ratio_cone_db": 5.057155853735757,
-    "axial_ratio_cone_worst_db": 7.842325112860202,
-    "axial_ratio_peak_db": 38.56235985387749,
-    "coverage_gain_dbi": -0.63
+    "axial_ratio_cone_db": 9.191311863948378,
+    "axial_ratio_cone_worst_db": 11.989240212161075,
+    "axial_ratio_peak_db": 42.27018549655036,
+    "coverage_gain_dbi": -5.13
   }
 }

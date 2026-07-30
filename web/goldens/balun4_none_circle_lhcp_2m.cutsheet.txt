@@ -7,10 +7,10 @@ Conductor           : round, 5 mm dia
 Loop shape          : circle
 Reflector           : none
 ----------------------------------------
-Both loops          : 2214.0 mm perimeter, 704.7 mm dia
+Both loops          : 2205.1 mm perimeter, 701.9 mm dia
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 16 sides/loop (set), 138.4 mm segments = 0.067 wl = 55 radii
+NEC mesh            : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
 Phasing line        : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Q-section           : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
 Pair braids         : bonded to each other at both ends; not grounded
@@ -21,13 +21,13 @@ Match to 50 ohm:
   via the harness Q-section and 4:1 balun (see above)
 ----------------------------------------
 Predicted performance:
-  feedpoint Z       : 49.6 +0.0j ohms
-  loop A feed Z     : 88.3 +0.1j ohms
-  loop B feed Z     : 88.3 +0.1j ohms
-  VSWR (unmatched)  : 1.01
+  feedpoint Z       : 47.0 -0.0j ohms
+  loop A feed Z     : 142.7 +0.1j ohms
+  loop B feed Z     : 142.7 +0.1j ohms
+  VSWR (unmatched)  : 1.06
   loop current phase: -90.1 deg (target +/-90)
-  loop balance      : 0.883 |Ib/Ia| (1.0 = equal drive)
+  loop balance      : 1.426 |Ib/Ia| (1.0 = equal drive)
   polarization sense: LHCP
-  axial ratio (cone): 1.89 dB mean, 3.98 dB worst (<= 30 deg from zenith)
-  axial ratio (peak): 34.61 dB
-  coverage gain     : 0.95 dBi (worst case <= 60 deg from zenith)
+  axial ratio (cone): 3.34 dB mean, 5.97 dB worst (<= 30 deg from zenith)
+  axial ratio (peak): 36.25 dB
+  coverage gain     : -1.77 dBi (worst case <= 60 deg from zenith)

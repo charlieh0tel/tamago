@@ -33,15 +33,15 @@
       "droop_deg": 0.0
     },
     "loop": {
-      "perimeter_mm": 2157.5194030157645,
-      "width_mm": 686.7597556132681
+      "perimeter_mm": 2152.001595692131,
+      "width_mm": 685.0033829920982
     },
     "mesh": {
       "loop_segments": 16,
       "derived": false,
-      "segment_length_mm": 134.84496268848528,
-      "segment_wl": 0.065625,
-      "segment_radii": 53.93798507539411,
+      "segment_length_mm": 134.5000997307582,
+      "segment_wl": 0.06545716553922654,
+      "segment_radii": 53.800039892303275,
       "segment_radii_target": 36.0,
       "segment_wl_warn": 0.1
     },
@@ -64,28 +64,28 @@
   },
   "performance": {
     "feed_z_ohm": {
-      "real": 45.316,
-      "imag": 0.088077
+      "real": 43.737,
+      "imag": 0.19424
     },
     "feed_z_kind": "feedpoint",
-    "vswr_unmatched": 1.1033822207525636,
-    "vswr_matched": 1.1033822207525636,
-    "loop_current_phase_deg": 90.38989015808221,
-    "loop_balance": 0.8369851745953772,
+    "vswr_unmatched": 1.143270289382654,
+    "vswr_matched": 1.143270289382654,
+    "loop_current_phase_deg": 90.12419753181325,
+    "loop_balance": 1.354893081141455,
     "loop_a_feed_z_ohm": {
-      "real": 77.835,
-      "imag": -0.53231
+      "real": 126.0,
+      "imag": -0.28009
     },
     "loop_b_feed_z_ohm": {
-      "real": 79.742,
-      "imag": -1.1299
+      "real": 129.11,
+      "imag": -1.0342
     },
     "sense": "RHCP",
     "sense_requested": "RHCP",
     "sense_achieved": true,
-    "axial_ratio_cone_db": 1.961058683816163,
-    "axial_ratio_cone_worst_db": 3.861484462325363,
-    "axial_ratio_peak_db": 1.5257961120687444,
-    "coverage_gain_dbi": 2.92
+    "axial_ratio_cone_db": 2.821367982885966,
+    "axial_ratio_cone_worst_db": 5.050210154826543,
+    "axial_ratio_peak_db": 2.6600837377870428,
+    "coverage_gain_dbi": 0.18
   }
 }

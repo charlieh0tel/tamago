@@ -123,10 +123,10 @@ CHOKE_UHF_THRESHOLD_MHZ = 300.0
 # The loop offset must give the crossing conductors at least this many
 # equivalent conductor diameters of axis separation (1.0 = surfaces touching).
 MIN_LOOP_OFFSET_DIAMETERS = 1.5
-# NEC tag bases (100/200/300/400) are 100 apart and the feed-gap split adds
-# two wires per loop, so past this many polygon sides loop A's tags would
-# collide with loop B's and the phasing line would bind to the wrong wire.
-MAX_SEGMENTS = 98
+# NEC tag bases (100/200/300/400) are 100 apart and each polygon side takes one
+# tag, so past this many sides loop A's tags would collide with loop B's and the
+# phasing line would bind to the wrong wire.
+MAX_SEGMENTS = 99
 REFERENCE_IMPEDANCE_OHMS = 50.0
 # Residual feedpoint reactance above which a series tuning element is sized.
 MATCH_REACTANCE_WARN_OHMS = 10.0
@@ -231,7 +231,10 @@ class DesignSpec:
             Must be at least MIN_LOOP_OFFSET_DIAMETERS equivalent conductor
             diameters.
         feed_gap_mm: width of the feed gap at the bottom of each loop, where the
-            line connects.
+            line connects. A build dimension only: it is reported on the cut
+            sheet but not modeled, since NEC's source is already a delta-gap
+            feed and carving a short fixed-length wire for the gap stops the
+            loop impedance converging (see geometry._make_loop).
         system_z_ohm: radio-end reference impedance the match targets (50 or 75).
         ar_margin_db: axial-ratio headroom the reflector optimizer's placement
             cost seeks below AR_TARGET_DB, biasing spacing/droop toward lower
@@ -554,7 +557,6 @@ def _eggbeater(spec: DesignSpec, factor: float):
         spec.loop_shape,
         spec.corner_radius_wl * wavelength,
         spec.loop_offset_mm / 1000.0,
-        spec.feed_gap_mm / 1000.0,
     )
     return egg, wavelength
 

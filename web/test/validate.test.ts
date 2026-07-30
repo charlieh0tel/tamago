@@ -35,8 +35,8 @@ describe("validateSpec", () => {
   });
 
   it("segment count validated", () => {
-    expect(() => validateSpec(spec({ segments: 99 }))).toThrow(/segments/);
-    expect(() => validateSpec(spec({ segments: 98 }))).not.toThrow();
+    expect(() => validateSpec(spec({ segments: 100 }))).toThrow(/segments/);
+    expect(() => validateSpec(spec({ segments: 99 }))).not.toThrow();
   });
 
   it("loop offset clearance validated", () => {

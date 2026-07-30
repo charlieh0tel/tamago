@@ -368,7 +368,6 @@ function buildEggbeater(
     spec.loopShape,
     spec.cornerRadiusWl * wavelength,
     spec.loopOffsetMm / 1000.0,
-    spec.feedGapMm / 1000.0,
   );
   return { egg, wavelength };
 }

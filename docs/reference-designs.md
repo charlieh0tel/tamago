@@ -78,43 +78,43 @@ the conductor) against their published figures:
 
 | quantity | F5VIF | ours | |
 |---|---|---|---|
-| 2 m loop impedance | 100 ohm (stated) | 101.0 ohm | agrees |
-| 2 m SWR | 1.1 (measured) | 1.09 | agrees |
+| 2 m loop impedance | 100 ohm (stated) | 142.8 ohm | +43% |
+| 2 m SWR | 1.1 (measured) | 1.19 | +0.09 |
 | 2 m loop perimeter | 2112.6 mm | 2165.5 mm | +2.5% |
-| 70 cm loop impedance | 100 ohm (stated) | 115.4 ohm | +15% |
-| 70 cm SWR at 435 MHz | 1.0 (measured) | 1.13 | +0.13 |
+| 70 cm loop impedance | 100 ohm (stated) | 142.5 ohm | +43% |
+| 70 cm SWR at 435 MHz | 1.0 (measured) | 1.22 | +0.22 |
 | 70 cm loop perimeter | 704 mm | 730.1 mm | +3.7% |
 
-**2 m validates.** Loop impedance 101.0 against their stated 100, and SWR 1.09
-against their measured 1.1. This is the first time anything in this project has
-been checked against real hardware, and on this band it holds.
+**The two bands now agree with each other to 0.2%** (142.8 and 142.5 ohm). They
+were 41% apart until the feed-region bug was fixed; see
+[segmentation.md](segmentation.md). Self-consistency across bands is what makes
+the numbers arguable at all, and it is the main thing that changed.
 
-**70 cm is within 15%, after a fix this comparison prompted.** It originally
-missed by 41% (141.5 ohm, SWR 1.21). Both bands were running at the same
-`segments`, but a raw segment count is not a band-independent mesh: what NEC
-cares about is segment length relative to the conductor radius, and their two
-prototypes use electrically different conductors.
+**We disagree with their stated 100 ohm per loop, by about 43%.** This is worth
+stating carefully, because an earlier version of this file reported close
+agreement (101.0 ohm against 100). That agreement was an artifact: the unfixed
+model's loop impedance drifted with the mesh and happened to pass through 100 ohm
+near 24 segments, which is also where the mesh calibration had pinned it. With
+the mesh converged the model says ~143 ohm at any count.
 
-| | conductor equivalent radius | segment length / radius |
-|---|---|---|
-| 2 m, 10 mm flat rod | 0.0012 wavelengths | ~36 |
-| 70 cm, 4 mm tube | 0.0029 wavelengths | ~15 |
+Which is right is open. Two considerations:
 
-The 70 cm model therefore sat much further along the divergence curve described
-in [segmentation.md](segmentation.md) -- where finer effective meshing drives the
-loop impedance up -- which is exactly the direction and magnitude of the original
-141.5 ohm result. `spec.segments` is now derived from the conductor radius so the
-binding ratio, rather than the count, is what a spec holds fixed; that took the
-70 cm error from 41% to 15%. The remaining gap is the underlying
-non-convergence.
+- Their 100 ohm reads like a design idealization -- the sentence is "each of the
+  two loops has an impedance of 100 ohms, and when coupled in parallel, they
+  offer an ideal 50 ohms impedance", which is the argument for the 50 ohm result
+  rather than a reported measurement. Their measured datum is SWR.
+- On that measured datum we are closer but still off: 1.19 and 1.22 against their
+  1.1 and 1.0. Our isolated single loop converges to ~126 ohm in free space,
+  which is inside the textbook 100-130 ohm band for a full-wave loop; the
+  reflector at 0.29 wavelengths then raises it.
 
-Their 70 cm prototype also cannot satisfy both mesh bounds at any count -- 4 mm
-tube at 435 MHz is electrically thick -- so its cut sheet carries a mesh warning.
+So the honest position is that the model is now internally consistent and lands
+above their stated loop impedance, and the discrepancy needs an explanation
+rather than a calibration.
 
 **Loop perimeter runs 2.5 to 3.7% long** in both bands. Part of that is expected,
 since they size for *resonance* while we solve for *quadrature between the
-loops*, which is a different condition. The rest is unexplained and worth
-understanding; that much loop length matters for a resonant structure.
+loops*, which is a different condition. The rest is unexplained.
 
 **Not a disagreement -- RG-62 velocity factor.** F5VIF uses 0.86; we use 0.84,
 which is the Belden 9269 (RG-62A/U) datasheet figure for velocity of

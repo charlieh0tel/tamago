@@ -119,7 +119,7 @@ def _mesh_lines(mesh: dict) -> list[str]:
     """The NEC discretization, flagged when it sits outside its valid range."""
     source = "derived" if mesh["derived"] else "set"
     flags = []
-    if mesh["segment_radii"] < mesh["segment_radii_target"]:
+    if mesh["segment_radii"] < mesh["segment_radii_target"] - 0.5:
         flags.append(
             f"thin-wire ratio {mesh['segment_radii']:.0f} below "
             f"{mesh['segment_radii_target']:.0f}: loop impedance overstated"

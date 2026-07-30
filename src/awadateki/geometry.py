@@ -220,15 +220,20 @@ def _make_loop(
     tag_base: int,
     segments: int,
     shape: str,
-    feed_gap_m: float = 0.0,
 ) -> Loop:
     """Build one polygonal loop of the given outline in the 'xz' or 'yz' plane.
 
-    The bottom side carries the feed.  When feed_gap_m > 0 and fits within that
-    side, the side is split into a short feed segment of that length centered on
-    the bottom (where the line connects) flanked by two approach segments, so the
-    segment lengths step gently into the gap (NEC's segment-grading rule).  The
-    feed wire keeps tag_base; the remaining wires take the following tags.
+    Every side is one segment of equal length and the bottom side carries the
+    feed, keeping tag_base; the rest take the following tags.
+
+    The physical feed gap is deliberately not modeled. NEC's applied-field
+    source already is a delta-gap feed, and carving a short fixed-length wire
+    out of the bottom side to represent the gap leaves the source segment a
+    fixed length while its neighbours shrink with the segment count -- which
+    made the loop impedance drift by 92% over a 7x mesh refinement instead of
+    converging. With a uniform mesh the same loop settles within 2% (see
+    docs/segmentation.md). The gap remains a reported build dimension; at ~0.5%
+    of the circumference its geometric effect is far below that error.
     """
     points = []
     for across, up_offset in _loop_outline_points(
@@ -239,20 +244,8 @@ def _make_loop(
     points.append(points[0])
 
     a, b = points[0], points[1]  # the bottom side, centered on the loop bottom
-    dx, dy, dz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
-    side_len = math.sqrt(dx * dx + dy * dy + dz * dz)
-    segs: list[tuple[int, tuple, tuple]] = []
-    if 0.0 < feed_gap_m < side_len:
-        mx, my, mz = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2
-        ux, uy, uz = dx / side_len, dy / side_len, dz / side_len
-        h = feed_gap_m / 2.0
-        t0 = (mx - ux * h, my - uy * h, mz - uz * h)
-        t1 = (mx + ux * h, my + uy * h, mz + uz * h)
-        segs += [(tag_base + 1, a, t0), (tag_base, t0, t1), (tag_base + 2, t1, b)]
-        next_tag = tag_base + 3
-    else:
-        segs.append((tag_base, a, b))  # whole bottom side is the feed segment
-        next_tag = tag_base + 1
+    segs: list[tuple[int, tuple, tuple]] = [(tag_base, a, b)]
+    next_tag = tag_base + 1
     for k in range(1, segments):
         segs.append((next_tag, points[k], points[k + 1]))
         next_tag += 1
@@ -283,7 +276,6 @@ def make_eggbeater(
     shape: str = SHAPE_CIRCLE,
     corner_radius_m: float = 0.0,
     loop_offset_m: float = 0.0,
-    feed_gap_m: float = 0.0,
 ) -> Eggbeater:
     """Build crossed loops A (XZ plane) and B (YZ plane).
 
@@ -296,8 +288,7 @@ def make_eggbeater(
     above, each by half the offset) so the crossed conductors clear at the top
     and bottom crossings; the mean height stays at center_z_m.
 
-    feed_gap_m is the width of the feed gap at the bottom of each loop (where the
-    line connects); see _make_loop.
+    The physical feed gap is not modeled; see _make_loop for why.
     """
     if shape not in LOOP_SHAPES:
         raise ValueError(f"unknown loop shape: {shape!r}")
@@ -318,7 +309,6 @@ def make_eggbeater(
         LOOP_A_TAG_BASE,
         segments,
         shape,
-        feed_gap_m,
     )
     loop_b = _make_loop(
         "yz",
@@ -329,7 +319,6 @@ def make_eggbeater(
         LOOP_B_TAG_BASE,
         segments,
         shape,
-        feed_gap_m,
     )
     return Eggbeater(loop_a=loop_a, loop_b=loop_b)
 

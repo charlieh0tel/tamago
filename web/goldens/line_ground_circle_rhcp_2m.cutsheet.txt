@@ -8,10 +8,10 @@ Loop shape          : circle
 Reflector           : ground
   loop-to-reflector : 0.25 wl (513.7 mm)
 ----------------------------------------
-Both loops          : 2150.3 mm perimeter, 684.5 mm dia
+Both loops          : 2143.3 mm perimeter, 682.2 mm dia
 Loop offset         : 10 mm (loop A below, loop B above)
 Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 16 sides/loop (set), 134.4 mm segments = 0.065 wl = 54 radii
+NEC mesh            : 16 sides/loop (set), 134.0 mm segments = 0.065 wl = 54 radii
 Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
 Feed                : feedline (via match) to junction across loop A; normal line to loop B
 ----------------------------------------
@@ -19,13 +19,13 @@ Match to 50 ohm:
   none needed; connect the feedline straight to the junction
 ----------------------------------------
 Predicted performance:
-  feedpoint Z       : 45.5 +0.1j ohms
-  loop A feed Z     : 79.6 -0.1j ohms
-  loop B feed Z     : 81.7 -0.6j ohms
-  VSWR (unmatched)  : 1.10
-  loop current phase: +90.0 deg (target +/-90)
-  loop balance      : 0.856 |Ib/Ia| (1.0 = equal drive)
+  feedpoint Z       : 43.4 +0.2j ohms
+  loop A feed Z     : 128.5 -0.3j ohms
+  loop B feed Z     : 131.8 -0.8j ohms
+  VSWR (unmatched)  : 1.15
+  loop current phase: +90.1 deg (target +/-90)
+  loop balance      : 1.382 |Ib/Ia| (1.0 = equal drive)
   polarization sense: RHCP
-  axial ratio (cone): 1.75 dB mean, 3.67 dB worst (<= 30 deg from zenith)
-  axial ratio (peak): 2.39 dB
-  coverage gain     : 4.89 dBi (worst case <= 60 deg from zenith)
+  axial ratio (cone): 2.97 dB mean, 5.26 dB worst (<= 30 deg from zenith)
+  axial ratio (peak): 5.26 dB
+  coverage gain     : 2.04 dBi (worst case <= 60 deg from zenith)

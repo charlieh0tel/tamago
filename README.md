@@ -85,7 +85,9 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
 - `loop_offset_mm`: vertical gap between the loop centers so the equal loops
   clear at the crossings (default 10; must be at least 1.5x the equivalent
   conductor diameter).
-- `feed_gap_mm`: feed gap at the bottom of each loop (default 10).
+- `feed_gap_mm`: feed gap at the bottom of each loop (default 10). A build
+  dimension only: reported on the cut sheet but not modeled, since NEC's source
+  is already a delta-gap feed (see Modeling caveats).
 - `phasing_coax` / `match_coax`: cable for the quarter-wave phasing line and
   the matching transformer. Either a catalog name (`"RG-58"`, `"RG-59"`,
   `"RG-62"`) or a custom cable `{"name": ..., "z0_ohm": ..., "vf": ...}`. The
@@ -100,9 +102,11 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   worst-case cone AR (hence more bandwidth); the radial count is then chosen at
   the knee of the worst-case-AR-versus-count curve -- the fewest radials past
   which adding more buys less than a small AR improvement.
-- `segments`: polygon sides per loop (default 36, maximum 98). Non-circular
-  shapes resample to equal-length sides; a multiple of 4 lands a square's
-  corners on vertices.
+- `segments`: polygon sides per loop (maximum 99). Omit it and the count is
+  derived from the conductor radius, so a spec means the same discretization at
+  every band and conductor size; set it to pin a count. Non-circular shapes
+  resample to equal-length sides; a multiple of 4 lands a square's corners on
+  vertices.
 - `label`: optional name for output; defaults to none.
 - `notes`: optional free-text design intent; carried through optimization.
 - `optimization`: output-only provenance, written by `--optimize-reflector` (the
@@ -264,22 +268,18 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 
 ## Modeling caveats
 
-- **The loop driving-point impedance does not converge in `segments`, so axial
-  ratio carries several dB of modeling uncertainty.** Over `segments` 16 to 96 at
-  fixed geometry the loop impedance drifts monotonically without settling, and
-  since loop current balance is `|Z_loop| / Z0_phasing` and axial ratio follows
-  `20*log10(balance)`, that alone moves the predicted cone axial ratio by roughly
-  1.7 to 4 dB. Worse, `segments` is a fixed count rather than a mesh density, so
-  even the two bands of one pair are not comparable at the same value when their
-  conductors differ electrically. Treat absolute axial ratio as indicative. See
-  [docs/segmentation.md](docs/segmentation.md) for the diagnostics, including the
-  causes that were ruled out.
-- Validation against published designs is thin: the ON6WG/F5VIF 2 m case
-  reproduces their stated loop impedance and measured SWR closely, while their
-  70 cm case does not (see
+- The physical feed gap is a build dimension only, not modeled. NEC's source is
+  already a delta-gap feed; representing the gap as a short fixed-length wire
+  used to stop the loop impedance converging (92% drift over a 7x mesh
+  refinement), so the loop is meshed uniformly instead. With that fixed the
+  impedance settles within 1% and the two bands of a pair agree within 0.2%; see
+  [docs/segmentation.md](docs/segmentation.md).
+- Validation against published designs is thin, and where we can check we
+  disagree: the ON6WG/F5VIF build states 100 ohm per loop and measures SWR 1.0
+  to 1.1, while we predict about 143 ohm and SWR 1.19 to 1.22. See
   [docs/reference-designs.md](docs/reference-designs.md), and
-  `designs/f5vif_reference.input.json` to reproduce). There are no measurements
-  of our own.
+  `designs/f5vif_reference.input.json` to reproduce. There are no measurements of
+  our own.
 - The phasing line is a NEC ideal transmission line: lossless, with no shield
   or common-mode current (a real build uses a current balun; see TODO). Its
   off-design phase drift matches a real cable exactly, since physical length
