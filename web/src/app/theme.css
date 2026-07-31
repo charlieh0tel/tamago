@@ -57,6 +57,14 @@
   --ok: #5fa98b;
 }
 
+/* Reserve the scrollbar's width even when the page does not scroll. Tabs differ
+   a lot in height -- Sky maps is far taller than the cut sheet -- so without this
+   the scrollbar appears on switching to it and the whole layout jumps sideways by
+   its width. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   background: var(--ground);
