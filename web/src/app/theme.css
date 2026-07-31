@@ -186,7 +186,7 @@ header .spacer {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .rail .actions {
   position: sticky;
@@ -246,15 +246,15 @@ header .spacer {
   display: none;
 }
 .gbody {
-  padding: 2px 12px 12px;
+  padding: 2px 12px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 .field label {
   font-size: 12px;
@@ -262,8 +262,8 @@ header .spacer {
 }
 .prov-legend {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 3px 10px;
   padding: 8px 10px;
   margin-bottom: 10px;
   background: var(--ground);
