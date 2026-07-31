@@ -96,3 +96,19 @@ export function spacingWlForClearance(
 ): number {
   return clearanceWl + loopBottomDropWl(spec, perimeterMm);
 }
+
+// The same clearance as an absolute length, and back. The rail offers both so a
+// builder can work in whichever one they have: wavelengths for a design scaled
+// across bands, millimeters for a tape measure.
+export function clearanceMmForSpec(spec: DesignSpec, perimeterMm: number): number {
+  return clearanceWlForSpec(spec, perimeterMm) * wavelengthM(spec.freqMhz) * MM_PER_M;
+}
+
+export function spacingWlForClearanceMm(
+  spec: DesignSpec,
+  perimeterMm: number,
+  clearanceMm: number,
+): number {
+  const clearanceWl = clearanceMm / MM_PER_M / wavelengthM(spec.freqMhz);
+  return spacingWlForClearance(spec, perimeterMm, clearanceWl);
+}

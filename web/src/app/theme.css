@@ -329,6 +329,31 @@ header .spacer {
 .field .unit::after {
   content: "]";
 }
+/* Heads a pair of fields that are two views of one quantity (the reflector
+   clearance in wavelengths and in millimeters), so the description sits once
+   above the row and each box carries only its unit. */
+.field .grouplabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+/* One value in two units on a single row: [ ] lambda = [ ] mm. The inputs share
+   the width and may shrink, so min-width is cleared -- a number input's default
+   intrinsic width would otherwise overflow the 308px rail. */
+.unitpair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.unitpair input {
+  flex: 1;
+  min-width: 0;
+}
+.unitpair .u,
+.unitpair .eq {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
 input[type="number"],
 input[type="text"],
 select,

@@ -9,7 +9,6 @@ import {
   KIND_ROUND,
   KIND_STRIP,
   LOOP_SHAPES,
-  MM_PER_M,
   REFLECTOR_GROUND,
   REFLECTOR_NONE,
   REFLECTOR_RADIALS,
@@ -17,13 +16,14 @@ import {
   SENSE_RHCP,
   SHAPE_SQUIRCLE,
   loopSegments,
-  wavelengthM,
 } from "../../engine/index";
 import type { Action, ProvField, ProvenanceMap, UiState } from "../state/types";
 import {
   buildConductor,
+  clearanceMmForSpec,
   clearanceWlForSpec,
   spacingWlForClearance,
+  spacingWlForClearanceMm,
 } from "../state/uiSpec";
 import { optFraction } from "../worker/progressScale";
 import { FeedCards } from "./FeedCards";
@@ -137,6 +137,7 @@ export function SpecRail({
   // The spacing field is authored as the measurable clearance under the lower
   // loop, not the stored loop-center height (see clearanceWlForSpec).
   const clearanceWl = clearanceWlForSpec(spec, state.perimeterMm);
+  const clearanceMm = clearanceMmForSpec(spec, state.perimeterMm);
   const conductor = spec.conductor;
   const kind = conductor.kind;
   const dims = conductor.dimensionsMm;
@@ -331,33 +332,58 @@ export function SpecRail({
           />
           {spec.reflector !== REFLECTOR_NONE && (
             <div className="field">
-              <label htmlFor="spacing">
-                Reflector to loop bottom{" "}
-                <span className="unit">
-                  &lambda; ={" "}
-                  {(clearanceWl * wavelengthM(spec.freqMhz) * MM_PER_M).toFixed(0)} mm
-                </span>
+              <span className="grouplabel">
+                Reflector to loop bottom
                 <ProvTag field="spacing" prov={prov} optStale={optStale} />
-              </label>
-              <input
-                id="spacing"
-                className={flash("spacing").trim()}
-                title="reflector plane up to the bottom of the lower loop -- the clearance you can put a tape on. Stored as the loop-center height, so retuning the perimeter changes this figure."
-                type="number"
-                step="0.005"
-                value={Number(clearanceWl.toFixed(4))}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_REFLECTOR_FIELD",
-                    field: "spacing",
-                    value: spacingWlForClearance(
-                      spec,
-                      state.perimeterMm,
-                      num(e.target.value, clearanceWl),
-                    ),
-                  })
-                }
-              />
+              </span>
+              {/* One quantity, two units: edit either box and the other follows.
+                  The units are plain text here rather than the bracketed .unit
+                  chip, so they cannot be mistaken for the input boxes. */}
+              <div className="unitpair">
+                <input
+                  id="spacing"
+                  aria-label="reflector to loop bottom, in wavelengths"
+                  className={flash("spacing").trim()}
+                  title="reflector plane up to the bottom of the lower loop -- the clearance you can put a tape on"
+                  type="number"
+                  step="0.005"
+                  value={Number(clearanceWl.toFixed(4))}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_REFLECTOR_FIELD",
+                      field: "spacing",
+                      value: spacingWlForClearance(
+                        spec,
+                        state.perimeterMm,
+                        num(e.target.value, clearanceWl),
+                      ),
+                    })
+                  }
+                />
+                <span className="u">&lambda;</span>
+                <span className="eq">=</span>
+                <input
+                  id="spacing-mm"
+                  aria-label="reflector to loop bottom, in millimeters"
+                  className={flash("spacing").trim()}
+                  title="the same clearance as a length; editing either box moves the other"
+                  type="number"
+                  step="1"
+                  value={Number(clearanceMm.toFixed(1))}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_REFLECTOR_FIELD",
+                      field: "spacing",
+                      value: spacingWlForClearanceMm(
+                        spec,
+                        state.perimeterMm,
+                        num(e.target.value, clearanceMm),
+                      ),
+                    })
+                  }
+                />
+                <span className="u">mm</span>
+              </div>
             </div>
           )}
           {spec.reflector === REFLECTOR_RADIALS && (
