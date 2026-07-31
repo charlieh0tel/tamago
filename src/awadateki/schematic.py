@@ -15,6 +15,7 @@ symbols.
 """
 
 import math
+from html import escape
 
 from .design import DesignResult
 from .result import result_to_dict
@@ -30,6 +31,18 @@ COAX_RY = 8.0
 TERMINAL_RADIUS = 3.5
 DOT_RADIUS = 3.0
 HOP_RADIUS = 7.0
+
+
+def _coax_name(coax: dict) -> str:
+    """A coax name, safe to place in SVG text.
+
+    Catalog names are fixed strings, but a spec may define a custom cable with
+    any name, and this markup is embedded raw into the plot page and into the web
+    document. Escaped here rather than inside _text, because the labels _text
+    receives are authored in this module and deliberately carry character
+    references (the ohm sign) that have to reach the SVG intact.
+    """
+    return escape(str(coax["name"]), quote=False)
 
 
 def _text(x: float, y: float, s: str, anchor: str = "middle") -> str:
@@ -267,13 +280,13 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
         ()
         if direct
         else (
-            f"TL1  {tl_coax['name']} ({tl_coax['z0_ohm']:g} &#8486;)",
+            f"TL1  {_coax_name(tl_coax)} ({tl_coax['z0_ohm']:g} &#8486;)",
             f"1/4 wave  {match['transformer_length_mm']:.0f} mm",
         )
     )
     ph_coax = phasing["coax"]
     ph_label = (
-        f"TL2  {ph_coax['name']} ({ph_coax['z0_ohm']:g} &#8486;)",
+        f"TL2  {_coax_name(ph_coax)} ({ph_coax['z0_ohm']:g} &#8486;)",
         f"1/4 wave  {phasing['length_mm']:.0f} mm",
     )
 
@@ -329,7 +342,7 @@ def _line_phased(build: dict) -> tuple[str, int, int]:
 def _section_label(designator: str, piece: dict, fraction: str) -> tuple[str, str]:
     coax = piece["coax"]
     return (
-        f"{designator}  {coax['name']} ({coax['z0_ohm']:g} &#8486;)",
+        f"{designator}  {_coax_name(coax)} ({coax['z0_ohm']:g} &#8486;)",
         f"{fraction} wave  {piece['length_mm']:.0f} mm",
     )
 
@@ -362,7 +375,7 @@ def _balun4_layout(build: dict) -> tuple[str, int, int]:
 
     rig = f"to rig ({match['system_z_ohm']:g} &#8486;)"
     y_bot = y_a + RAIL_GAP
-    balun_label_1 = f"BL1  {balun['coax']['name']} 4:1 balun"
+    balun_label_1 = f"BL1  {_coax_name(balun['coax'])} 4:1 balun"
     balun_label_2 = f"1/2 wave  {balun['length_mm']:.0f} mm"
     hairpin, bond_x = _balun_hairpin(x_balun, y_a)
     parts = [
@@ -444,7 +457,7 @@ def _choke_layout(build: dict) -> tuple[str, int, int]:
     rig = f"to rig ({match['system_z_ohm']:g} &#8486;)"
     coax = balun["coax"]
     choke_label = (
-        f"CH1  {coax['name']} + {balun['cores']} ferrite cores",
+        f"CH1  {_coax_name(coax)} + {balun['cores']} ferrite cores",
         balun["kind"],
     )
     parts = [

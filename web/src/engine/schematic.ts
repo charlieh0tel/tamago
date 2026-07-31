@@ -41,6 +41,19 @@ function pyFloat(x: number): string {
   return Number.isInteger(x) ? `${x}.0` : `${x}`;
 }
 
+// A coax name, safe to place in SVG text. Catalog names are fixed strings, but a
+// spec may define a custom cable with any name, and this markup is inserted into
+// the document as raw HTML. Escaped here rather than inside text(), because the
+// labels text() receives are authored in this module and deliberately carry
+// character references (the ohm sign) that have to reach the SVG intact.
+// Mirrors Python's html.escape(quote=False).
+function coaxName(coax: JsonObject): string {
+  return String(coax.name)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function text(x: number, y: number, s: string, anchor = "middle"): string {
   return `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" text-anchor="${anchor}">${s}</text>`;
 }
@@ -314,12 +327,12 @@ function linePhased(build: JsonObject): [string, number, number] {
   const tlLabel = direct
     ? []
     : [
-        `TL1  ${tlCoax.name} (${formatG(tlCoax.z0_ohm as number)} &#8486;)`,
+        `TL1  ${coaxName(tlCoax)} (${formatG(tlCoax.z0_ohm as number)} &#8486;)`,
         `1/4 wave  ${(match.transformer_length_mm as number).toFixed(0)} mm`,
       ];
   const phCoax = obj(phasing.coax);
   const phLabel = [
-    `TL2  ${phCoax.name} (${formatG(phCoax.z0_ohm as number)} &#8486;)`,
+    `TL2  ${coaxName(phCoax)} (${formatG(phCoax.z0_ohm as number)} &#8486;)`,
     `1/4 wave  ${(phasing.length_mm as number).toFixed(0)} mm`,
   ];
 
@@ -378,7 +391,7 @@ function sectionLabel(
 ): [string, string] {
   const coax = obj(piece.coax);
   return [
-    `${designator}  ${coax.name} (${formatG(coax.z0_ohm as number)} &#8486;)`,
+    `${designator}  ${coaxName(coax)} (${formatG(coax.z0_ohm as number)} &#8486;)`,
     `${fraction} wave  ${(piece.length_mm as number).toFixed(0)} mm`,
   ];
 }
@@ -415,7 +428,7 @@ function balun4Layout(build: JsonObject): [string, number, number] {
   const rig = `to rig (${formatG(match.system_z_ohm as number)} &#8486;)`;
   const yBot = yA + RAIL_GAP;
   const balunCoax = obj(balun.coax);
-  const balunLabel1 = `BL1  ${balunCoax.name} 4:1 balun`;
+  const balunLabel1 = `BL1  ${coaxName(balunCoax)} 4:1 balun`;
   const balunLabel2 = `1/2 wave  ${(balun.length_mm as number).toFixed(0)} mm`;
   const [hairpin, bondX] = balunHairpin(xBalun, yA);
   const parts = [
@@ -506,7 +519,7 @@ function chokeLayout(build: JsonObject): [string, number, number] {
   const rig = `to rig (${formatG(match.system_z_ohm as number)} &#8486;)`;
   const coax = obj(balun.coax);
   const chokeLabel = [
-    `CH1  ${coax.name} + ${balun.cores} ferrite cores`,
+    `CH1  ${coaxName(coax)} + ${balun.cores} ferrite cores`,
     balun.kind as string,
   ];
   const parts = [
