@@ -169,7 +169,10 @@ header .spacer {
 /* two panes */
 .panes {
   display: grid;
-  grid-template-columns: 624px 1fr;
+  /* The rail is sized so the results get the rest: 564 leaves them 658 px of the
+     1240 px page, a tenth more than the 598 they had, which the cut sheet and the
+     side-by-side sky maps both want. Two columns of about 278 px each. */
+  grid-template-columns: 564px 1fr;
   gap: 18px;
   align-items: start;
   padding-top: 16px;
@@ -481,11 +484,16 @@ button:focus-visible,
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  /* Narrower columns can leave the name and its tag unable to share a line.
+     The tag drops below rather than the name breaking across two. */
+  flex-wrap: wrap;
+  gap: 0 8px;
 }
 .feedcard .fc-name {
   font-family: var(--mono);
   font-size: 12.5px;
   font-weight: 700;
+  white-space: nowrap;
 }
 .feedcard .fc-tag {
   font-size: 11px;
