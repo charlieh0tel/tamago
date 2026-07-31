@@ -161,385 +161,405 @@ export function SpecRail({
   return (
     <div className="rail">
       <ProvLegend />
-      <details className="group" open>
-        <summary>Basics</summary>
-        <div className="gbody">
-          <div className="inline">
-            <div className="field">
-              <label htmlFor="freq">
-                Frequency <span className="unit">MHz</span>
-              </label>
-              <input
-                id="freq"
-                type="number"
-                step="0.1"
-                value={spec.freqMhz}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FREQ",
-                    value: num(e.target.value, spec.freqMhz),
-                  })
-                }
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="label">Label</label>
-              <input
-                id="label"
-                type="text"
-                value={spec.label ?? ""}
-                onChange={(e) => dispatch({ type: "SET_LABEL", value: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <Seg
-            label="Conductor"
-            options={[KIND_ROUND, KIND_STRIP, KIND_BAR]}
-            value={kind}
-            onChange={(k) => {
-              const d = k === KIND_BAR ? [dims[0] ?? 5, dims[1] ?? 2] : [dims[0] ?? 5];
-              setConductor(k, d);
-            }}
-          />
-          <div className="inline">
-            <div className="field">
-              <label htmlFor="dim0">
-                {kind === KIND_ROUND ? "Diameter" : "Width"}{" "}
-                <span className="unit">mm</span>
-              </label>
-              <input
-                id="dim0"
-                type="number"
-                step="0.5"
-                value={dims[0] ?? 0}
-                onChange={(e) =>
-                  setConductor(kind, [
-                    num(e.target.value, dims[0] ?? 1),
-                    ...(kind === KIND_BAR ? [dims[1] ?? 1] : []),
-                  ])
-                }
-              />
-            </div>
-            {kind === KIND_BAR && (
-              <div className="field">
-                <label htmlFor="dim1">
-                  Thickness <span className="unit">mm</span>
-                </label>
-                <input
-                  id="dim1"
-                  type="number"
-                  step="0.5"
-                  value={dims[1] ?? 0}
-                  onChange={(e) =>
-                    setConductor(kind, [
-                      dims[0] ?? 1,
-                      num(e.target.value, dims[1] ?? 1),
-                    ])
-                  }
-                />
+      {/* Two columns: the form is otherwise a single stack tall enough to
+          scroll on a laptop. Each group keeps its own single-column fields,
+          so only the groups move. Collapses back to one column with the
+          panes (see the .panes media query). */}
+      <div className="railgrid">
+        <div className="railcol">
+          <details className="group" open>
+            <summary>Basics</summary>
+            <div className="gbody">
+              <div className="inline">
+                <div className="field">
+                  <label htmlFor="freq">
+                    Frequency <span className="unit">MHz</span>
+                  </label>
+                  <input
+                    id="freq"
+                    type="number"
+                    step="0.1"
+                    value={spec.freqMhz}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_FREQ",
+                        value: num(e.target.value, spec.freqMhz),
+                      })
+                    }
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="label">Label</label>
+                  <input
+                    id="label"
+                    type="text"
+                    value={spec.label ?? ""}
+                    onChange={(e) =>
+                      dispatch({ type: "SET_LABEL", value: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="field">
-            <label htmlFor="perim">
-              Loop perimeter <span className="unit">mm</span>
-              <ProvTag field="perim" prov={prov} optStale={optStale} />
-            </label>
-            <div className="inline" style={{ alignItems: "stretch" }}>
-              <input
-                id="perim"
-                className={flash("perim").trim()}
-                type="number"
-                step="0.5"
-                style={{ flex: 1 }}
-                value={Number(state.perimeterMm.toFixed(1))}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_PERIMETER",
-                    value: num(e.target.value, state.perimeterMm),
-                  })
-                }
-              />
-              <button
-                type="button"
-                className="mini"
-                style={{ whiteSpace: "nowrap" }}
-                title="closed-form full-wave estimate"
-                onClick={() => dispatch({ type: "ESTIMATE_PERIMETER" })}
-              >
-                &#8634; estimate
-              </button>
-            </div>
-          </div>
-
-          <Seg
-            label="Loop shape"
-            options={LOOP_SHAPES}
-            value={spec.loopShape}
-            onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { loopShape: v } })}
-          />
-          {spec.loopShape === SHAPE_SQUIRCLE && (
-            <div className="field">
-              <label htmlFor="corner">
-                Corner radius <span className="unit">&lambda;</span>
-              </label>
-              <input
-                id="corner"
-                type="number"
-                step="0.005"
-                min="0"
-                value={spec.cornerRadiusWl}
-                onChange={(e) =>
-                  dispatch({
-                    type: "PATCH_SPEC",
-                    patch: { cornerRadiusWl: num(e.target.value, spec.cornerRadiusWl) },
-                  })
-                }
-              />
-            </div>
-          )}
-          <Seg
-            label="Polarization sense"
-            options={[SENSE_RHCP, SENSE_LHCP]}
-            value={spec.sense}
-            onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { sense: v } })}
-          />
-        </div>
-      </details>
-
-      <details className="group" open>
-        <summary>Feed</summary>
-        <div className="gbody">
-          <FeedCards
-            value={spec.feed}
-            onChange={(token) =>
-              dispatch({ type: "PATCH_SPEC", patch: { feed: token } })
-            }
-          />
-        </div>
-      </details>
-
-      <details className="group" open>
-        <summary>Reflector</summary>
-        <div className="gbody">
-          <Seg
-            label="Type"
-            options={[REFLECTOR_NONE, REFLECTOR_GROUND, REFLECTOR_RADIALS]}
-            value={spec.reflector}
-            onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { reflector: v } })}
-          />
-          {spec.reflector !== REFLECTOR_NONE && (
-            <div className="field">
-              <span className="grouplabel">
-                Reflector to loop bottom
-                <ProvTag field="spacing" prov={prov} optStale={optStale} />
-              </span>
-              {/* One quantity, two units: edit either box and the other follows.
-                  The units are plain text here rather than the bracketed .unit
-                  chip, so they cannot be mistaken for the input boxes. */}
-              <div className="unitpair">
-                <input
-                  id="spacing"
-                  aria-label="reflector to loop bottom, in wavelengths"
-                  className={flash("spacing").trim()}
-                  title="reflector plane up to the bottom of the lower loop -- the clearance you can put a tape on"
-                  type="number"
-                  step="0.005"
-                  value={Number(clearanceWl.toFixed(4))}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_REFLECTOR_FIELD",
-                      field: "spacing",
-                      value: spacingWlForClearance(
-                        spec,
-                        state.perimeterMm,
-                        num(e.target.value, clearanceWl),
-                      ),
-                    })
-                  }
-                />
-                <span className="u">&lambda;</span>
-                <span className="eq">=</span>
-                <input
-                  id="spacing-mm"
-                  aria-label="reflector to loop bottom, in millimeters"
-                  className={flash("spacing").trim()}
-                  title="the same clearance as a length; editing either box moves the other"
-                  type="number"
-                  step="1"
-                  value={Number(clearanceMm.toFixed(1))}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_REFLECTOR_FIELD",
-                      field: "spacing",
-                      value: spacingWlForClearanceMm(
-                        spec,
-                        state.perimeterMm,
-                        num(e.target.value, clearanceMm),
-                      ),
-                    })
-                  }
-                />
-                <span className="u">mm</span>
-              </div>
-            </div>
-          )}
-          {spec.reflector === REFLECTOR_RADIALS && (
-            <div className="inline">
-              <div className="field">
-                <label htmlFor="count">
-                  # Radials
-                  <ProvTag field="count" prov={prov} optStale={optStale} />
-                </label>
-                <select
-                  id="count"
-                  className={flash("count").trim()}
-                  value={spec.radialCount}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_REFLECTOR_FIELD",
-                      field: "count",
-                      value: num(e.target.value, spec.radialCount),
-                    })
-                  }
-                >
-                  {[3, 4, 6, 8].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="droop">
-                  Droop <span className="unit">deg</span>
-                  <ProvTag field="droop" prov={prov} optStale={optStale} />
-                </label>
-                <input
-                  id="droop"
-                  className={flash("droop").trim()}
-                  type="number"
-                  step="1"
-                  value={Number(spec.radialDroopDeg.toFixed(1))}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_REFLECTOR_FIELD",
-                      field: "droop",
-                      value: num(e.target.value, spec.radialDroopDeg),
-                    })
-                  }
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </details>
-
-      <details className="group">
-        <summary>Advanced</summary>
-        <div className="gbody">
-          <div className="inline">
-            <div className="field">
-              <label>
-                Loop offset <span className="unit">mm</span>
-              </label>
-              <input
-                type="number"
-                value={spec.loopOffsetMm}
-                onChange={(e) =>
-                  dispatch({
-                    type: "PATCH_SPEC",
-                    patch: { loopOffsetMm: num(e.target.value, spec.loopOffsetMm) },
-                  })
-                }
-              />
-            </div>
-            <div className="field">
-              <label>
-                Feed gap <span className="unit">mm</span>
-              </label>
-              <input
-                type="number"
-                value={spec.feedGapMm}
-                onChange={(e) =>
-                  dispatch({
-                    type: "PATCH_SPEC",
-                    patch: { feedGapMm: num(e.target.value, spec.feedGapMm) },
-                  })
-                }
-              />
-            </div>
-          </div>
-          <div className="inline">
-            <div className="field">
-              <label>
-                Segments
-                {spec.segments === null && <span className="unit">derived</span>}
-              </label>
-              <input
-                type="number"
-                title="polygon sides per loop; blank derives a count that holds the segment length at a fixed number of conductor radii, which is what keeps bands comparable"
-                value={spec.segments ?? loopSegments(spec)}
-                onChange={(e) => {
-                  const raw = e.target.value.trim();
-                  dispatch({
-                    type: "PATCH_SPEC",
-                    patch: {
-                      segments:
-                        raw === "" ? null : Math.round(num(raw, loopSegments(spec))),
-                    },
-                  });
+              <Seg
+                label="Conductor"
+                options={[KIND_ROUND, KIND_STRIP, KIND_BAR]}
+                value={kind}
+                onChange={(k) => {
+                  const d =
+                    k === KIND_BAR ? [dims[0] ?? 5, dims[1] ?? 2] : [dims[0] ?? 5];
+                  setConductor(k, d);
                 }}
               />
-            </div>
-            <div className="field">
-              <label>
-                System Z <span className="unit">Ω</span>
-              </label>
-              <select
-                value={spec.systemZOhm}
-                onChange={(e) =>
-                  dispatch({
-                    type: "PATCH_SPEC",
-                    patch: { systemZOhm: num(e.target.value, spec.systemZOhm) },
-                  })
+              <div className="inline">
+                <div className="field">
+                  <label htmlFor="dim0">
+                    {kind === KIND_ROUND ? "Diameter" : "Width"}{" "}
+                    <span className="unit">mm</span>
+                  </label>
+                  <input
+                    id="dim0"
+                    type="number"
+                    step="0.5"
+                    value={dims[0] ?? 0}
+                    onChange={(e) =>
+                      setConductor(kind, [
+                        num(e.target.value, dims[0] ?? 1),
+                        ...(kind === KIND_BAR ? [dims[1] ?? 1] : []),
+                      ])
+                    }
+                  />
+                </div>
+                {kind === KIND_BAR && (
+                  <div className="field">
+                    <label htmlFor="dim1">
+                      Thickness <span className="unit">mm</span>
+                    </label>
+                    <input
+                      id="dim1"
+                      type="number"
+                      step="0.5"
+                      value={dims[1] ?? 0}
+                      onChange={(e) =>
+                        setConductor(kind, [
+                          dims[0] ?? 1,
+                          num(e.target.value, dims[1] ?? 1),
+                        ])
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="field">
+                <label htmlFor="perim">
+                  Loop perimeter <span className="unit">mm</span>
+                  <ProvTag field="perim" prov={prov} optStale={optStale} />
+                </label>
+                <div className="inline" style={{ alignItems: "stretch" }}>
+                  <input
+                    id="perim"
+                    className={flash("perim").trim()}
+                    type="number"
+                    step="0.5"
+                    style={{ flex: 1 }}
+                    value={Number(state.perimeterMm.toFixed(1))}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_PERIMETER",
+                        value: num(e.target.value, state.perimeterMm),
+                      })
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="mini"
+                    style={{ whiteSpace: "nowrap" }}
+                    title="closed-form full-wave estimate"
+                    onClick={() => dispatch({ type: "ESTIMATE_PERIMETER" })}
+                  >
+                    &#8634; estimate
+                  </button>
+                </div>
+              </div>
+
+              <Seg
+                label="Loop shape"
+                options={LOOP_SHAPES}
+                value={spec.loopShape}
+                onChange={(v) =>
+                  dispatch({ type: "PATCH_SPEC", patch: { loopShape: v } })
                 }
-              >
-                <option value={50}>50</option>
-                <option value={75}>75</option>
-              </select>
+              />
+              {spec.loopShape === SHAPE_SQUIRCLE && (
+                <div className="field">
+                  <label htmlFor="corner">
+                    Corner radius <span className="unit">&lambda;</span>
+                  </label>
+                  <input
+                    id="corner"
+                    type="number"
+                    step="0.005"
+                    min="0"
+                    value={spec.cornerRadiusWl}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: {
+                          cornerRadiusWl: num(e.target.value, spec.cornerRadiusWl),
+                        },
+                      })
+                    }
+                  />
+                </div>
+              )}
+              <Seg
+                label="Polarization sense"
+                options={[SENSE_RHCP, SENSE_LHCP]}
+                value={spec.sense}
+                onChange={(v) => dispatch({ type: "PATCH_SPEC", patch: { sense: v } })}
+              />
             </div>
-          </div>
-          <div className="field">
-            <label>
-              AR margin <span className="unit">dB</span>
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={spec.arMarginDb}
-              onChange={(e) =>
-                dispatch({
-                  type: "PATCH_SPEC",
-                  patch: { arMarginDb: num(e.target.value, spec.arMarginDb) },
-                })
-              }
-            />
-          </div>
-          <div className="field">
-            <label>Spec as JSON</label>
-            <button
-              type="button"
-              className="mini"
-              onClick={() => dispatch({ type: "OPEN_JSON" })}
-            >
-              edit raw spec…
-            </button>
-          </div>
+          </details>
         </div>
-      </details>
+        <div className="railcol">
+          <details className="group" open>
+            <summary>Feed</summary>
+            <div className="gbody">
+              <FeedCards
+                value={spec.feed}
+                onChange={(token) =>
+                  dispatch({ type: "PATCH_SPEC", patch: { feed: token } })
+                }
+              />
+            </div>
+          </details>
+
+          <details className="group" open>
+            <summary>Reflector</summary>
+            <div className="gbody">
+              <Seg
+                label="Type"
+                options={[REFLECTOR_NONE, REFLECTOR_GROUND, REFLECTOR_RADIALS]}
+                value={spec.reflector}
+                onChange={(v) =>
+                  dispatch({ type: "PATCH_SPEC", patch: { reflector: v } })
+                }
+              />
+              {spec.reflector !== REFLECTOR_NONE && (
+                <div className="field">
+                  <span className="grouplabel">
+                    Reflector to loop bottom
+                    <ProvTag field="spacing" prov={prov} optStale={optStale} />
+                  </span>
+                  {/* One quantity, two units: edit either box and the other follows.
+                  The units are plain text here rather than the bracketed .unit
+                  chip, so they cannot be mistaken for the input boxes. */}
+                  <div className="unitpair">
+                    <input
+                      id="spacing"
+                      aria-label="reflector to loop bottom, in wavelengths"
+                      className={flash("spacing").trim()}
+                      title="reflector plane up to the bottom of the lower loop -- the clearance you can put a tape on"
+                      type="number"
+                      step="0.005"
+                      value={Number(clearanceWl.toFixed(4))}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_REFLECTOR_FIELD",
+                          field: "spacing",
+                          value: spacingWlForClearance(
+                            spec,
+                            state.perimeterMm,
+                            num(e.target.value, clearanceWl),
+                          ),
+                        })
+                      }
+                    />
+                    <span className="u">&lambda;</span>
+                    <span className="eq">=</span>
+                    <input
+                      id="spacing-mm"
+                      aria-label="reflector to loop bottom, in millimeters"
+                      className={flash("spacing").trim()}
+                      title="the same clearance as a length; editing either box moves the other"
+                      type="number"
+                      step="1"
+                      value={Number(clearanceMm.toFixed(1))}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_REFLECTOR_FIELD",
+                          field: "spacing",
+                          value: spacingWlForClearanceMm(
+                            spec,
+                            state.perimeterMm,
+                            num(e.target.value, clearanceMm),
+                          ),
+                        })
+                      }
+                    />
+                    <span className="u">mm</span>
+                  </div>
+                </div>
+              )}
+              {spec.reflector === REFLECTOR_RADIALS && (
+                <div className="inline">
+                  <div className="field">
+                    <label htmlFor="count">
+                      # Radials
+                      <ProvTag field="count" prov={prov} optStale={optStale} />
+                    </label>
+                    <select
+                      id="count"
+                      className={flash("count").trim()}
+                      value={spec.radialCount}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_REFLECTOR_FIELD",
+                          field: "count",
+                          value: num(e.target.value, spec.radialCount),
+                        })
+                      }
+                    >
+                      {[3, 4, 6, 8].map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="droop">
+                      Droop <span className="unit">deg</span>
+                      <ProvTag field="droop" prov={prov} optStale={optStale} />
+                    </label>
+                    <input
+                      id="droop"
+                      className={flash("droop").trim()}
+                      type="number"
+                      step="1"
+                      value={Number(spec.radialDroopDeg.toFixed(1))}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "SET_REFLECTOR_FIELD",
+                          field: "droop",
+                          value: num(e.target.value, spec.radialDroopDeg),
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </details>
+
+          <details className="group">
+            <summary>Advanced</summary>
+            <div className="gbody">
+              <div className="inline">
+                <div className="field">
+                  <label>
+                    Loop offset <span className="unit">mm</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={spec.loopOffsetMm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { loopOffsetMm: num(e.target.value, spec.loopOffsetMm) },
+                      })
+                    }
+                  />
+                </div>
+                <div className="field">
+                  <label>
+                    Feed gap <span className="unit">mm</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={spec.feedGapMm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { feedGapMm: num(e.target.value, spec.feedGapMm) },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="inline">
+                <div className="field">
+                  <label>
+                    Segments
+                    {spec.segments === null && <span className="unit">derived</span>}
+                  </label>
+                  <input
+                    type="number"
+                    title="polygon sides per loop; blank derives a count that holds the segment length at a fixed number of conductor radii, which is what keeps bands comparable"
+                    value={spec.segments ?? loopSegments(spec)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: {
+                          segments:
+                            raw === ""
+                              ? null
+                              : Math.round(num(raw, loopSegments(spec))),
+                        },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <label>
+                    System Z <span className="unit">Ω</span>
+                  </label>
+                  <select
+                    value={spec.systemZOhm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { systemZOhm: num(e.target.value, spec.systemZOhm) },
+                      })
+                    }
+                  >
+                    <option value={50}>50</option>
+                    <option value={75}>75</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field">
+                <label>
+                  AR margin <span className="unit">dB</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={spec.arMarginDb}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "PATCH_SPEC",
+                      patch: { arMarginDb: num(e.target.value, spec.arMarginDb) },
+                    })
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Spec as JSON</label>
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => dispatch({ type: "OPEN_JSON" })}
+                >
+                  edit raw spec…
+                </button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
 
       <div className="actions">
         <button

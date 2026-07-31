@@ -161,7 +161,7 @@ header .spacer {
 /* two panes */
 .panes {
   display: grid;
-  grid-template-columns: 308px 1fr;
+  grid-template-columns: 624px 1fr;
   gap: 18px;
   align-items: start;
   padding-top: 16px;
@@ -170,6 +170,34 @@ header .spacer {
    forcing a page-level horizontal scrollbar (e.g. the feed-card SVGs). */
 .panes > * {
   min-width: 0;
+}
+
+/* The groups sit in two columns so the form fits a laptop viewport without
+   scrolling; the legend and the action footer span both. align-items: start
+   keeps each column's groups at their natural height instead of stretching the
+   shorter column to match. */
+.railgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+}
+.railcol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* One column of groups, and a rail narrow enough to leave the results room,
+   once the viewport cannot seat both panes side by side. */
+@media (max-width: 1180px) {
+  .panes {
+    grid-template-columns: 308px 1fr;
+  }
+  .railgrid {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 860px) {
   .panes {
