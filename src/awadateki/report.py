@@ -261,7 +261,8 @@ def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
         f"  VSWR (unmatched)   : {perf['vswr_unmatched']:.2f}",
         f"  loop current phase : {perf['loop_current_phase_deg']:+.1f} deg "
         "(target +/-90)",
-        f"  loop balance       : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = equal drive)",
+        f"  loop balance       : {perf['loop_balance']:.3f} |Ib/Ia| "
+        "(1.0 = equal drive)",
         f"  polarization sense : {_format_sense(result)}",
         f"  axial ratio (cone) : {perf['axial_ratio_cone_db']:.2f} dB mean, "
         f"{perf['axial_ratio_cone_worst_db']:.2f} dB worst "
