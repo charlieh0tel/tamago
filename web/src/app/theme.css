@@ -217,6 +217,9 @@ header .spacer {
   .g-advanced {
     order: 4;
   }
+  .actions {
+    order: 5;
+  }
 }
 @media (max-width: 860px) {
   .panes {
@@ -235,13 +238,13 @@ header .spacer {
   flex-direction: column;
   gap: 8px;
 }
+/* Sits in the first column, under Advanced, filling the white the shorter
+   column would otherwise leave. No longer sticky: that existed to pin the
+   buttons while a 1100 px rail scrolled past them, and the rail now fits. */
 .rail .actions {
-  position: sticky;
-  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: auto;
   padding-top: 10px;
   background: var(--ground);
   border-top: 1px solid var(--line);
@@ -259,9 +262,6 @@ header .spacer {
     position: static;
     max-height: none;
     overflow: visible;
-  }
-  .rail .actions {
-    position: static;
   }
 }
 .group {
