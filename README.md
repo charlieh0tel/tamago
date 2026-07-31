@@ -277,7 +277,7 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   already a delta-gap feed; representing the gap as a short fixed-length wire
   used to stop the loop impedance converging (92% drift over a 7x mesh
   refinement), so the loop is meshed uniformly instead. With that fixed the
-  impedance settles within 1% and the two bands of a pair agree within 0.2%; see
+  impedance settles within 1% and the two bands of a pair agree within about 1%; see
   [docs/segmentation.md](docs/segmentation.md).
 - The loop impedance is mostly set by the reflector height, and quoting one
   number for it is meaningless without that height. It runs 62 to 143 ohm over a
@@ -304,9 +304,11 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
   and in-cable wavelength scale by the same velocity factor.
 - The match-network bandwidth assumes an idealized lossless network; treat the
   axial-ratio band as the operational coverage.
-- The cone axial ratio the optimizer targets is a mean over the sampled
-  coverage cone (zenith counted once, no solid-angle weighting); the cut sheet
-  reports the cone worst case alongside it.
+- The cone axial ratio the optimizer targets is the worst case over the sampled
+  coverage cone, so the placement is driven by the cone edge rather than by an
+  average that a good boresight can carry; the cut sheet reports the cone mean
+  alongside it. Sampling is unweighted (zenith counted once, no solid-angle
+  weighting).
 - Patterns are modeled with perfect conductors over a perfect (or simple)
   ground.
 - Figures of merit are sampled over one azimuth quadrant (phi 0-90 deg), which
@@ -326,7 +328,8 @@ make -j4        # regenerate the worked examples in designs/ (needs jq)
 
 Tests that drive `nec2c` are skipped automatically when it is not installed.
 
-A web front end is planned; its UX design is in `docs/web-ux.md`.
+The web front end lives in `web/` and is deployed at
+<https://charlieh0tel.github.io/tamago/>; its UX design is in `docs/web-ux.md`.
 
 ## License
 

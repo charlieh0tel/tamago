@@ -80,17 +80,22 @@ the conductor) against their published figures:
 
 | quantity | F5VIF | ours | |
 |---|---|---|---|
-| 2 m loop impedance | 100 ohm (stated) | 142.8 ohm | +43% |
+| 2 m loop impedance | 100 ohm (stated) | 142.7 ohm | +43% |
 | 2 m SWR | 1.1 (measured) | 1.19 | +0.09 |
-| 2 m loop perimeter | 2112.6 mm | 2165.5 mm | +2.5% |
-| 70 cm loop impedance | 100 ohm (stated) | 142.5 ohm | +43% |
+| 2 m loop perimeter | 2112.6 mm | 2157.2 mm | +2.1% |
+| 70 cm loop impedance | 100 ohm (stated) | 141.3 ohm | +41% |
 | 70 cm SWR at 435 MHz | 1.0 (measured) | 1.22 | +0.22 |
-| 70 cm loop perimeter | 704 mm | 730.1 mm | +3.7% |
+| 70 cm loop perimeter | 704 mm | 728.3 mm | +3.5% |
 
-**The two bands now agree with each other to 0.2%** (142.8 and 142.5 ohm). They
+**The two bands now agree with each other to 1.0%** (142.7 and 141.3 ohm). They
 were 41% apart until the feed-region bug was fixed; see
 [segmentation.md](segmentation.md). Self-consistency across bands is what makes
 the numbers arguable at all, and it is the main thing that changed.
+
+(An earlier version of this table read 142.8 / 142.5 ohm and claimed 0.2%
+agreement. Those were measured before the mesh became shape-derived, and were
+left in place when the text above them was rewritten. The 1% here is what the
+current engine produces.)
 
 ### The loop impedance is mostly a statement about reflector spacing
 
@@ -100,19 +105,24 @@ conductor, 8 flat radials):
 
 | centre height | loop-bottom clearance | \|Z_loop\| |
 |---|---|---|
-| 0.200 wl | 0.035 wl | 61.5 ohm |
-| 0.215 wl | 0.050 wl | 82.0 ohm |
-| 0.230 wl | 0.065 wl | 98.9 ohm |
-| 0.245 wl | 0.080 wl | 112.9 ohm |
-| 0.260 wl | 0.095 wl | 124.7 ohm |
-| 0.275 wl | 0.110 wl | 134.5 ohm |
-| 0.290 wl | 0.125 wl | 142.7 ohm |
+| 0.200 wl | 0.029 wl | 61.5 ohm |
+| 0.215 wl | 0.047 wl | 82.0 ohm |
+| 0.230 wl | 0.062 wl | 98.9 ohm |
+| 0.245 wl | 0.078 wl | 112.9 ohm |
+| 0.260 wl | 0.092 wl | 124.7 ohm |
+| 0.275 wl | 0.107 wl | 134.5 ohm |
+| 0.290 wl | 0.122 wl | 142.7 ohm |
+
+Clearance is from the tuned geometry at each height, not from the nominal
+1.0215-wavelength perimeter; the loops resonate longer than nominal, so it runs
+about 0.003 wavelengths under the arithmetic on the nominal radius.
 
 The loop impedance more than doubles over a 0.09 wavelength span of reflector
-height, monotonically and with no plateau. The reflector is not a bystander here;
-it is the dominant term in the loop impedance, ahead of shape and conductor size.
-Making the reflector a solid screen instead of bare radials shifts the curve but
-does not flatten it (152 ohm rather than 143 at 0.29).
+height, monotonically and with no plateau. The reflector is not a bystander
+here. Making it a solid screen instead of bare radials shifts the curve but does
+not flatten it (152 ohm rather than 143 at 0.29). We have not swept loop shape or
+conductor size the same way, so this says the reflector matters a great deal, not
+that it matters more than they do.
 
 That changes what the discrepancy *is*. We do not disagree with F5VIF about a
 loop; we disagree about which of their two published numbers to honor, because in

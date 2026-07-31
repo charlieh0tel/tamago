@@ -130,7 +130,7 @@ overrides, which is what the goldens use.
 
 That was a mitigation, not the cure -- it narrowed the 70 cm gap from 41% to 15%
 without removing the drift. Fixing the feed region removed it outright: the two
-bands now agree within 0.2% at whatever mesh they are given. The derivation is
+bands now agree within about 1% at whatever mesh they are given. The derivation is
 still worth keeping so a spec means the same discretization everywhere, but
 `LOOP_SEGMENT_RADII` no longer has to carry the accuracy of the model on its own.
 
@@ -143,8 +143,8 @@ count -- a real limit, now visible rather than silent.
 ## What the fix changed downstream
 
 With the mesh converged the model is self-consistent across bands: the two
-halves of the F5VIF reference now land within 0.2% of each other (142.8 and
-142.5 ohm) where they were 41% apart. That is the point of the exercise.
+halves of the F5VIF reference now land within 1.0% of each other (142.7 and
+141.3 ohm) where they were 41% apart. That is the point of the exercise.
 
 It also moved us away from F5VIF's stated 100 ohm per loop, to about 143 ohm at
 their stated reflector spacing. The previous close agreement came from the buggy
