@@ -34,6 +34,10 @@ export interface OptimizeBundle extends AnalysisBundle {
 export interface OptimizeProgress {
   stage: string;
   runs: number;
+  // Expected total runs for this job, from the search's known shape (see
+  // estimatedOptimizeRuns). An estimate, not a bound: it is what gives the
+  // progress bar a denominator, and `runs` may overrun it slightly.
+  totalRuns: number;
   elapsedS: number;
 }
 

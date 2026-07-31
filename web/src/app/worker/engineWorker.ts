@@ -28,6 +28,7 @@ import {
   factorForPerimeter,
   skyData,
 } from "../engineExtras";
+import { estimatedOptimizeRuns } from "./progressScale";
 import type { OptimizedFields, WorkerRequest, WorkerResponse } from "./protocol";
 
 const baseRunner: NecRunner = runNec;
@@ -115,11 +116,12 @@ async function handleOptimize(id: number, spec: DesignSpec): Promise<void> {
   // One label for every phase of Optimize: which solver is running is an
   // implementation detail, and the run counter already shows progress.
   const stage = "whisking…";
+  const totalRuns = estimatedOptimizeRuns(spec);
   const runner = instrumentedRunner(id, (runs) => {
     post({
       id,
       type: "progress",
-      progress: { stage, runs, elapsedS: (Date.now() - start) / 1000.0 },
+      progress: { stage, runs, totalRuns, elapsedS: (Date.now() - start) / 1000.0 },
     });
   });
 

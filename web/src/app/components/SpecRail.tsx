@@ -19,6 +19,7 @@ import {
 } from "../../engine/index";
 import type { Action, ProvField, ProvenanceMap, UiState } from "../state/types";
 import { buildConductor } from "../state/uiSpec";
+import { optFraction } from "../worker/progressScale";
 import { FeedCards } from "./FeedCards";
 
 // -- provenance tag --
@@ -528,11 +529,7 @@ export function SpecRail({
               </button>
             </div>
             <div className="bar">
-              <i
-                style={{
-                  width: `${Math.min(95, (state.optProgress?.runs ?? 0) * 2)}%`,
-                }}
-              />
+              <i style={{ width: `${optFraction(state.optProgress)}%` }} />
             </div>
             <span style={{ color: "var(--muted)" }}>
               {state.optProgress
