@@ -58,6 +58,8 @@ describe("spec", () => {
       arMarginDb: 0.5,
       arPenaltyPerDb: 1.0,
       feasibleVswr: 1.5,
+      vswrPenaltyPerUnit: 100.0,
+      objectivesMissed: [],
       objective: "minimize post-match VSWR",
       elapsedS: 12.5,
     };
@@ -155,13 +157,20 @@ describe("spec", () => {
         arMarginDb: 0.5,
         arPenaltyPerDb: 1.0,
         feasibleVswr: 1.5,
+        vswrPenaltyPerUnit: 100.0,
+        objectivesMissed: [],
         objective: "o",
         elapsedS: 1.0,
       },
     });
     const opt = specToDict(s).optimization as JsonObject;
     // input, elapsed_s, then a nested search block (Python optimization_to_dict).
-    expect(Object.keys(opt)).toEqual(["input", "elapsed_s", "search"]);
+    expect(Object.keys(opt)).toEqual([
+      "input",
+      "elapsed_s",
+      "search",
+      "objectives_missed",
+    ]);
     expect(Object.keys(opt.search as JsonObject)).toEqual([
       "method",
       "spacing_bounds_wl",
@@ -174,6 +183,7 @@ describe("spec", () => {
       "ar_margin_db",
       "ar_penalty_per_db",
       "feasible_vswr",
+      "vswr_penalty_per_unit",
       "objective",
     ]);
   });

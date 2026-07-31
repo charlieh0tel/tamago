@@ -163,6 +163,12 @@ export const AR_PENALTY_PER_DB = 1.0;
 export const AR_KNEE_DB = 0.2;
 // Post-match VSWR a placement must hold within to be a valid match.
 export const FEASIBLE_VSWR = 1.5;
+// Cost penalty per unit of post-match VSWR above FEASIBLE_VSWR. Steep, so that a
+// placement inside the VSWR constraint beats any placement outside it that the
+// axial-ratio term would otherwise favor; the constraint is soft only so that a
+// spec no placement can satisfy still returns its least-bad design rather than
+// failing outright.
+export const VSWR_PENALTY_PER_UNIT = 100.0;
 
 // Frequency-sweep defaults and the SWR threshold whose bandwidth is reported.
 export const SWEEP_SPAN_FRACTION = 0.1;

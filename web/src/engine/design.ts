@@ -57,6 +57,7 @@ import {
   SPACING_TOLERANCE_WL,
   SWEEP_POINTS,
   SWEEP_SPAN_FRACTION,
+  VSWR_PENALTY_PER_UNIT,
   isBalancedFeed,
 } from "./constants";
 import { formatG } from "./format";
@@ -929,11 +930,16 @@ export function tunedGeometry(result: DesignResult): {
 
 // The axial-ratio term is the worst over the coverage cone, so the optimizer
 // drives the cone edge (not just the cone mean) under the budget.
+// VSWR enters twice: once as the quantity being minimized, and again as a steep
+// penalty above FEASIBLE_VSWR, which is what makes that threshold a constraint
+// rather than a number the provenance merely quotes.
 export function reflectorCost(result: DesignResult): number {
   const spec = result.spec;
   const budget = AR_TARGET_DB - spec.arMarginDb;
   const excess = Math.max(0.0, result.arConeWorstDb - budget);
-  return matchedVswr(spec, result.zIn) + AR_PENALTY_PER_DB * excess;
+  const swr = matchedVswr(spec, result.zIn);
+  const infeasible = Math.max(0.0, swr - FEASIBLE_VSWR);
+  return swr + AR_PENALTY_PER_DB * excess + VSWR_PENALTY_PER_UNIT * infeasible;
 }
 
 // Fewest radials at the diminishing-returns knee of worst-case cone AR: walk
@@ -1044,7 +1050,8 @@ export async function optimizeReflector(
 
   const placements: Record<number, DesignSpec> = {};
   const worstArDb: Record<number, number> = {};
-  const feasible: number[] = [];
+  const swr: Record<number, number> = {};
+  const realizable: number[] = [];
   for (const count of counts) {
     const best = await bestPlacement(spec, count, radials, runner);
     if (best === null) {
@@ -1052,16 +1059,43 @@ export async function optimizeReflector(
     }
     placements[count] = best.candidate;
     worstArDb[count] = best.result.arConeWorstDb;
-    feasible.push(count);
+    swr[count] = matchedVswr(best.candidate, best.result.zIn);
+    realizable.push(count);
   }
-  if (feasible.length === 0) {
+  if (realizable.length === 0) {
     throw new DesignInfeasible(
       `no realizable reflector placement was found for this spec at any radial count in ${JSON.stringify(counts)}`,
     );
   }
-  const bestSpec = placements[kneeCount(feasible, worstArDb)];
+  // Counts that cannot be matched are not candidates at all, unless none can be,
+  // in which case the knee still runs over everything and the miss is reported.
+  const matchable = realizable.filter(
+    (c) => (swr[c] ?? Number.POSITIVE_INFINITY) <= FEASIBLE_VSWR,
+  );
+  const considered = matchable.length > 0 ? matchable : realizable;
+  const chosen = kneeCount(considered, worstArDb);
+  const bestSpec = placements[chosen];
   if (bestSpec === undefined) {
     throw new Error("optimizeReflector: no placement for the chosen count");
+  }
+
+  const chosenSwr = swr[chosen] ?? Number.POSITIVE_INFINITY;
+  const chosenAr = worstArDb[chosen] ?? Number.POSITIVE_INFINITY;
+  const budget = AR_TARGET_DB - spec.arMarginDb;
+  const missed: string[] = [];
+  if (chosenSwr > FEASIBLE_VSWR) {
+    missed.push(
+      `post-match VSWR ${chosenSwr.toFixed(2)} exceeds feasible_vswr ${formatG(FEASIBLE_VSWR)} at every radial count searched`,
+    );
+  }
+  if (chosenAr > AR_TARGET_DB) {
+    missed.push(
+      `worst-case cone axial ratio ${chosenAr.toFixed(2)} dB exceeds ar_target_db ${formatG(AR_TARGET_DB)}`,
+    );
+  } else if (chosenAr > budget) {
+    missed.push(
+      `worst-case cone axial ratio ${chosenAr.toFixed(2)} dB is inside ar_target_db ${formatG(AR_TARGET_DB)} but over the margin-tightened ${budget.toFixed(2)} dB the cost sought`,
+    );
   }
 
   const elapsedS = Math.round(performance.now() - start) / 1000.0;
@@ -1080,8 +1114,10 @@ export async function optimizeReflector(
       arMarginDb: spec.arMarginDb,
       arPenaltyPerDb: AR_PENALTY_PER_DB,
       feasibleVswr: FEASIBLE_VSWR,
+      vswrPenaltyPerUnit: VSWR_PENALTY_PER_UNIT,
+      objectivesMissed: missed,
       objective:
-        "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost",
+        "radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost",
       elapsedS,
     },
   };

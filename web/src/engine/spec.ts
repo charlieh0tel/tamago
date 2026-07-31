@@ -27,8 +27,27 @@ import {
 } from "./constants";
 import { SHAPE_CIRCLE } from "./geometry";
 
-// Provenance of a spec produced by the reflector optimizer. Round-tripped
-// verbatim; nothing in this wave produces it.
+// Provenance of a spec produced by the reflector optimizer (optimizeReflector).
+//   input: the spec as received, before optimization.
+//   method: description of the spacing/droop search method.
+//   spacingBoundsWl / droopBoundsDeg: (low, high) ranges searched.
+//   spacingToleranceWl / droopToleranceDeg: resolutions the descent reached.
+//   sweeps: alternating spacing/droop passes per radial count.
+//   radialCountGrid: radial counts searched.
+//   arTargetDb: worst-case cone axial-ratio budget the placement cost
+//     referenced (penalty above arTargetDb - arMarginDb).
+//   arMarginDb: axial-ratio headroom the cost sought below the budget.
+//   arPenaltyPerDb: cost penalty per dB of worst-case AR above the budget.
+//   feasibleVswr: post-match VSWR a placement must hold within to count as
+//     matched. Counts outside it are dropped from the count selection.
+//   vswrPenaltyPerUnit: cost penalty per unit of VSWR above feasibleVswr.
+//   objectivesMissed: declared objectives the returned design does not meet,
+//     as readable phrases; empty when it meets all of them. A spec can be over
+//     budget at every placement searched, and the search returns its least-bad
+//     design rather than failing, so this is how the miss is stated instead of
+//     being implied by the numbers.
+//   objective: short description of what was minimized.
+//   elapsedS: wall-clock seconds the search took.
 export interface Optimization {
   input: DesignSpec;
   method: string;
@@ -42,6 +61,8 @@ export interface Optimization {
   arMarginDb: number;
   arPenaltyPerDb: number;
   feasibleVswr: number;
+  vswrPenaltyPerUnit: number;
+  objectivesMissed: string[];
   objective: string;
   elapsedS: number;
 }
@@ -206,8 +227,10 @@ export function optimizationToDict(opt: Optimization): JsonObject {
       ar_margin_db: opt.arMarginDb,
       ar_penalty_per_db: opt.arPenaltyPerDb,
       feasible_vswr: opt.feasibleVswr,
+      vswr_penalty_per_unit: opt.vswrPenaltyPerUnit,
       objective: opt.objective,
     },
+    objectives_missed: [...opt.objectivesMissed],
   };
 }
 
@@ -228,6 +251,8 @@ export function optimizationFromDict(data: JsonObject): Optimization {
     arMarginDb: Number(search.ar_margin_db),
     arPenaltyPerDb: Number(search.ar_penalty_per_db),
     feasibleVswr: Number(search.feasible_vswr),
+    vswrPenaltyPerUnit: Number(search.vswr_penalty_per_unit),
+    objectivesMissed: ((data.objectives_missed as string[]) ?? []).map(String),
     objective: String(search.objective),
     elapsedS: Number(data.elapsed_s),
   };

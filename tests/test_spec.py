@@ -54,6 +54,8 @@ def test_spec_round_trip_with_optimization():
         ar_margin_db=0.5,
         ar_penalty_per_db=1.0,
         feasible_vswr=1.5,
+        vswr_penalty_per_unit=100.0,
+        objectives_missed=("worst-case cone axial ratio 3.24 dB exceeds 3",),
         objective="minimize post-match VSWR",
         elapsed_s=12.5,
     )

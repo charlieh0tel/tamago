@@ -103,8 +103,10 @@ def optimization_to_dict(opt: Optimization) -> dict:
             "ar_margin_db": opt.ar_margin_db,
             "ar_penalty_per_db": opt.ar_penalty_per_db,
             "feasible_vswr": opt.feasible_vswr,
+            "vswr_penalty_per_unit": opt.vswr_penalty_per_unit,
             "objective": opt.objective,
         },
+        "objectives_missed": list(opt.objectives_missed),
     }
 
 
@@ -123,6 +125,8 @@ def optimization_from_dict(data: dict) -> Optimization:
         ar_margin_db=float(search["ar_margin_db"]),
         ar_penalty_per_db=float(search["ar_penalty_per_db"]),
         feasible_vswr=float(search["feasible_vswr"]),
+        vswr_penalty_per_unit=float(search["vswr_penalty_per_unit"]),
+        objectives_missed=tuple(data.get("objectives_missed", ())),
         objective=search["objective"],
         elapsed_s=float(data["elapsed_s"]),
     )

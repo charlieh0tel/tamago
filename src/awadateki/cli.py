@@ -72,6 +72,14 @@ def main(argv: list[str] | None = None) -> int:
         if any(spec.reflector == REFLECTOR_NONE for spec in specs):
             parser.error("--optimize-reflector requires a reflector")
         specs = [optimize_reflector(spec) for spec in specs]
+        # The search returns its least-bad design when no placement meets the
+        # objectives, so say which ones it missed rather than let the numbers
+        # in the cut sheet imply they were all met.
+        for spec in specs:
+            assert spec.optimization is not None
+            for missed in spec.optimization.objectives_missed:
+                label = spec.label or f"{spec.freq_mhz:g} MHz"
+                print(f"! {label}: {missed}", file=sys.stderr)
 
     # Stage 2: emit the resolved spec(s), for baking an optimized design.
     if args.emit_spec:

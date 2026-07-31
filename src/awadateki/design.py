@@ -205,6 +205,12 @@ AR_PENALTY_PER_DB = 1.0
 AR_KNEE_DB = 0.2
 # Post-match VSWR a placement must hold within to be a valid match.
 FEASIBLE_VSWR = 1.5
+# Cost penalty per unit of post-match VSWR above FEASIBLE_VSWR. Steep, so that a
+# placement inside the VSWR constraint beats any placement outside it that the
+# axial-ratio term would otherwise favor; the constraint is soft only so that a
+# spec no placement can satisfy still returns its least-bad design rather than
+# failing outright.
+VSWR_PENALTY_PER_UNIT = 100.0
 
 # Frequency-sweep defaults and the SWR threshold whose bandwidth is reported.
 SWEEP_SPAN_FRACTION = 0.10
@@ -322,8 +328,16 @@ class Optimization:
             budget (shapes spacing/droop; the count is chosen at the AR knee).
         ar_penalty_per_db: cost penalty per dB of worst-case axial ratio above
             the margin-tightened budget.
-        feasible_vswr: post-match VSWR intended as a valid match (the placement
-            cost drives spacing/droop toward it).
+        feasible_vswr: post-match VSWR a placement must hold within to count as
+            matched. Radial counts outside it are dropped from the count
+            selection, and the placement cost penalizes exceeding it.
+        vswr_penalty_per_unit: cost penalty per unit of post-match VSWR above
+            feasible_vswr.
+        objectives_missed: declared objectives the returned design does not
+            meet, as readable phrases; empty when it meets all of them. A spec
+            can be over budget at every placement searched, and the search
+            returns its least-bad design rather than failing, so this is how the
+            miss is stated instead of being implied by the numbers.
         objective: short description of what was minimized.
         elapsed_s: wall-clock seconds the search took.
     """
@@ -340,6 +354,8 @@ class Optimization:
     ar_margin_db: float
     ar_penalty_per_db: float
     feasible_vswr: float
+    vswr_penalty_per_unit: float
+    objectives_missed: tuple[str, ...]
     objective: str
     elapsed_s: float
 
@@ -1098,12 +1114,17 @@ def _reflector_cost(result: DesignResult) -> float:
     """Optimization cost: post-match SWR, penalized for excess axial ratio.
 
     The axial-ratio term is the worst over the coverage cone, so the optimizer
-    drives the cone edge (not just the cone mean) under the budget.
+    drives the cone edge (not just the cone mean) under the budget. VSWR enters
+    twice: once as the quantity being minimized, and again as a steep penalty
+    above FEASIBLE_VSWR, which is what makes that threshold a constraint rather
+    than a number the provenance merely quotes.
     """
     spec = result.spec
     budget = AR_TARGET_DB - spec.ar_margin_db
     excess = max(0.0, result.ar_cone_worst_db - budget)
-    return matched_vswr(spec, result.z_in) + AR_PENALTY_PER_DB * excess
+    swr = matched_vswr(spec, result.z_in)
+    infeasible = max(0.0, swr - FEASIBLE_VSWR)
+    return swr + AR_PENALTY_PER_DB * excess + VSWR_PENALTY_PER_UNIT * infeasible
 
 
 def _knee_count(counts: tuple[int, ...], worst_ar_db: dict[int, float]) -> int:
@@ -1201,6 +1222,7 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
 
     placements: dict[int, DesignSpec] = {}
     worst_ar_db: dict[int, float] = {}
+    swr: dict[int, float] = {}
     for count in counts:
         best = _best_placement(spec, count, optimize_droop=radials)
         if best is None:
@@ -1208,12 +1230,37 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
         _, candidate, result = best
         placements[count] = candidate
         worst_ar_db[count] = result.ar_cone_worst_db
+        swr[count] = matched_vswr(candidate, result.z_in)
     if not placements:
         raise DesignInfeasible(
             "no realizable reflector placement was found for this spec at any "
             f"radial count in {counts}"
         )
-    best_spec = placements[_knee_count(tuple(sorted(placements)), worst_ar_db)]
+    # Counts that cannot be matched are not candidates at all, unless none can be,
+    # in which case the knee still runs over everything and the miss is reported.
+    feasible = tuple(c for c in sorted(placements) if swr[c] <= FEASIBLE_VSWR)
+    considered = feasible or tuple(sorted(placements))
+    chosen = _knee_count(considered, worst_ar_db)
+    best_spec = placements[chosen]
+
+    budget = AR_TARGET_DB - spec.ar_margin_db
+    missed = []
+    if swr[chosen] > FEASIBLE_VSWR:
+        missed.append(
+            f"post-match VSWR {swr[chosen]:.2f} exceeds feasible_vswr "
+            f"{FEASIBLE_VSWR:g} at every radial count searched"
+        )
+    if worst_ar_db[chosen] > AR_TARGET_DB:
+        missed.append(
+            f"worst-case cone axial ratio {worst_ar_db[chosen]:.2f} dB exceeds "
+            f"ar_target_db {AR_TARGET_DB:g}"
+        )
+    elif worst_ar_db[chosen] > budget:
+        missed.append(
+            f"worst-case cone axial ratio {worst_ar_db[chosen]:.2f} dB is inside "
+            f"ar_target_db {AR_TARGET_DB:g} but over the margin-tightened "
+            f"{budget:.2f} dB the cost sought"
+        )
 
     provenance = Optimization(
         input=replace(spec, optimization=None),
@@ -1228,9 +1275,11 @@ def optimize_reflector(spec: DesignSpec) -> DesignSpec:
         ar_margin_db=spec.ar_margin_db,
         ar_penalty_per_db=AR_PENALTY_PER_DB,
         feasible_vswr=FEASIBLE_VSWR,
+        vswr_penalty_per_unit=VSWR_PENALTY_PER_UNIT,
+        objectives_missed=tuple(missed),
         objective=(
-            "radial count at the worst-case cone AR knee, "
-            "spacing/droop minimizing match cost"
+            "radial count at the worst-case cone AR knee among counts inside "
+            "feasible_vswr, spacing/droop minimizing match cost"
         ),
         elapsed_s=round(time.perf_counter() - start, 3),
     )
