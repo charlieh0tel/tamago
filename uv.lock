@@ -4,7 +4,7 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "awadateki"
-version = "0.3.0"
+version = "0.8.0"
 source = { editable = "." }
 
 [package.dev-dependencies]
