@@ -234,6 +234,10 @@ class DesignSpec:
             line, fed through a 1:1 ferrite current choke with no Q-section or
             4:1 balun). balun4 and choke share the same balanced NEC model and
             differ only in the match hardware.
+        loop_perimeter_mm: literal loop perimeter (mm), or None to solve for it.
+            Authored by the web front end, which lets a builder pin a measured
+            perimeter. Neither engine consumes it yet; it is carried through
+            round-trips so a spec written there survives a pass through the CLI.
         measured_loop_z_ohm: magnitude of a bridge reading of one loop's feed
             impedance, in ohms, or None to use the modeled value.
 
@@ -304,6 +308,7 @@ class DesignSpec:
     sense: str = SENSE_RHCP
     loop_shape: str = SHAPE_CIRCLE
     corner_radius_wl: float = 0.05
+    loop_perimeter_mm: float | None = None
     loop_offset_mm: float = 10.0
     feed_gap_mm: float = 10.0
     system_z_ohm: float = 50.0

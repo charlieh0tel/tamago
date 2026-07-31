@@ -131,3 +131,14 @@ def test_json_single_object_round_trip():
 def test_json_list_round_trip():
     pair = [_spec(label="2 m"), _spec(freq_mhz=436.0, conductor=round_conductor(3.0))]
     assert specs_from_json(specs_to_json(pair)) == pair
+
+
+def test_loop_perimeter_mm_survives_a_round_trip():
+    """Authored by the web front end; neither engine consumes it yet, but a spec
+    written there has to survive a pass through the CLI."""
+    data = {
+        "freq_mhz": 145.9,
+        "conductor": {"kind": "round", "diameter_mm": 5.0},
+        "loop_perimeter_mm": 2100.0,
+    }
+    assert spec_to_dict(spec_from_dict(data))["loop_perimeter_mm"] == 2100.0

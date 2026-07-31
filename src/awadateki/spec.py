@@ -28,6 +28,7 @@ _OPTIONAL_FIELDS = (
     "feed",
     "loop_shape",
     "corner_radius_wl",
+    "loop_perimeter_mm",
     "loop_offset_mm",
     "feed_gap_mm",
     "phasing_coax",
