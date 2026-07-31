@@ -43,7 +43,7 @@
         "label": "2 m",
         "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 5.855,
+      "elapsed_s": 3.876,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -67,8 +67,12 @@
         "ar_margin_db": 0.5,
         "ar_penalty_per_db": 1.0,
         "feasible_vswr": 1.5,
-        "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
-      }
+        "vswr_penalty_per_unit": 100.0,
+        "objective": "radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost"
+      },
+      "objectives_missed": [
+        "worst-case cone axial ratio 3.01 dB exceeds ar_target_db 3"
+      ]
     }
   },
   {
@@ -115,7 +119,7 @@
         "label": "70 cm",
         "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 4.825,
+      "elapsed_s": 3.239,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -139,8 +143,12 @@
         "ar_margin_db": 0.5,
         "ar_penalty_per_db": 1.0,
         "feasible_vswr": 1.5,
-        "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
-      }
+        "vswr_penalty_per_unit": 100.0,
+        "objective": "radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost"
+      },
+      "objectives_missed": [
+        "worst-case cone axial ratio 3.24 dB exceeds ar_target_db 3"
+      ]
     }
   }
 ]

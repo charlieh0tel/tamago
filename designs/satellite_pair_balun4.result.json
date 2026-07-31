@@ -44,7 +44,7 @@
           "label": "2 m",
           "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 5.527,
+        "elapsed_s": 3.693,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -68,8 +68,12 @@
           "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
-          "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
-        }
+          "vswr_penalty_per_unit": 100.0,
+          "objective": "radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost"
+        },
+        "objectives_missed": [
+          "worst-case cone axial ratio 2.88 dB is inside ar_target_db 3 but over the margin-tightened 2.50 dB the cost sought"
+        ]
       }
     },
     "build": {
@@ -132,6 +136,7 @@
         "phasing_z0_ohm": 100.0,
         "loop_z_ohm": 97.567333108274,
         "loop_z_source": "modeled",
+        "modeled_loop_z_ohm": 97.567333108274,
         "balance": 0.9756716153641485,
         "ar_floor_db": 0.2139265899628795
       },
@@ -222,7 +227,7 @@
           "label": "70 cm",
           "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
         },
-        "elapsed_s": 4.911,
+        "elapsed_s": 3.342,
         "search": {
           "method": "coordinate descent (golden-section per axis)",
           "spacing_bounds_wl": [
@@ -246,8 +251,12 @@
           "ar_margin_db": 0.5,
           "ar_penalty_per_db": 1.0,
           "feasible_vswr": 1.5,
-          "objective": "radial count at the worst-case cone AR knee, spacing/droop minimizing match cost"
-        }
+          "vswr_penalty_per_unit": 100.0,
+          "objective": "radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost"
+        },
+        "objectives_missed": [
+          "worst-case cone axial ratio 3.03 dB exceeds ar_target_db 3"
+        ]
       }
     },
     "build": {
@@ -310,6 +319,7 @@
         "phasing_z0_ohm": 100.0,
         "loop_z_ohm": 92.40400290389782,
         "loop_z_source": "modeled",
+        "modeled_loop_z_ohm": 92.40400290389782,
         "balance": 0.9240435867930217,
         "ar_floor_db": 0.6861508557442443
       },

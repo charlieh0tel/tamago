@@ -174,7 +174,7 @@
       &quot;label&quot;: &quot;2 m&quot;,
       &quot;notes&quot;: &quot;2 m half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio &lt; 3 dB over the coverage cone, VSWR &lt; 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.&quot;
     },
-    &quot;elapsed_s&quot;: 10.716,
+    &quot;elapsed_s&quot;: 7.14,
     &quot;search&quot;: {
       &quot;method&quot;: &quot;coordinate descent (golden-section per axis)&quot;,
       &quot;spacing_bounds_wl&quot;: [
@@ -198,8 +198,12 @@
       &quot;ar_margin_db&quot;: 0.5,
       &quot;ar_penalty_per_db&quot;: 1.0,
       &quot;feasible_vswr&quot;: 1.5,
-      &quot;objective&quot;: &quot;radial count at the worst-case cone AR knee, spacing/droop minimizing match cost&quot;
-    }
+      &quot;vswr_penalty_per_unit&quot;: 100.0,
+      &quot;objective&quot;: &quot;radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost&quot;
+    },
+    &quot;objectives_missed&quot;: [
+      &quot;worst-case cone axial ratio 2.66 dB is inside ar_target_db 3 but over the margin-tightened 2.50 dB the cost sought&quot;
+    ]
   }
 }</pre></div><div><h3>Cut list</h3><pre>Eggbeater cut sheet: 2 m
 ========================================
@@ -270,7 +274,7 @@ Match to 50 ohm:
       &quot;label&quot;: &quot;70 cm&quot;,
       &quot;notes&quot;: &quot;70 cm half of a VHF/UHF LEO satellite pair, squircle (rounded-corner square) loops. RHCP, crossed loops fed through a quarter-wave phasing line, with a drooping radial reflector to favor high-elevation passes. Round tubing; square loops with radiused corners ease bending around a square frame while keeping the corners gentle. Targets: axial ratio &lt; 3 dB over the coverage cone, VSWR &lt; 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.&quot;
     },
-    &quot;elapsed_s&quot;: 6.779,
+    &quot;elapsed_s&quot;: 7.073,
     &quot;search&quot;: {
       &quot;method&quot;: &quot;coordinate descent (golden-section per axis)&quot;,
       &quot;spacing_bounds_wl&quot;: [
@@ -294,8 +298,12 @@ Match to 50 ohm:
       &quot;ar_margin_db&quot;: 0.5,
       &quot;ar_penalty_per_db&quot;: 1.0,
       &quot;feasible_vswr&quot;: 1.5,
-      &quot;objective&quot;: &quot;radial count at the worst-case cone AR knee, spacing/droop minimizing match cost&quot;
-    }
+      &quot;vswr_penalty_per_unit&quot;: 100.0,
+      &quot;objective&quot;: &quot;radial count at the worst-case cone AR knee among counts inside feasible_vswr, spacing/droop minimizing match cost&quot;
+    },
+    &quot;objectives_missed&quot;: [
+      &quot;worst-case cone axial ratio 2.77 dB is inside ar_target_db 3 but over the margin-tightened 2.50 dB the cost sought&quot;
+    ]
   }
 }</pre></div><div><h3>Cut list</h3><pre>Eggbeater cut sheet: 70 cm
 ========================================
