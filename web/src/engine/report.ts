@@ -114,9 +114,15 @@ function headerLines(result: DesignResult, build: JsonObject): string[] {
     lines.push(`  corner radius      : ${f(num(build, "corner_radius_mm"), 1)} mm`);
   }
   if ("loop_center_height_mm" in build) {
+    // Both heights, because they differ by most of a loop radius and only one of
+    // them can be measured: the center is a point in mid air that moves as the
+    // perimeter tunes, while the clearance is what a tape reaches.
     lines.push(
-      `  loop-to-reflector  : ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
+      `  loop center height : ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
         `(${f(num(build, "loop_center_height_mm"), 1)} mm)`,
+    );
+    lines.push(
+      `  bottom clearance   : ${g(num(build, "loop_bottom_clearance_wl"), 3)} wl (${f(num(build, "loop_bottom_clearance_mm"), 1)} mm), reflector to the lower loop`,
     );
   }
   if ("radials" in build) {

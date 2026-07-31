@@ -70,8 +70,11 @@ Two things follow:
   section's subject.
 - Their convention is the one a builder can actually measure -- you put a tape
   from the reflector to the bottom of the loops -- while ours is referenced to a
-  point in mid air whose height also moves when the perimeter is tuned. Worth
-  considering reporting the loop-bottom clearance in the cut sheet.
+  point in mid air whose height also moves when the perimeter is tuned. The cut
+  sheet now reports both, and the web front end authors the spacing as the
+  clearance, so the two conventions cannot be confused for each other. The spec
+  field stays the loop-center height, since that is where the geometry places the
+  loops.
 
 ## Where our model agrees and disagrees
 

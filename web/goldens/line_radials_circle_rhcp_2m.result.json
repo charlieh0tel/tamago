@@ -27,6 +27,8 @@
     "reflector": "radials",
     "loop_center_height_wl": 0.25,
     "loop_center_height_mm": 513.6950959561344,
+    "loop_bottom_clearance_wl": 0.08088134662389153,
+    "loop_bottom_clearance_mm": 166.1934044600853,
     "radials": {
       "count": 8,
       "length_mm": 554.7907036326252,

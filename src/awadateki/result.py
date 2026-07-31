@@ -12,7 +12,9 @@ only when a frequency sweep is requested):
     build       buildable cut list:
                   freq_mhz, wavelength_mm, loop_shape, reflector;
                   corner_radius_mm present for the squircle shape;
-                  loop_center_height_wl/_mm and radials present with a reflector;
+                  loop_center_height_wl/_mm, loop_bottom_clearance_wl/_mm and
+                  radials present with a reflector (the clearance is under the
+                  lower loop, which is what a builder measures);
                   loop {perimeter_mm, width_mm} (width is the across dimension:
                   diameter, side, or squircle width); loop_offset_mm; feed_gap_mm;
                   feed (line|balun4);
@@ -252,6 +254,25 @@ def _build_dict(result: DesignResult) -> dict:
         build["loop_center_height_wl"] = spec.reflector_spacing_wl
         height_mm = spec.reflector_spacing_wl * wavelength * MM_PER_M
         build["loop_center_height_mm"] = height_mm
+        # The clearance under the lower loop is the height a builder can put a
+        # tape on: the center is a point in mid air, and it moves as the
+        # perimeter tunes. Loop A hangs half the offset below the pair center,
+        # and every shape is symmetric, so half the bounding extent reaches its
+        # bottom conductor.
+        clearance_m = (
+            spec.reflector_spacing_wl * wavelength
+            - spec.loop_offset_mm / MM_PER_M / 2.0
+            - loop_extent_m(
+                result.base_factor * wavelength,
+                spec.loop_shape,
+                spec.corner_radius_wl * wavelength
+                if spec.loop_shape == SHAPE_SQUIRCLE
+                else 0.0,
+            )
+            / 2.0
+        )
+        build["loop_bottom_clearance_wl"] = clearance_m / wavelength
+        build["loop_bottom_clearance_mm"] = clearance_m * MM_PER_M
     if spec.reflector == REFLECTOR_RADIALS:
         build["radials"] = {
             "count": spec.radial_count,

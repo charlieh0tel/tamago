@@ -65,9 +65,17 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
     if "corner_radius_mm" in build:
         lines.append(f"  corner radius      : {build['corner_radius_mm']:.1f} mm")
     if "loop_center_height_mm" in build:
+        # Both heights, because they differ by most of a loop radius and only one
+        # of them can be measured: the center is a point in mid air that moves as
+        # the perimeter tunes, while the clearance is what a tape reaches.
         lines.append(
-            f"  loop-to-reflector  : {build['loop_center_height_wl']:.3g} wl "
+            f"  loop center height : {build['loop_center_height_wl']:.3g} wl "
             f"({build['loop_center_height_mm']:.1f} mm)"
+        )
+        lines.append(
+            f"  bottom clearance   : {build['loop_bottom_clearance_wl']:.3g} wl "
+            f"({build['loop_bottom_clearance_mm']:.1f} mm), "
+            "reflector to the lower loop"
         )
     if "radials" in build:
         radials = build["radials"]

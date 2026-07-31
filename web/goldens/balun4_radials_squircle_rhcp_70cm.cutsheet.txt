@@ -7,7 +7,8 @@ Conductor            : bar, 6 x 3 mm
 Loop shape           : squircle
 Reflector            : radials
   corner radius      : 55.0 mm
-  loop-to-reflector  : 0.25 wl (171.9 mm)
+  loop center height : 0.25 wl (171.9 mm)
+  bottom clearance   : 0.0918 wl (63.1 mm), reflector to the lower loop
   radials            : 8 x 185.7 mm, 0 deg droop
 ----------------------------------------
 Both loops           : 736.0 mm perimeter, 207.6 mm width

@@ -27,6 +27,8 @@
     "reflector": "ground",
     "loop_center_height_wl": 0.25,
     "loop_center_height_mm": 513.6950959561344,
+    "loop_bottom_clearance_wl": 0.0815574573641131,
+    "loop_bottom_clearance_mm": 167.58266354638567,
     "loop": {
       "perimeter_mm": 2143.272623413223,
       "width_mm": 682.2248648194974

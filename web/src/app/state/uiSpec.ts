@@ -6,11 +6,15 @@ import {
   type DesignSpec,
   KIND_ROUND,
   KIND_STRIP,
+  MM_PER_M,
   REFLECTOR_NONE,
+  SHAPE_SQUIRCLE,
   barConductor,
+  loopExtentM,
   makeDesignSpec,
   roundConductor,
   stripConductor,
+  wavelengthM,
 } from "../../engine/index";
 import { estimatePerimeterMm } from "../engineExtras";
 import type { ProvenanceMap, UiState } from "./types";
@@ -59,4 +63,36 @@ export function perimeterForSpec(spec: DesignSpec, prov: ProvenanceMap): number 
 // Whether the perimeter provenance is a *fresh* opt value (tuned to quadrature).
 export function isTuned(state: Pick<UiState, "prov" | "optStale">): boolean {
   return state.prov.perim === "opt" && !state.optStale;
+}
+
+// Reflector spacing is stored as the loop-center height, because that is where
+// the geometry places the loops, but the height a builder can measure is the
+// clearance under the lower loop -- the center is a point in mid air. The two
+// differ by how far the bottom conductor hangs below the pair center: half the
+// loop offset (loop A rides below) plus half the loop's bounding extent (every
+// shape is symmetric).
+//
+// That drop depends on the perimeter, so these take the perimeter the rail is
+// displaying. The consequence is worth knowing: retuning the perimeter leaves
+// the stored center height alone but changes the clearance it corresponds to.
+function loopBottomDropWl(spec: DesignSpec, perimeterMm: number): number {
+  const wavelength = wavelengthM(spec.freqMhz);
+  const cornerRadiusM =
+    spec.loopShape === SHAPE_SQUIRCLE ? spec.cornerRadiusWl * wavelength : 0.0;
+  const extentM = loopExtentM(perimeterMm / MM_PER_M, spec.loopShape, cornerRadiusM);
+  return (spec.loopOffsetMm / MM_PER_M / 2.0 + extentM / 2.0) / wavelength;
+}
+
+// Reflector-to-lower-loop clearance, in wavelengths, for the displayed spacing.
+export function clearanceWlForSpec(spec: DesignSpec, perimeterMm: number): number {
+  return spec.reflectorSpacingWl - loopBottomDropWl(spec, perimeterMm);
+}
+
+// The loop-center height (what the spec stores) giving this clearance.
+export function spacingWlForClearance(
+  spec: DesignSpec,
+  perimeterMm: number,
+  clearanceWl: number,
+): number {
+  return clearanceWl + loopBottomDropWl(spec, perimeterMm);
 }

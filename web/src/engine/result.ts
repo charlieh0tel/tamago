@@ -218,6 +218,21 @@ function buildDict(result: DesignResult): JsonObject {
   if (spec.reflector !== REFLECTOR_NONE) {
     build.loop_center_height_wl = spec.reflectorSpacingWl;
     build.loop_center_height_mm = spec.reflectorSpacingWl * wavelength * MM_PER_M;
+    // The clearance under the lower loop is the height a builder can put a tape
+    // on: the center is a point in mid air, and it moves as the perimeter tunes.
+    // Loop A hangs half the offset below the pair center, and every shape is
+    // symmetric, so half the bounding extent reaches its bottom conductor.
+    const clearanceM =
+      spec.reflectorSpacingWl * wavelength -
+      spec.loopOffsetMm / MM_PER_M / 2.0 -
+      loopExtentM(
+        result.baseFactor * wavelength,
+        spec.loopShape,
+        spec.loopShape === SHAPE_SQUIRCLE ? spec.cornerRadiusWl * wavelength : 0.0,
+      ) /
+        2.0;
+    build.loop_bottom_clearance_wl = clearanceM / wavelength;
+    build.loop_bottom_clearance_mm = clearanceM * MM_PER_M;
   }
   if (spec.reflector === REFLECTOR_RADIALS) {
     build.radials = {
