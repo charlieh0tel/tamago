@@ -67,7 +67,7 @@ const LEGEND: Array<{ v: string; stale?: boolean; text: string; label: string }>
   { v: "opt", stale: true, text: "opt*", label: "stale, re-run" },
 ];
 
-function ProvLegend(): JSX.Element {
+export function ProvLegend(): JSX.Element {
   return (
     <div className="prov-legend">
       {LEGEND.map((e) => (
@@ -160,7 +160,6 @@ export function SpecRail({
 
   return (
     <div className="rail">
-      <ProvLegend />
       {/* Two columns: the form is otherwise a single stack tall enough to
           scroll on a laptop. Each group keeps its own single-column fields,
           so only the groups move. Collapses back to one column with the

@@ -8,7 +8,7 @@ import { Header } from "./components/Header";
 import { JsonModal } from "./components/JsonModal";
 import { Report } from "./components/Report";
 import { Results } from "./components/Results";
-import { SpecRail } from "./components/SpecRail";
+import { ProvLegend, SpecRail } from "./components/SpecRail";
 import { Toast } from "./components/Toast";
 import {
   analysisFingerprint,
@@ -202,22 +202,29 @@ export function App({ engine }: { engine?: EngineService } = {}): JSX.Element {
           onBack={() => dispatch({ type: "SET_VIEW", view: "designer" })}
         />
       ) : (
-        <div className="panes">
-          <SpecRail
-            state={state}
-            dispatch={dispatch}
-            onAnalyze={() => void runAnalyze()}
-            onOptimize={runOptimize}
-            onCancelOptimize={cancelOptimize}
-          />
-          <Results
-            state={state}
-            dispatch={dispatch}
-            onAnalyze={() => void runAnalyze()}
-            onPrintView={() => dispatch({ type: "SET_VIEW", view: "report" })}
-            onToast={toast}
-          />
-        </div>
+        <>
+          {/* Above the panes, not inside the rail: sitting in the rail it
+              pushed the form's first panels down while the results panel began
+              at the top of its own column, so the boxes across the top of the
+              page started on three different lines. */}
+          <ProvLegend />
+          <div className="panes">
+            <SpecRail
+              state={state}
+              dispatch={dispatch}
+              onAnalyze={() => void runAnalyze()}
+              onOptimize={runOptimize}
+              onCancelOptimize={cancelOptimize}
+            />
+            <Results
+              state={state}
+              dispatch={dispatch}
+              onAnalyze={() => void runAnalyze()}
+              onPrintView={() => dispatch({ type: "SET_VIEW", view: "report" })}
+              onToast={toast}
+            />
+          </div>
+        </>
       )}
       {state.jsonOpen && (
         <JsonModal
