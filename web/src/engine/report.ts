@@ -32,14 +32,33 @@ const WIDTH_TERM: Record<string, string> = {
 
 // --- printf-style formatting helpers (Python %f/%g equivalents). ---
 
+// Python renders non-finite floats as inf/-inf/nan under every numeric format;
+// JavaScript renders Infinity/-Infinity/NaN. An axial ratio is infinite dB
+// wherever the pattern is exactly linear, so this reaches the cut sheet.
+function nonFinite(x: number): string | null {
+  if (Number.isNaN(x)) {
+    return "nan";
+  }
+  if (x === Number.POSITIVE_INFINITY) {
+    return "inf";
+  }
+  if (x === Number.NEGATIVE_INFINITY) {
+    return "-inf";
+  }
+  return null;
+}
+
 // Python "%.<n>f".
 function f(x: number, n: number): string {
-  return x.toFixed(n);
+  return nonFinite(x) ?? x.toFixed(n);
 }
 
 // Python "%+.<n>f": explicit sign, sign taken from the value (a negative that
 // rounds to zero keeps its minus, matching Python).
 function fs(x: number, n: number): string {
+  if (!Number.isFinite(x)) {
+    return Number.isNaN(x) ? "+nan" : x > 0 ? "+inf" : "-inf";
+  }
   const sign = x < 0 || Object.is(x, -0) ? "-" : "+";
   return sign + Math.abs(x).toFixed(n);
 }
