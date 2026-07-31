@@ -235,10 +235,19 @@ class DesignSpec:
             4:1 balun). balun4 and choke share the same balanced NEC model and
             differ only in the match hardware.
         measured_loop_z_ohm: magnitude of a bridge reading of one loop's feed
-            impedance, in ohms, or None to use the modeled value. The loop
-            current split is exactly |Z_loop| / Z0_phasing, so a measurement
-            replaces the shakiest number in the model (NEC handles a point-fed
-            closed loop poorly) without needing the rest of it.
+            impedance, in ohms, or None to use the modeled value.
+
+            Scope, because it is narrower than it looks: this substitutes into
+            the drive-split relation (balance = |Z_loop| / Z0_phasing, exactly)
+            and the on-axis axial ratio that follows from it. It does NOT enter
+            the NEC solve, which computes the loop impedance from the geometry;
+            there is no way to inject a measured impedance into a moment-method
+            solution. So the tuned dimensions and the modeled pattern figures --
+            cone axial ratio, gain, VSWR -- are unchanged by it, and a
+            measurement that disagrees with the model means those figures were
+            computed for a different antenna than the one on the mast. The cut
+            sheet flags that disagreement rather than presenting both silently
+            (see MEASURED_LOOP_Z_DISAGREE_FRACTION).
         phasing_coax: cable of the quarter-wave phasing line feeding loop B,
             or None for the scheme default (RG-62). FEED_LINE only; setting
             it for a harness feed is an error, since those harnesses fix

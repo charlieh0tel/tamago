@@ -22,6 +22,11 @@ const DRIVE_AR_FLOOR_WARN_DB = 1.0;
 // far the axial-ratio conclusion moves if the modeled loop impedance is wrong;
 // the evidence is discussed in docs/reference-designs.md.
 const LITERATURE_LOOP_Z_OHM = 100.0;
+// Fractional gap between a measured and the modeled loop impedance past which the
+// two describe different antennas. A measurement corrects the drive split but
+// cannot enter the NEC solve, so past this the modeled pattern figures are flagged
+// as belonging to the model rather than to the antenna that was measured.
+const MEASURED_LOOP_Z_DISAGREE_FRACTION = 0.1;
 
 // Shape-appropriate label for the loop's across dimension (width_mm).
 const WIDTH_TERM: Record<string, string> = {
@@ -163,6 +168,15 @@ function driveLines(drive: JsonObject): string[] {
       `  ! loop Z modeled: at the literature's ${g(LITERATURE_LOOP_Z_OHM)} ohm ` +
         `it would be ${f(alt, 1)} dB (set measured_loop_z_ohm)`,
     );
+  }
+  const modeled = drive.modeled_loop_z_ohm as number | null;
+  if (source === "measured" && modeled !== null) {
+    const off = Math.abs(loopZ - modeled) / modeled;
+    if (off > MEASURED_LOOP_Z_DISAGREE_FRACTION) {
+      lines.push(
+        `  ! measurement is ${f(off * 100, 0)}% off the modeled ${f(modeled, 0)} ohm; a reading cannot enter the NEC solve, so the predicted pattern below is still the modeled antenna's`,
+      );
+    }
   }
   return lines;
 }

@@ -22,6 +22,11 @@ DRIVE_AR_FLOOR_WARN_DB = 1.0
 # far the axial-ratio conclusion moves if the modeled loop impedance is wrong;
 # the evidence is discussed in docs/reference-designs.md.
 LITERATURE_LOOP_Z_OHM = 100.0
+# Fractional gap between a measured and the modeled loop impedance past which the
+# two describe different antennas. A measurement corrects the drive split but
+# cannot enter the NEC solve, so past this the modeled pattern figures are flagged
+# as belonging to the model rather than to the antenna that was measured.
+MEASURED_LOOP_Z_DISAGREE_FRACTION = 0.10
 
 # Shape-appropriate label for the loop's across dimension (width_mm).
 _WIDTH_TERM = {"circle": "dia", "square": "side", "squircle": "width"}
@@ -173,6 +178,15 @@ def _drive_lines(drive: dict) -> list[str]:
             f"  ! loop Z modeled: at the literature's {LITERATURE_LOOP_Z_OHM:g} ohm "
             f"it would be {alt:.1f} dB (set measured_loop_z_ohm)"
         )
+    modeled = drive["modeled_loop_z_ohm"]
+    if source == "measured" and modeled is not None:
+        off = abs(loop_z - modeled) / modeled
+        if off > MEASURED_LOOP_Z_DISAGREE_FRACTION:
+            lines.append(
+                f"  ! measurement is {off * 100:.0f}% off the modeled "
+                f"{modeled:.0f} ohm; a reading cannot enter the NEC solve, so the "
+                "predicted pattern below is still the modeled antenna's"
+            )
     return lines
 
 

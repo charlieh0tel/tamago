@@ -182,6 +182,11 @@ function arFloorDb(balance: number): number {
 // produce, because a point-fed closed loop is a case NEC handles poorly. So a
 // measured value (spec.measuredLoopZOhm) is used in preference, and the source is
 // reported either way.
+//
+// A measurement reaches only this relation, never the NEC solve, so
+// modeled_loop_z_ohm is carried alongside: when the two disagree the pattern
+// figures elsewhere in the result belong to the modeled antenna, and the report
+// needs both numbers to say so.
 function driveDict(result: DesignResult, phasingZ0Ohm: number): JsonObject {
   const loopZ = result.loopAFeedZ;
   const modeled = loopZ !== null ? Math.hypot(loopZ.re, loopZ.im) : null;
@@ -195,6 +200,7 @@ function driveDict(result: DesignResult, phasingZ0Ohm: number): JsonObject {
     phasing_z0_ohm: phasingZ0Ohm,
     loop_z_ohm: used,
     loop_z_source: source,
+    modeled_loop_z_ohm: modeled,
     balance,
     ar_floor_db: arFloorDb(balance),
   };

@@ -53,6 +53,7 @@
       "phasing_z0_ohm": 93.0,
       "loop_z_ohm": 133.66001503034394,
       "loop_z_source": "modeled",
+      "modeled_loop_z_ohm": 133.66001503034394,
       "balance": 1.4372400401539323,
       "ar_floor_db": 3.1505861547279608
     },

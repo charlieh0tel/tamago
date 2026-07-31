@@ -208,6 +208,11 @@ def _drive_dict(result: DesignResult, phasing_z0_ohm: float) -> dict:
     produce, because a point-fed closed loop is a case NEC handles poorly. So a
     measured value (spec.measured_loop_z_ohm) is used in preference, and the
     source is reported either way.
+
+    A measurement reaches only this relation, never the NEC solve, so
+    modeled_loop_z_ohm is carried alongside: when the two disagree the pattern
+    figures elsewhere in the result belong to the modeled antenna, and the
+    report needs both numbers to say so.
     """
     spec = result.spec
     modeled = abs(result.loop_a_feed_z) if result.loop_a_feed_z is not None else None
@@ -221,6 +226,7 @@ def _drive_dict(result: DesignResult, phasing_z0_ohm: float) -> dict:
         "phasing_z0_ohm": phasing_z0_ohm,
         "loop_z_ohm": loop_z,
         "loop_z_source": source,
+        "modeled_loop_z_ohm": modeled,
         "balance": balance,
         "ar_floor_db": _ar_floor_db(balance),
     }

@@ -121,3 +121,15 @@ def test_non_finite_serializes_as_null():
     text = results_to_json([dataclasses.replace(_result(), ar_peak_db=math.inf)])
     assert "Infinity" not in text
     assert json.loads(text)["performance"]["axial_ratio_peak_db"] is None
+
+
+def test_drive_reports_the_modeled_value_alongside_a_measurement():
+    """A measurement corrects the drive split but cannot enter the NEC solve, so
+    both numbers are carried and the report can say the pattern is the model's."""
+    result = dataclasses.replace(
+        _result(measured_loop_z_ohm=100.0), loop_a_feed_z=complex(143.0, 0.0)
+    )
+    drive = result_to_dict(result)["build"]["drive"]
+    assert drive["loop_z_source"] == "measured"
+    assert drive["loop_z_ohm"] == 100.0
+    assert drive["modeled_loop_z_ohm"] == 143.0
