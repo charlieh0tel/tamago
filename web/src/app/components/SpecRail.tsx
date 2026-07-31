@@ -167,7 +167,7 @@ export function SpecRail({
           panes (see the .panes media query). */}
       <div className="railgrid">
         <div className="railcol">
-          <details className="group" open>
+          <details className="group g-basics" open>
             <summary>Basics</summary>
             <div className="gbody">
               <div className="inline">
@@ -321,9 +321,115 @@ export function SpecRail({
               />
             </div>
           </details>
+
+          <details className="group g-advanced">
+            <summary>Advanced</summary>
+            <div className="gbody">
+              <div className="inline">
+                <div className="field">
+                  <label>
+                    Loop offset <span className="unit">mm</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={spec.loopOffsetMm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { loopOffsetMm: num(e.target.value, spec.loopOffsetMm) },
+                      })
+                    }
+                  />
+                </div>
+                <div className="field">
+                  <label>
+                    Feed gap <span className="unit">mm</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={spec.feedGapMm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { feedGapMm: num(e.target.value, spec.feedGapMm) },
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="inline">
+                <div className="field">
+                  <label>
+                    Segments
+                    {spec.segments === null && <span className="unit">derived</span>}
+                  </label>
+                  <input
+                    type="number"
+                    title="polygon sides per loop; blank derives a count that holds the segment length at a fixed number of conductor radii, which is what keeps bands comparable"
+                    value={spec.segments ?? loopSegments(spec)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: {
+                          segments:
+                            raw === ""
+                              ? null
+                              : Math.round(num(raw, loopSegments(spec))),
+                        },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <label>
+                    System Z <span className="unit">Ω</span>
+                  </label>
+                  <select
+                    value={spec.systemZOhm}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "PATCH_SPEC",
+                        patch: { systemZOhm: num(e.target.value, spec.systemZOhm) },
+                      })
+                    }
+                  >
+                    <option value={50}>50</option>
+                    <option value={75}>75</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field">
+                <label>
+                  AR margin <span className="unit">dB</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={spec.arMarginDb}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "PATCH_SPEC",
+                      patch: { arMarginDb: num(e.target.value, spec.arMarginDb) },
+                    })
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Spec as JSON</label>
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => dispatch({ type: "OPEN_JSON" })}
+                >
+                  edit raw spec…
+                </button>
+              </div>
+            </div>
+          </details>
         </div>
         <div className="railcol">
-          <details className="group" open>
+          <details className="group g-feed" open>
             <summary>Feed</summary>
             <div className="gbody">
               <FeedCards
@@ -335,7 +441,7 @@ export function SpecRail({
             </div>
           </details>
 
-          <details className="group" open>
+          <details className="group g-reflector" open>
             <summary>Reflector</summary>
             <div className="gbody">
               <Seg
@@ -450,112 +556,6 @@ export function SpecRail({
                   </div>
                 </div>
               )}
-            </div>
-          </details>
-
-          <details className="group">
-            <summary>Advanced</summary>
-            <div className="gbody">
-              <div className="inline">
-                <div className="field">
-                  <label>
-                    Loop offset <span className="unit">mm</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={spec.loopOffsetMm}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "PATCH_SPEC",
-                        patch: { loopOffsetMm: num(e.target.value, spec.loopOffsetMm) },
-                      })
-                    }
-                  />
-                </div>
-                <div className="field">
-                  <label>
-                    Feed gap <span className="unit">mm</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={spec.feedGapMm}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "PATCH_SPEC",
-                        patch: { feedGapMm: num(e.target.value, spec.feedGapMm) },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="inline">
-                <div className="field">
-                  <label>
-                    Segments
-                    {spec.segments === null && <span className="unit">derived</span>}
-                  </label>
-                  <input
-                    type="number"
-                    title="polygon sides per loop; blank derives a count that holds the segment length at a fixed number of conductor radii, which is what keeps bands comparable"
-                    value={spec.segments ?? loopSegments(spec)}
-                    onChange={(e) => {
-                      const raw = e.target.value.trim();
-                      dispatch({
-                        type: "PATCH_SPEC",
-                        patch: {
-                          segments:
-                            raw === ""
-                              ? null
-                              : Math.round(num(raw, loopSegments(spec))),
-                        },
-                      });
-                    }}
-                  />
-                </div>
-                <div className="field">
-                  <label>
-                    System Z <span className="unit">Ω</span>
-                  </label>
-                  <select
-                    value={spec.systemZOhm}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "PATCH_SPEC",
-                        patch: { systemZOhm: num(e.target.value, spec.systemZOhm) },
-                      })
-                    }
-                  >
-                    <option value={50}>50</option>
-                    <option value={75}>75</option>
-                  </select>
-                </div>
-              </div>
-              <div className="field">
-                <label>
-                  AR margin <span className="unit">dB</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={spec.arMarginDb}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "PATCH_SPEC",
-                      patch: { arMarginDb: num(e.target.value, spec.arMarginDb) },
-                    })
-                  }
-                />
-              </div>
-              <div className="field">
-                <label>Spec as JSON</label>
-                <button
-                  type="button"
-                  className="mini"
-                  onClick={() => dispatch({ type: "OPEN_JSON" })}
-                >
-                  edit raw spec…
-                </button>
-              </div>
             </div>
           </details>
         </div>

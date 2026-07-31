@@ -198,6 +198,25 @@ header .spacer {
   .railgrid {
     grid-template-columns: 1fr;
   }
+  /* One column, so the two column wrappers stop being boxes and the groups
+     become the grid items directly -- otherwise they would stack as Basics,
+     Advanced, Feed, Reflector, which is the wide layout's column order rather
+     than the order to read them in. */
+  .railcol {
+    display: contents;
+  }
+  .g-basics {
+    order: 1;
+  }
+  .g-feed {
+    order: 2;
+  }
+  .g-reflector {
+    order: 3;
+  }
+  .g-advanced {
+    order: 4;
+  }
 }
 @media (max-width: 860px) {
   .panes {
