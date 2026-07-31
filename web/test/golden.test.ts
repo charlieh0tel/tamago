@@ -97,7 +97,14 @@ describe("golden designs", () => {
   for (const { name } of CASES) {
     it(`${name} result dict matches`, () => {
       const expected = JSON.parse(read(`${name}.result.json`));
-      expectEqualJson(resultToDict(results.get(name) as DesignResult), expected, name);
+      // Round-trip through JSON before comparing: the goldens are the serialized
+      // artifact, and an axial ratio is infinite dB wherever the pattern is
+      // exactly linear. JSON has no infinity, so both engines write null there
+      // (JSON.stringify does it for us; Python's json_safe does it explicitly).
+      const actual = JSON.parse(
+        JSON.stringify(resultToDict(results.get(name) as DesignResult)),
+      );
+      expectEqualJson(actual, expected, name);
     });
   }
 

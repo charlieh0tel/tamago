@@ -1,3 +1,4 @@
+import dataclasses
 import json
 import math
 
@@ -108,3 +109,15 @@ def test_results_to_json_list():
     payload = json.loads(results_to_json([_result(), _result(freq_mhz=436.0)]))
     assert isinstance(payload, list)
     assert len(payload) == 2
+
+
+def test_non_finite_serializes_as_null():
+    """An exactly-linear pattern peak is infinite dB, which JSON cannot hold.
+
+    Python would otherwise write a bare Infinity token, which is not valid JSON
+    and which JSON.parse rejects, so the web engine could not read its own
+    reference data.
+    """
+    text = results_to_json([dataclasses.replace(_result(), ar_peak_db=math.inf)])
+    assert "Infinity" not in text
+    assert json.loads(text)["performance"]["axial_ratio_peak_db"] is None

@@ -45,7 +45,7 @@ from awadateki.design import (  # noqa: E402
 )
 from awadateki.geometry import SHAPE_CIRCLE, SHAPE_SQUARE, SHAPE_SQUIRCLE  # noqa: E402
 from awadateki.report import format_cut_sheet  # noqa: E402
-from awadateki.result import result_to_dict  # noqa: E402
+from awadateki.result import json_safe, result_to_dict  # noqa: E402
 from awadateki.spec import spec_to_dict  # noqa: E402
 
 OUT_DIR = Path(__file__).resolve().parent
@@ -298,7 +298,7 @@ def _git_short_hash() -> str:
 
 
 def _write_json(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    path.write_text(json.dumps(json_safe(data), indent=2) + "\n")
 
 
 def main() -> None:

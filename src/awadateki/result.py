@@ -330,7 +330,26 @@ def result_to_dict(result: DesignResult, bandwidth: bool = False) -> dict:
     return data
 
 
+def json_safe(value):
+    """Replace non-finite floats with None, recursively.
+
+    An axial ratio is infinite dB wherever the pattern is exactly linear, which
+    is a legitimate result, but JSON has no infinity: Python would write a bare
+    `Infinity` token that is not valid JSON and that JSON.parse rejects, so the
+    web engine cannot read its own reference data. null is the representation
+    JavaScript's JSON.stringify already picks for the same values, so this is
+    also what keeps the two engines' output identical.
+    """
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [json_safe(v) for v in value]
+    return value
+
+
 def results_to_json(results: list[DesignResult], bandwidth: bool = False) -> str:
     """Serialize results to JSON; a single result becomes an object, not a list."""
     payload = [result_to_dict(r, bandwidth) for r in results]
-    return json.dumps(payload[0] if len(payload) == 1 else payload, indent=2)
+    return json.dumps(json_safe(payload[0] if len(payload) == 1 else payload), indent=2)
