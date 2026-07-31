@@ -1348,22 +1348,32 @@ def frequency_sweep(
     The tuned physical geometry is held fixed and swept across +/- span_fraction;
     the match network is fixed at the design frequency.  The phasing line is a
     fixed length, so it drifts from 90 deg off design (real dispersion).
+
+    The delivered loop B connection is carried through: crossing is a mirror
+    image only on boresight, so a swept crossed design analyzed uncrossed
+    reports the other sense's axial ratio.  The match network likewise follows
+    what the cut sheet specified -- it is decided once, at the design frequency,
+    not re-decided at each swept point.
     """
     spec = result.spec
     design_freq = spec.freq_mhz
     base = result.base_factor
+    flip = result.crossed_phasing_line
+    matched = match_is_useful(spec, result.z_in)
     low = design_freq * (1.0 - span_fraction)
     high = design_freq * (1.0 + span_fraction)
     sweep = []
     for i in range(points):
         freq = low + (high - low) * i / (points - 1)
-        nec, _ = analyze(spec, base, run_freq_mhz=freq)
+        nec, _ = analyze(spec, base, run_freq_mhz=freq, flip=flip)
         z_ant = _antenna_feed_z(nec)
         if spec.feed == FEED_BALUN4:
             z_in = _balun4_radio_z(z_ant, freq, design_freq)
         elif spec.feed == FEED_CHOKE:
             # A 1:1 ferrite choke passes the feed Z straight to the radio.
             z_in = z_ant
+        elif not matched:
+            z_in = z_ant  # cut sheet says connect the feedline directly
         else:
             z_in = _matched_input_z(
                 z_ant,

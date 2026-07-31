@@ -1134,12 +1134,24 @@ export async function frequencySweep(
   const spec = result.spec;
   const designFreq = spec.freqMhz;
   const base = result.baseFactor;
+  // The delivered loop B connection is carried through: crossing is a mirror
+  // image only on boresight, so a swept crossed design analyzed uncrossed
+  // reports the other sense's axial ratio. The match network likewise follows
+  // what the cut sheet specified -- decided once, at the design frequency, not
+  // re-decided at each swept point.
+  const flip = result.crossedPhasingLine;
+  const matched = matchIsUseful(spec, result.zIn);
   const low = designFreq * (1.0 - spanFraction);
   const high = designFreq * (1.0 + spanFraction);
   const sweep: SweepPoint[] = [];
   for (let i = 0; i < points; i++) {
     const freq = low + ((high - low) * i) / (points - 1);
-    const { result: nec } = await analyze(spec, base, { runFreqMhz: freq }, runner);
+    const { result: nec } = await analyze(
+      spec,
+      base,
+      { runFreqMhz: freq, flip },
+      runner,
+    );
     const zAnt = antennaFeedZ(nec);
     let zIn: Complex;
     if (spec.feed === FEED_BALUN4) {
@@ -1147,6 +1159,8 @@ export async function frequencySweep(
     } else if (spec.feed === FEED_CHOKE) {
       // A 1:1 ferrite choke passes the feed Z straight to the radio.
       zIn = zAnt;
+    } else if (!matched) {
+      zIn = zAnt; // cut sheet says connect the feedline directly
     } else {
       zIn = matchedInputZ(
         zAnt,
