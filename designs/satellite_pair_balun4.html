@@ -174,7 +174,7 @@
       &quot;label&quot;: &quot;2 m&quot;,
       &quot;notes&quot;: &quot;2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio &lt; 3 dB over the coverage cone, VSWR &lt; 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.&quot;
     },
-    &quot;elapsed_s&quot;: 3.693,
+    &quot;elapsed_s&quot;: 3.73,
     &quot;search&quot;: {
       &quot;method&quot;: &quot;coordinate descent (golden-section per axis)&quot;,
       &quot;spacing_bounds_wl&quot;: [
@@ -207,27 +207,27 @@
   }
 }</pre></div><div><h3>Cut list</h3><pre>Eggbeater cut sheet: 2 m
 ========================================
-Frequency           : 145.9 MHz
-Wavelength          : 2054.8 mm
-Conductor           : round, 5 mm dia
-  equivalent radius : 2.5 mm
-Loop shape          : circle
-Reflector           : radials
-  loop-to-reflector : 0.197 wl (404.2 mm)
-  radials           : 4 x 554.8 mm, 24.5935 deg droop
+Frequency            : 145.9 MHz
+Wavelength           : 2054.8 mm
+Conductor            : round, 5 mm dia
+  equivalent radius  : 2.5 mm
+Loop shape           : circle
+Reflector            : radials
+  loop-to-reflector  : 0.197 wl (404.2 mm)
+  radials            : 4 x 554.8 mm, 24.5935 deg droop
 ----------------------------------------
-Both loops          : 2167.1 mm perimeter, 689.8 mm dia
-Loop offset         : 10 mm (loop A below, loop B above)
-Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 28 sides/loop (derived), 77.4 mm segments = 0.038 wl = 31 radii
-Phasing line        : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-  drive split       : 100 ohm line vs 98 ohm loop (modeled), balance 0.98
+Both loops           : 2167.1 mm perimeter, 689.8 mm dia
+Loop offset          : 10 mm (loop A below, loop B above)
+Feed gap             : 10 mm at each loop bottom
+NEC mesh             : 28 sides/loop (derived), 77.4 mm segments = 0.038 wl = 31 radii
+Phasing line         : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+  drive split        : 100 ohm line vs 98 ohm loop (modeled), balance 0.98
   ! loop Z modeled: at the literature&#x27;s 100 ohm it would be 0.0 dB (set measured_loop_z_ohm)
-Q-section           : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-Pair braids         : bonded to each other at both ends; not grounded
-Balun               : half-wave 4:1, 678.1 mm RG-58 (VF 0.66); braid bonds to the feedline braid
-Loop B connection   : straight through, gives RHCP
-Feed                : balun then Q-section to the junction across loop A
+Q-section            : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+Pair braids          : bonded to each other at both ends; not grounded
+Balun                : half-wave 4:1, 678.1 mm RG-58 (VF 0.66); braid bonds to the feedline braid
+Loop B connection    : straight through, gives RHCP
+Feed                 : balun then Q-section to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   via the harness Q-section and 4:1 balun (see above)
@@ -275,7 +275,7 @@ Match to 50 ohm:
       &quot;label&quot;: &quot;70 cm&quot;,
       &quot;notes&quot;: &quot;70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio &lt; 3 dB over the coverage cone, VSWR &lt; 1.5 after matching. Reflector count, spacing, and droop left for the optimizer.&quot;
     },
-    &quot;elapsed_s&quot;: 3.342,
+    &quot;elapsed_s&quot;: 3.243,
     &quot;search&quot;: {
       &quot;method&quot;: &quot;coordinate descent (golden-section per axis)&quot;,
       &quot;spacing_bounds_wl&quot;: [
@@ -308,27 +308,27 @@ Match to 50 ohm:
   }
 }</pre></div><div><h3>Cut list</h3><pre>Eggbeater cut sheet: 70 cm
 ========================================
-Frequency           : 436 MHz
-Wavelength          : 687.6 mm
-Conductor           : round, 3 mm dia
-  equivalent radius : 1.5 mm
-Loop shape          : circle
-Reflector           : radials
-  loop-to-reflector : 0.2 wl (137.5 mm)
-  radials           : 4 x 185.7 mm, 24.5935 deg droop
+Frequency            : 436 MHz
+Wavelength           : 687.6 mm
+Conductor            : round, 3 mm dia
+  equivalent radius  : 1.5 mm
+Loop shape           : circle
+Reflector            : radials
+  loop-to-reflector  : 0.2 wl (137.5 mm)
+  radials            : 4 x 185.7 mm, 24.5935 deg droop
 ----------------------------------------
-Both loops          : 734.8 mm perimeter, 233.9 mm dia
-Loop offset         : 10 mm (loop A below, loop B above)
-Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 20 sides/loop (derived), 36.7 mm segments = 0.053 wl = 24 radii
-Phasing line        : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-  drive split       : 100 ohm line vs 92 ohm loop (modeled), balance 0.92
+Both loops           : 734.8 mm perimeter, 233.9 mm dia
+Loop offset          : 10 mm (loop A below, loop B above)
+Feed gap             : 10 mm at each loop bottom
+NEC mesh             : 20 sides/loop (derived), 36.7 mm segments = 0.053 wl = 24 radii
+Phasing line         : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+  drive split        : 100 ohm line vs 92 ohm loop (modeled), balance 0.92
   ! loop Z modeled: at the literature&#x27;s 100 ohm it would be 0.0 dB (set measured_loop_z_ohm)
-Q-section           : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-Pair braids         : bonded to each other at both ends; not grounded
-Balun               : half-wave 4:1, 226.9 mm RG-58 (VF 0.66); braid bonds to the feedline braid
-Loop B connection   : straight through, gives RHCP
-Feed                : balun then Q-section to the junction across loop A
+Q-section            : 113.5 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+Pair braids          : bonded to each other at both ends; not grounded
+Balun                : half-wave 4:1, 226.9 mm RG-58 (VF 0.66); braid bonds to the feedline braid
+Loop B connection    : straight through, gives RHCP
+Feed                 : balun then Q-section to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   via the harness Q-section and 4:1 balun (see above)

@@ -55,24 +55,24 @@ def _header_lines(result: DesignResult, build: dict) -> list[str]:
     lines = [
         title,
         "=" * 40,
-        f"Frequency           : {build['freq_mhz']:.4g} MHz",
-        f"Wavelength          : {build['wavelength_mm']:.1f} mm",
-        f"Conductor           : {spec.conductor.description}",
-        f"  equivalent radius : {spec.conductor.equivalent_radius_mm:.4g} mm",
-        f"Loop shape          : {build['loop_shape']}",
-        f"Reflector           : {build['reflector']}",
+        f"Frequency            : {build['freq_mhz']:.4g} MHz",
+        f"Wavelength           : {build['wavelength_mm']:.1f} mm",
+        f"Conductor            : {spec.conductor.description}",
+        f"  equivalent radius  : {spec.conductor.equivalent_radius_mm:.4g} mm",
+        f"Loop shape           : {build['loop_shape']}",
+        f"Reflector            : {build['reflector']}",
     ]
     if "corner_radius_mm" in build:
-        lines.append(f"  corner radius     : {build['corner_radius_mm']:.1f} mm")
+        lines.append(f"  corner radius      : {build['corner_radius_mm']:.1f} mm")
     if "loop_center_height_mm" in build:
         lines.append(
-            f"  loop-to-reflector : {build['loop_center_height_wl']:.3g} wl "
+            f"  loop-to-reflector  : {build['loop_center_height_wl']:.3g} wl "
             f"({build['loop_center_height_mm']:.1f} mm)"
         )
     if "radials" in build:
         radials = build["radials"]
         lines.append(
-            f"  radials           : {radials['count']} x "
+            f"  radials            : {radials['count']} x "
             f"{radials['length_mm']:.1f} mm, {radials['droop_deg']:g} deg droop"
         )
     return lines
@@ -94,43 +94,43 @@ def _loop_b_connection_line(connection: str, sense: str) -> str:
     action = (
         "cross the two conductors" if connection == "crossed" else "straight through"
     )
-    return f"Loop B connection   : {action}, gives {sense}"
+    return f"Loop B connection    : {action}, gives {sense}"
 
 
 def _feed_lines(build: dict, sense: str) -> list[str]:
     if "phasing_line" in build:
         line = build["phasing_line"]
         return [
-            f"Phasing line        : {_coax_text(line)}",
+            f"Phasing line         : {_coax_text(line)}",
             *_drive_lines(build["drive"]),
             _loop_b_connection_line(line["connection"], sense),
-            "Feed                : feedline to the junction across loop A",
+            "Feed                 : feedline to the junction across loop A",
         ]
     harness = build["harness"]
     balun = harness["balun"]
     if "q_section" in harness:
         # The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
         return [
-            f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+            f"Phasing line         : {_coax_text(harness['phasing_line'])}",
             *_drive_lines(build["drive"]),
-            f"Q-section           : {_coax_text(harness['q_section'])}",
-            "Pair braids         : bonded to each other at both ends; not grounded",
-            f"Balun               : {balun['kind']}, {balun['length_mm']:.1f} mm "
+            f"Q-section            : {_coax_text(harness['q_section'])}",
+            "Pair braids          : bonded to each other at both ends; not grounded",
+            f"Balun                : {balun['kind']}, {balun['length_mm']:.1f} mm "
             f"{balun['coax']['name']} (VF {balun['coax']['vf']:g}); braid bonds "
             "to the feedline braid",
             _loop_b_connection_line(harness["connection"], sense),
-            "Feed                : balun then Q-section to the junction across loop A",
+            "Feed                 : balun then Q-section to the junction across loop A",
         ]
     # The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
     return [
-        f"Phasing line        : {_coax_text(harness['phasing_line'])}",
+        f"Phasing line         : {_coax_text(harness['phasing_line'])}",
         *_drive_lines(build["drive"]),
-        f"Choke               : {balun['kind']}, {balun['cores']} x "
+        f"Choke                : {balun['kind']}, {balun['cores']} x "
         f"{balun['core_pn']} ferrite cores over {balun['coax']['name']} at the "
         "feedpoint",
-        "Pair braids         : bonded to each other at both ends; not grounded",
+        "Pair braids          : bonded to each other at both ends; not grounded",
         _loop_b_connection_line(harness["connection"], sense),
-        f"Feed                : {balun['coax']['name']} through the choke to the "
+        f"Feed                 : {balun['coax']['name']} through the choke to the "
         "junction across loop A",
     ]
 
@@ -139,11 +139,11 @@ def _geometry_lines(result: DesignResult, build: dict) -> list[str]:
     term = _WIDTH_TERM.get(build["loop_shape"], "width")
     loop = build["loop"]
     return [
-        f"Both loops          : {loop['perimeter_mm']:.1f} mm perimeter, "
+        f"Both loops           : {loop['perimeter_mm']:.1f} mm perimeter, "
         f"{loop['width_mm']:.1f} mm {term}",
-        f"Loop offset         : {build['loop_offset_mm']:g} mm (loop A below, "
+        f"Loop offset          : {build['loop_offset_mm']:g} mm (loop A below, "
         "loop B above)",
-        f"Feed gap            : {build['feed_gap_mm']:g} mm at each loop bottom",
+        f"Feed gap             : {build['feed_gap_mm']:g} mm at each loop bottom",
         *_mesh_lines(build["mesh"]),
     ] + _feed_lines(build, _achieved_sense(result))
 
@@ -162,9 +162,9 @@ def _drive_lines(drive: dict) -> list[str]:
     balance = drive["balance"]
     floor = drive["ar_floor_db"]
     if loop_z is None:
-        return [f"  drive split       : {z0:g} ohm line, balance {balance:.2f}"]
+        return [f"  drive split        : {z0:g} ohm line, balance {balance:.2f}"]
     lines = [
-        f"  drive split       : {z0:g} ohm line vs {loop_z:.0f} ohm loop "
+        f"  drive split        : {z0:g} ohm line vs {loop_z:.0f} ohm loop "
         f"({source}), balance {balance:.2f}"
     ]
     if floor > DRIVE_AR_FLOOR_WARN_DB:
@@ -205,7 +205,7 @@ def _mesh_lines(mesh: dict) -> list[str]:
             f"{mesh['segment_wl_warn']:g}: loop current under-resolved"
         )
     lines = [
-        f"NEC mesh            : {mesh['loop_segments']} sides/loop ({source}), "
+        f"NEC mesh             : {mesh['loop_segments']} sides/loop ({source}), "
         f"{mesh['segment_length_mm']:.1f} mm segments "
         f"= {mesh['segment_wl']:.3f} wl = {mesh['segment_radii']:.0f} radii",
     ]
@@ -238,9 +238,9 @@ def _match_lines(result: DesignResult, build: dict) -> list[str]:
         )
     coax = match["transformer_coax"]
     lines += [
-        f"  1/4-wave Z0       : {match['transformer_z0_ohm']:.1f} ohms "
+        f"  1/4-wave Z0        : {match['transformer_z0_ohm']:.1f} ohms "
         f"(use {coax['name']}, {coax['z0_ohm']:g} ohm)",
-        f"  1/4-wave length   : {match['transformer_length_mm']:.1f} mm "
+        f"  1/4-wave length    : {match['transformer_length_mm']:.1f} mm "
         f"(VF {coax['vf']:g})",
     ]
     return lines
@@ -250,24 +250,24 @@ def _performance_lines(result: DesignResult, perf: dict) -> list[str]:
     z = perf["feed_z_ohm"]
     lines = [
         "Predicted performance:",
-        f"  feedpoint Z       : {z['real']:.1f} {z['imag']:+.1f}j ohms",
+        f"  feedpoint Z        : {z['real']:.1f} {z['imag']:+.1f}j ohms",
     ]
     za = perf["loop_a_feed_z_ohm"]
     zb = perf["loop_b_feed_z_ohm"]
     if za is not None and zb is not None:
-        lines.append(f"  loop A feed Z     : {za['real']:.1f} {za['imag']:+.1f}j ohms")
-        lines.append(f"  loop B feed Z     : {zb['real']:.1f} {zb['imag']:+.1f}j ohms")
+        lines.append(f"  loop A feed Z      : {za['real']:.1f} {za['imag']:+.1f}j ohms")
+        lines.append(f"  loop B feed Z      : {zb['real']:.1f} {zb['imag']:+.1f}j ohms")
     lines += [
-        f"  VSWR (unmatched)  : {perf['vswr_unmatched']:.2f}",
-        f"  loop current phase: {perf['loop_current_phase_deg']:+.1f} deg "
+        f"  VSWR (unmatched)   : {perf['vswr_unmatched']:.2f}",
+        f"  loop current phase : {perf['loop_current_phase_deg']:+.1f} deg "
         "(target +/-90)",
-        f"  loop balance      : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = equal drive)",
-        f"  polarization sense: {_format_sense(result)}",
-        f"  axial ratio (cone): {perf['axial_ratio_cone_db']:.2f} dB mean, "
+        f"  loop balance       : {perf['loop_balance']:.3f} |Ib/Ia| (1.0 = equal drive)",
+        f"  polarization sense : {_format_sense(result)}",
+        f"  axial ratio (cone) : {perf['axial_ratio_cone_db']:.2f} dB mean, "
         f"{perf['axial_ratio_cone_worst_db']:.2f} dB worst "
         f"(<= {int(BORESIGHT_THETA_DEG)} deg from zenith)",
-        f"  axial ratio (peak): {perf['axial_ratio_peak_db']:.2f} dB",
-        f"  coverage gain     : {perf['coverage_gain_dbi']:.2f} dBi "
+        f"  axial ratio (peak) : {perf['axial_ratio_peak_db']:.2f} dB",
+        f"  coverage gain      : {perf['coverage_gain_dbi']:.2f} dBi "
         f"(worst case <= {int(COVERAGE_THETA_DEG)} deg from zenith)",
     ]
     return lines
@@ -300,11 +300,11 @@ def format_cut_sheet(result: DesignResult) -> str:
 def _band_line(label: str, band: tuple[float, float] | None, center: float) -> str:
     """One bandwidth line, or a not-met note when the band is empty."""
     if band is None:
-        return f"  {label:18}: not met at the design frequency"
+        return f"  {label:19}: not met at the design frequency"
     low, high = band
     width = high - low
     return (
-        f"  {label:18}: {low:.2f} - {high:.2f} MHz "
+        f"  {label:19}: {low:.2f} - {high:.2f} MHz "
         f"({width:.2f} MHz, {100 * width / center:.1f} %)"
     )
 

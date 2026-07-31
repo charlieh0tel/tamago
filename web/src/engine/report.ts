@@ -103,26 +103,26 @@ function headerLines(result: DesignResult, build: JsonObject): string[] {
   const lines = [
     title,
     "=".repeat(40),
-    `Frequency           : ${g(num(build, "freq_mhz"), 4)} MHz`,
-    `Wavelength          : ${f(num(build, "wavelength_mm"), 1)} mm`,
-    `Conductor           : ${spec.conductor.description}`,
-    `  equivalent radius : ${g(spec.conductor.equivalentRadiusMm, 4)} mm`,
-    `Loop shape          : ${str(build, "loop_shape")}`,
-    `Reflector           : ${str(build, "reflector")}`,
+    `Frequency            : ${g(num(build, "freq_mhz"), 4)} MHz`,
+    `Wavelength           : ${f(num(build, "wavelength_mm"), 1)} mm`,
+    `Conductor            : ${spec.conductor.description}`,
+    `  equivalent radius  : ${g(spec.conductor.equivalentRadiusMm, 4)} mm`,
+    `Loop shape           : ${str(build, "loop_shape")}`,
+    `Reflector            : ${str(build, "reflector")}`,
   ];
   if ("corner_radius_mm" in build) {
-    lines.push(`  corner radius     : ${f(num(build, "corner_radius_mm"), 1)} mm`);
+    lines.push(`  corner radius      : ${f(num(build, "corner_radius_mm"), 1)} mm`);
   }
   if ("loop_center_height_mm" in build) {
     lines.push(
-      `  loop-to-reflector : ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
+      `  loop-to-reflector  : ${g(num(build, "loop_center_height_wl"), 3)} wl ` +
         `(${f(num(build, "loop_center_height_mm"), 1)} mm)`,
     );
   }
   if ("radials" in build) {
     const radials = obj(build, "radials");
     lines.push(
-      `  radials           : ${num(radials, "count")} x ` +
+      `  radials            : ${num(radials, "count")} x ` +
         `${f(num(radials, "length_mm"), 1)} mm, ${g(num(radials, "droop_deg"))} deg droop`,
     );
   }
@@ -150,10 +150,10 @@ function driveLines(drive: JsonObject): string[] {
   const balance = num(drive, "balance");
   const floor = num(drive, "ar_floor_db");
   if (loopZ === null) {
-    return [`  drive split       : ${g(z0)} ohm line, balance ${f(balance, 2)}`];
+    return [`  drive split        : ${g(z0)} ohm line, balance ${f(balance, 2)}`];
   }
   const lines = [
-    `  drive split       : ${g(z0)} ohm line vs ${f(loopZ, 0)} ohm loop ` +
+    `  drive split        : ${g(z0)} ohm line vs ${f(loopZ, 0)} ohm loop ` +
       `(${source}), balance ${f(balance, 2)}`,
   ];
   if (floor > DRIVE_AR_FLOOR_WARN_DB) {
@@ -187,7 +187,7 @@ function driveLines(drive: JsonObject): string[] {
 function loopBConnectionLine(connection: string, sense: string): string {
   const action =
     connection === "crossed" ? "cross the two conductors" : "straight through";
-  return `Loop B connection   : ${action}, gives ${sense}`;
+  return `Loop B connection    : ${action}, gives ${sense}`;
 }
 
 // Achieved handedness as a bare token (RHCP/LHCP), for inline use.
@@ -199,10 +199,10 @@ function feedLines(build: JsonObject, sense: string): string[] {
   if ("phasing_line" in build) {
     const line = obj(build, "phasing_line");
     return [
-      `Phasing line        : ${coaxText(line)}`,
+      `Phasing line         : ${coaxText(line)}`,
       ...driveLines(obj(build, "drive")),
       loopBConnectionLine(str(line, "connection"), sense),
-      "Feed                : feedline to the junction across loop A",
+      "Feed                 : feedline to the junction across loop A",
     ];
   }
   const harness = obj(build, "harness");
@@ -210,24 +210,24 @@ function feedLines(build: JsonObject, sense: string): string[] {
   if ("q_section" in harness) {
     // The F5VIF balanced system (balun4): 4:1 half-wave balun + Q-section.
     return [
-      `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
+      `Phasing line         : ${coaxText(obj(harness, "phasing_line"))}`,
       ...driveLines(obj(build, "drive")),
-      `Q-section           : ${coaxText(obj(harness, "q_section"))}`,
-      "Pair braids         : bonded to each other at both ends; not grounded",
-      `Balun               : ${str(balun, "kind")}, ${f(num(balun, "length_mm"), 1)} mm ${str(obj(balun, "coax"), "name")} (VF ${g(num(obj(balun, "coax"), "vf"))}); braid bonds to the feedline braid`,
+      `Q-section            : ${coaxText(obj(harness, "q_section"))}`,
+      "Pair braids          : bonded to each other at both ends; not grounded",
+      `Balun                : ${str(balun, "kind")}, ${f(num(balun, "length_mm"), 1)} mm ${str(obj(balun, "coax"), "name")} (VF ${g(num(obj(balun, "coax"), "vf"))}); braid bonds to the feedline braid`,
       loopBConnectionLine(str(harness, "connection"), sense),
-      "Feed                : balun then Q-section to the junction across loop A",
+      "Feed                 : balun then Q-section to the junction across loop A",
     ];
   }
   // The F5VIF "final" balanced system (choke): 1:1 ferrite choke, no Q-section.
   const chokeCoax = str(obj(balun, "coax"), "name");
   return [
-    `Phasing line        : ${coaxText(obj(harness, "phasing_line"))}`,
+    `Phasing line         : ${coaxText(obj(harness, "phasing_line"))}`,
     ...driveLines(obj(build, "drive")),
-    `Choke               : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
-    "Pair braids         : bonded to each other at both ends; not grounded",
+    `Choke                : ${str(balun, "kind")}, ${num(balun, "cores")} x ${str(balun, "core_pn")} ferrite cores over ${chokeCoax} at the feedpoint`,
+    "Pair braids          : bonded to each other at both ends; not grounded",
     loopBConnectionLine(str(harness, "connection"), sense),
-    `Feed                : ${chokeCoax} through the choke to the junction across loop A`,
+    `Feed                 : ${chokeCoax} through the choke to the junction across loop A`,
   ];
 }
 
@@ -250,7 +250,7 @@ function meshLines(mesh: JsonObject): string[] {
     );
   }
   return [
-    `NEC mesh            : ${num(mesh, "loop_segments")} sides/loop (${source}), ` +
+    `NEC mesh             : ${num(mesh, "loop_segments")} sides/loop (${source}), ` +
       `${f(num(mesh, "segment_length_mm"), 1)} mm segments = ${f(segWl, 3)} wl = ` +
       `${f(radii, 0)} radii`,
     ...flags.map((flag) => `  ! ${flag}`),
@@ -261,10 +261,10 @@ function geometryLines(result: DesignResult, build: JsonObject): string[] {
   const term = WIDTH_TERM[str(build, "loop_shape")] ?? "width";
   const loop = obj(build, "loop");
   return [
-    `Both loops          : ${f(num(loop, "perimeter_mm"), 1)} mm perimeter, ` +
+    `Both loops           : ${f(num(loop, "perimeter_mm"), 1)} mm perimeter, ` +
       `${f(num(loop, "width_mm"), 1)} mm ${term}`,
-    `Loop offset         : ${g(num(build, "loop_offset_mm"))} mm (loop A below, loop B above)`,
-    `Feed gap            : ${g(num(build, "feed_gap_mm"))} mm at each loop bottom`,
+    `Loop offset          : ${g(num(build, "loop_offset_mm"))} mm (loop A below, loop B above)`,
+    `Feed gap             : ${g(num(build, "feed_gap_mm"))} mm at each loop bottom`,
     ...meshLines(obj(build, "mesh")),
     ...feedLines(build, achievedSense(result)),
   ];
@@ -298,9 +298,9 @@ function matchLines(result: DesignResult, build: JsonObject): string[] {
   }
   const coax = obj(match, "transformer_coax");
   lines.push(
-    `  1/4-wave Z0       : ${f(num(match, "transformer_z0_ohm"), 1)} ohms ` +
+    `  1/4-wave Z0        : ${f(num(match, "transformer_z0_ohm"), 1)} ohms ` +
       `(use ${str(coax, "name")}, ${g(num(coax, "z0_ohm"))} ohm)`,
-    `  1/4-wave length   : ${f(num(match, "transformer_length_mm"), 1)} mm ` +
+    `  1/4-wave length    : ${f(num(match, "transformer_length_mm"), 1)} mm ` +
       `(VF ${g(num(coax, "vf"))})`,
   );
   return lines;
@@ -310,28 +310,28 @@ function performanceLines(result: DesignResult, perf: JsonObject): string[] {
   const z = obj(perf, "feed_z_ohm");
   const lines = [
     "Predicted performance:",
-    `  feedpoint Z       : ${f(num(z, "real"), 1)} ${fs(num(z, "imag"), 1)}j ohms`,
+    `  feedpoint Z        : ${f(num(z, "real"), 1)} ${fs(num(z, "imag"), 1)}j ohms`,
   ];
   const za = perf.loop_a_feed_z_ohm as JsonObject | null;
   const zb = perf.loop_b_feed_z_ohm as JsonObject | null;
   if (za !== null && zb !== null) {
     lines.push(
-      `  loop A feed Z     : ${f(num(za, "real"), 1)} ${fs(num(za, "imag"), 1)}j ohms`,
+      `  loop A feed Z      : ${f(num(za, "real"), 1)} ${fs(num(za, "imag"), 1)}j ohms`,
     );
     lines.push(
-      `  loop B feed Z     : ${f(num(zb, "real"), 1)} ${fs(num(zb, "imag"), 1)}j ohms`,
+      `  loop B feed Z      : ${f(num(zb, "real"), 1)} ${fs(num(zb, "imag"), 1)}j ohms`,
     );
   }
   lines.push(
-    `  VSWR (unmatched)  : ${f(num(perf, "vswr_unmatched"), 2)}`,
-    `  loop current phase: ${fs(num(perf, "loop_current_phase_deg"), 1)} deg (target +/-90)`,
-    `  loop balance      : ${f(num(perf, "loop_balance"), 3)} |Ib/Ia| (1.0 = equal drive)`,
-    `  polarization sense: ${formatSense(result)}`,
-    `  axial ratio (cone): ${f(num(perf, "axial_ratio_cone_db"), 2)} dB mean, ` +
+    `  VSWR (unmatched)   : ${f(num(perf, "vswr_unmatched"), 2)}`,
+    `  loop current phase : ${fs(num(perf, "loop_current_phase_deg"), 1)} deg (target +/-90)`,
+    `  loop balance       : ${f(num(perf, "loop_balance"), 3)} |Ib/Ia| (1.0 = equal drive)`,
+    `  polarization sense : ${formatSense(result)}`,
+    `  axial ratio (cone) : ${f(num(perf, "axial_ratio_cone_db"), 2)} dB mean, ` +
       `${f(num(perf, "axial_ratio_cone_worst_db"), 2)} dB worst ` +
       `(<= ${Math.trunc(BORESIGHT_THETA_DEG)} deg from zenith)`,
-    `  axial ratio (peak): ${f(num(perf, "axial_ratio_peak_db"), 2)} dB`,
-    `  coverage gain     : ${f(num(perf, "coverage_gain_dbi"), 2)} dBi ` +
+    `  axial ratio (peak) : ${f(num(perf, "axial_ratio_peak_db"), 2)} dB`,
+    `  coverage gain      : ${f(num(perf, "coverage_gain_dbi"), 2)} dBi ` +
       `(worst case <= ${Math.trunc(COVERAGE_THETA_DEG)} deg from zenith)`,
   );
   return lines;
@@ -368,12 +368,12 @@ function bandLine(
   center: number,
 ): string {
   if (band === null) {
-    return `  ${label.padEnd(18)}: not met at the design frequency`;
+    return `  ${label.padEnd(19)}: not met at the design frequency`;
   }
   const [low, high] = band;
   const width = high - low;
   return (
-    `  ${label.padEnd(18)}: ${f(low, 2)} - ${f(high, 2)} MHz ` +
+    `  ${label.padEnd(19)}: ${f(low, 2)} - ${f(high, 2)} MHz ` +
     `(${f(width, 2)} MHz, ${f((100 * width) / center, 1)} %)`
   );
 }

@@ -1,5 +1,6 @@
 import json
 import math
+import re
 import shutil
 from dataclasses import replace
 
@@ -9,6 +10,7 @@ from awadateki.cli import main
 from awadateki.conductor import round_conductor
 from awadateki.design import (
     AR_TARGET_DB,
+    REFLECTOR_RADIALS,
     VSWR_LIMIT,
     DesignInfeasible,
     DesignResult,
@@ -522,3 +524,23 @@ def test_frequency_sweep_reports_both_bandwidths():
     assert ar_band is not None
     assert vswr_band[0] <= center <= vswr_band[1]
     assert ar_band[0] <= center <= ar_band[1]
+
+
+@needs_nec2c
+def test_cut_sheet_labels_keep_a_space_before_the_colon():
+    """The labels are hand-aligned literals, so the longest one silently filled
+    the column and butted against its colon. Every value row is checked rather
+    than the four that were wrong."""
+    spec = DesignSpec(
+        freq_mhz=145.9,
+        conductor=round_conductor(5.0),
+        reflector=REFLECTOR_RADIALS,
+        segments=16,
+    )
+    from awadateki.report import format_cut_sheet
+
+    for line in format_cut_sheet(design(spec)).splitlines():
+        match = re.match(r"^(?P<label>[^:!]*?)(?P<pad>\s*): \S", line)
+        if match is None or not match.group("label").strip():
+            continue  # section header, warning, or continuation
+        assert match.group("pad"), f"no space before the colon: {line!r}"

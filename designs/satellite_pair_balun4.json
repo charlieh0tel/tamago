@@ -43,7 +43,7 @@
         "label": "2 m",
         "notes": "2 m half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 3.693,
+      "elapsed_s": 3.73,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [
@@ -119,7 +119,7 @@
         "label": "70 cm",
         "notes": "70 cm half of a VHF/UHF LEO satellite pair. RHCP, crossed loops fed by the F5VIF balanced system (100 ohm balanced phasing line, balanced Q-section, half-wave 4:1 coax balun), with a drooping radial reflector to favor high-elevation passes. Round tubing. Targets: axial ratio < 3 dB over the coverage cone, VSWR < 1.5 after matching. Reflector count, spacing, and droop left for the optimizer."
       },
-      "elapsed_s": 3.342,
+      "elapsed_s": 3.243,
       "search": {
         "method": "coordinate descent (golden-section per axis)",
         "spacing_bounds_wl": [

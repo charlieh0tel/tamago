@@ -1,37 +1,37 @@
 Eggbeater cut sheet
 ========================================
-Frequency           : 145.9 MHz
-Wavelength          : 2054.8 mm
-Conductor           : round, 5 mm dia
-  equivalent radius : 2.5 mm
-Loop shape          : circle
-Reflector           : none
+Frequency            : 145.9 MHz
+Wavelength           : 2054.8 mm
+Conductor            : round, 5 mm dia
+  equivalent radius  : 2.5 mm
+Loop shape           : circle
+Reflector            : none
 ----------------------------------------
-Both loops          : 2205.1 mm perimeter, 701.9 mm dia
-Loop offset         : 10 mm (loop A below, loop B above)
-Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
-Phasing line        : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-  drive split       : 100 ohm line vs 143 ohm loop (modeled), balance 1.43
+Both loops           : 2205.1 mm perimeter, 701.9 mm dia
+Loop offset          : 10 mm (loop A below, loop B above)
+Feed gap             : 10 mm at each loop bottom
+NEC mesh             : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
+Phasing line         : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+  drive split        : 100 ohm line vs 143 ohm loop (modeled), balance 1.43
   ! 3.1 dB of axial ratio from that split alone; equal drive wants a ~143 ohm line
   ! loop Z modeled: at the literature's 100 ohm it would be 0.0 dB (set measured_loop_z_ohm)
-Q-section           : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
-Pair braids         : bonded to each other at both ends; not grounded
-Balun               : half-wave 4:1, 678.1 mm RG-58 (VF 0.66); braid bonds to the feedline braid
-Loop B connection   : straight through, gives RHCP
-Feed                : balun then Q-section to the junction across loop A
+Q-section            : 339.0 mm (2x RG-58 (balanced), 100 ohm, 1/4 wave, VF 0.66)
+Pair braids          : bonded to each other at both ends; not grounded
+Balun                : half-wave 4:1, 678.1 mm RG-58 (VF 0.66); braid bonds to the feedline braid
+Loop B connection    : straight through, gives RHCP
+Feed                 : balun then Q-section to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   via the harness Q-section and 4:1 balun (see above)
 ----------------------------------------
 Predicted performance:
-  feedpoint Z       : 47.0 -0.0j ohms
-  loop A feed Z     : 142.7 +0.1j ohms
-  loop B feed Z     : 142.7 +0.1j ohms
-  VSWR (unmatched)  : 1.06
-  loop current phase: +89.9 deg (target +/-90)
-  loop balance      : 1.426 |Ib/Ia| (1.0 = equal drive)
-  polarization sense: RHCP
-  axial ratio (cone): 3.25 dB mean, 5.97 dB worst (<= 30 deg from zenith)
-  axial ratio (peak): 36.25 dB
-  coverage gain     : -1.77 dBi (worst case <= 60 deg from zenith)
+  feedpoint Z        : 47.0 -0.0j ohms
+  loop A feed Z      : 142.7 +0.1j ohms
+  loop B feed Z      : 142.7 +0.1j ohms
+  VSWR (unmatched)   : 1.06
+  loop current phase : +89.9 deg (target +/-90)
+  loop balance       : 1.426 |Ib/Ia| (1.0 = equal drive)
+  polarization sense : RHCP
+  axial ratio (cone) : 3.25 dB mean, 5.97 dB worst (<= 30 deg from zenith)
+  axial ratio (peak) : 36.25 dB
+  coverage gain      : -1.77 dBi (worst case <= 60 deg from zenith)

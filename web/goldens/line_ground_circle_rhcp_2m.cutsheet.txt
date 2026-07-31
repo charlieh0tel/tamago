@@ -1,35 +1,35 @@
 Eggbeater cut sheet
 ========================================
-Frequency           : 145.9 MHz
-Wavelength          : 2054.8 mm
-Conductor           : round, 5 mm dia
-  equivalent radius : 2.5 mm
-Loop shape          : circle
-Reflector           : ground
-  loop-to-reflector : 0.25 wl (513.7 mm)
+Frequency            : 145.9 MHz
+Wavelength           : 2054.8 mm
+Conductor            : round, 5 mm dia
+  equivalent radius  : 2.5 mm
+Loop shape           : circle
+Reflector            : ground
+  loop-to-reflector  : 0.25 wl (513.7 mm)
 ----------------------------------------
-Both loops          : 2143.3 mm perimeter, 682.2 mm dia
-Loop offset         : 10 mm (loop A below, loop B above)
-Feed gap            : 10 mm at each loop bottom
-NEC mesh            : 16 sides/loop (set), 134.0 mm segments = 0.065 wl = 54 radii
-Phasing line        : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-  drive split       : 93 ohm line vs 128 ohm loop (modeled), balance 1.38
+Both loops           : 2143.3 mm perimeter, 682.2 mm dia
+Loop offset          : 10 mm (loop A below, loop B above)
+Feed gap             : 10 mm at each loop bottom
+NEC mesh             : 16 sides/loop (set), 134.0 mm segments = 0.065 wl = 54 radii
+Phasing line         : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
+  drive split        : 93 ohm line vs 128 ohm loop (modeled), balance 1.38
   ! 2.8 dB of axial ratio from that split alone; equal drive wants a ~128 ohm line
   ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB (set measured_loop_z_ohm)
-Loop B connection   : straight through, gives RHCP
-Feed                : feedline to the junction across loop A
+Loop B connection    : straight through, gives RHCP
+Feed                 : feedline to the junction across loop A
 ----------------------------------------
 Match to 50 ohm:
   none needed; connect the feedline straight to the junction
 ----------------------------------------
 Predicted performance:
-  feedpoint Z       : 43.4 +0.2j ohms
-  loop A feed Z     : 128.5 -0.3j ohms
-  loop B feed Z     : 131.8 -0.8j ohms
-  VSWR (unmatched)  : 1.15
-  loop current phase: +90.1 deg (target +/-90)
-  loop balance      : 1.382 |Ib/Ia| (1.0 = equal drive)
-  polarization sense: RHCP
-  axial ratio (cone): 2.97 dB mean, 5.26 dB worst (<= 30 deg from zenith)
-  axial ratio (peak): 5.26 dB
-  coverage gain     : 2.04 dBi (worst case <= 60 deg from zenith)
+  feedpoint Z        : 43.4 +0.2j ohms
+  loop A feed Z      : 128.5 -0.3j ohms
+  loop B feed Z      : 131.8 -0.8j ohms
+  VSWR (unmatched)   : 1.15
+  loop current phase : +90.1 deg (target +/-90)
+  loop balance       : 1.382 |Ib/Ia| (1.0 = equal drive)
+  polarization sense : RHCP
+  axial ratio (cone) : 2.97 dB mean, 5.26 dB worst (<= 30 deg from zenith)
+  axial ratio (peak) : 5.26 dB
+  coverage gain      : 2.04 dBi (worst case <= 60 deg from zenith)
