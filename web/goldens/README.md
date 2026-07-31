@@ -36,7 +36,7 @@ numbers pulled from the result (base_factor, phase_diff_deg, z_in,
 axial-ratio mean/worst), plus the git commit (`git rev-parse --short
 HEAD`) the set was generated from.
 
-## Case matrix (18 cases)
+## Case matrix (21 cases)
 
 | name | feed | reflector | shape | sense | band | conductor | segments |
 |---|---|---|---|---|---|---|---|
@@ -53,11 +53,17 @@ HEAD`) the set was generated from.
 | balun4_none_circle_rhcp_2m | balun4 | none | circle | rhcp | 2m | round | 16 |
 | balun4_none_circle_lhcp_2m | balun4 | none | circle | lhcp | 2m | round | 16 |
 | balun4_radials_squircle_rhcp_70cm | balun4 | radials | squircle (corner_radius_wl=0.08) | rhcp | 70cm | bar (6x3mm) | 16 |
+| choke_none_circle_rhcp_2m | choke | none | circle | rhcp | 2m | round | 16 |
+| choke_none_circle_lhcp_2m | choke | none | circle | lhcp | 2m | round | 16 |
+| choke_radials_squircle_rhcp_70cm | choke | radials | squircle (corner_radius_wl=0.08) | rhcp | 70cm | bar (6x3mm) | 16 |
 | line_none_circle_rhcp_2m_full36 | line | none | circle | rhcp | 2m | round | 36 (full) |
 | balun4_none_circle_rhcp_2m_full36 | balun4 | none | circle | rhcp | 2m | round | 36 (full) |
+| line_none_square_rhcp_2m_derived | line | none | square | rhcp | 2m | round | derived |
+| line_none_circle_rhcp_2m_derived | line | none | circle | rhcp | 2m | round | derived |
+| line_none_squircle_rhcp_70cm_derived | line | none | squircle (corner_radius_wl=0.05) | rhcp | 70cm | round | derived |
 
 Notes on coverage:
-- Every feed scheme (line, balun4) has both an rhcp and an lhcp
+- Every feed scheme (line, balun4, choke) has both an rhcp and an lhcp
   case, so the crossed-connection path (`crossed_phasing_line` /
   `Optimization`-free direct spec) is exercised per feed. lhcp forces the
   crossed harness connection for these geometries -- check
@@ -75,6 +81,12 @@ Notes on coverage:
   the catalog-nearest-match default).
 - Two cases use the library default segment count (36) instead of the
   16 used elsewhere for speed.
+- Three cases leave `segments` unset so the mesh is derived, one per
+  rounding path: a square (only the conductor-radius target binds), a
+  circle, and a squircle (whose tight corners make the geometric floor
+  bind hardest). Every other case pins a count, which had left the whole
+  derivation -- and so a real Python/TypeScript rounding divergence --
+  outside the comparison.
 
 ## Comparison contract for the TS port
 
@@ -139,7 +151,7 @@ Notes on coverage:
   `z_in_imag`.
 - **NEC tag numbering is a structural invariant, not a quirk**: loop A
   occupies tags 100+, loop B tags 200+, harness ports 400+, reflector
-  radials 300+ (`geometry.py`); segment counts above `MAX_SEGMENTS` (98)
+  radials 300+ (`geometry.py`); segment counts above `MAX_SEGMENTS` (99)
   would collide these ranges and `_eggbeater` raises before emitting a
   deck. The port must reproduce this tag layout exactly for
   `.deck.nec` byte-for-byte comparison to mean anything.

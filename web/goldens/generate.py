@@ -284,6 +284,48 @@ CASES: list[tuple[str, DesignSpec, bool]] = [
         ),
         False,
     ),
+    # Derived mesh (segments=None). Every case above pins the count, which left
+    # the whole derivation -- the conductor-radius target, the geometric floor,
+    # and their rounding -- outside the parity comparison. One shape per rounding
+    # path: a square (straight sides, radius target alone binds), a circle, and a
+    # squircle (whose tight corners make the geometric floor bind hardest).
+    (
+        *_spec(
+            "line_none_square_rhcp_2m_derived",
+            freq_mhz=BAND_2M,
+            feed=FEED_LINE,
+            reflector=REFLECTOR_NONE,
+            loop_shape=SHAPE_SQUARE,
+            sense=SENSE_RHCP,
+            segments=None,
+        ),
+        False,
+    ),
+    (
+        *_spec(
+            "line_none_circle_rhcp_2m_derived",
+            freq_mhz=BAND_2M,
+            feed=FEED_LINE,
+            reflector=REFLECTOR_NONE,
+            loop_shape=SHAPE_CIRCLE,
+            sense=SENSE_RHCP,
+            segments=None,
+        ),
+        False,
+    ),
+    (
+        *_spec(
+            "line_none_squircle_rhcp_70cm_derived",
+            freq_mhz=BAND_70CM,
+            feed=FEED_LINE,
+            reflector=REFLECTOR_NONE,
+            loop_shape=SHAPE_SQUIRCLE,
+            corner_radius_wl=0.05,
+            sense=SENSE_RHCP,
+            segments=None,
+        ),
+        False,
+    ),
 ]
 
 

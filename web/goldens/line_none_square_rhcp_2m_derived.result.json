@@ -1,0 +1,90 @@
+{
+  "spec": {
+    "freq_mhz": 145.9,
+    "conductor": {
+      "kind": "round",
+      "diameter_mm": 5.0
+    },
+    "sense": "rhcp",
+    "feed": "line",
+    "loop_shape": "square",
+    "corner_radius_wl": 0.05,
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "system_z_ohm": 50.0,
+    "reflector": "none",
+    "reflector_spacing_wl": 0.25,
+    "ar_margin_db": 0.5,
+    "radial_count": 8,
+    "radial_length_wl": 0.27,
+    "radial_droop_deg": 0.0
+  },
+  "build": {
+    "freq_mhz": 145.9,
+    "wavelength_mm": 2054.7803838245377,
+    "loop_shape": "square",
+    "reflector": "none",
+    "loop": {
+      "perimeter_mm": 2333.3597433122586,
+      "width_mm": 583.3399358280653
+    },
+    "mesh": {
+      "loop_segments": 24,
+      "derived": true,
+      "segment_length_mm": 97.22332263801077,
+      "segment_wl": 0.04731567587629496,
+      "segment_radii": 38.88932905520431,
+      "segment_radii_warn": 20.0,
+      "segment_wl_warn": 0.1
+    },
+    "loop_offset_mm": 10.0,
+    "feed_gap_mm": 10.0,
+    "feed": "line",
+    "phasing_line": {
+      "coax": {
+        "name": "RG-62",
+        "z0_ohm": 93.0,
+        "vf": 0.84
+      },
+      "length_mm": 431.5038806031529,
+      "connection": "normal"
+    },
+    "drive": {
+      "phasing_z0_ohm": 93.0,
+      "loop_z_ohm": 133.66001503034394,
+      "loop_z_source": "modeled",
+      "balance": 1.4372400401539323,
+      "ar_floor_db": 3.1505861547279608
+    },
+    "match": {
+      "system_z_ohm": 50.0,
+      "network": "direct"
+    }
+  },
+  "performance": {
+    "feed_z_ohm": {
+      "real": 43.601,
+      "imag": -0.0080543
+    },
+    "feed_z_kind": "feedpoint",
+    "vswr_unmatched": 1.1467628131333896,
+    "vswr_matched": 1.1467628131333896,
+    "loop_current_phase_deg": 89.9695501594772,
+    "loop_balance": 1.4372400401539323,
+    "loop_a_feed_z_ohm": {
+      "real": 133.66,
+      "imag": 0.063387
+    },
+    "loop_b_feed_z_ohm": {
+      "real": 133.66,
+      "imag": 0.063387
+    },
+    "sense": "RHCP",
+    "sense_requested": "RHCP",
+    "sense_achieved": true,
+    "axial_ratio_cone_db": 3.275399548973991,
+    "axial_ratio_cone_worst_db": 5.698326586101455,
+    "axial_ratio_peak_db": 31.971989184369114,
+    "coverage_gain_dbi": -1.65
+  }
+}

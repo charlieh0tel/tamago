@@ -289,7 +289,7 @@ export function loopSegments(spec: DesignSpec): number {
   // The conductor-radius target is a preference, so it rounds; the geometric
   // requirement is a floor, so it rounds up.
   const fromRadii =
-    LOOP_SEGMENT_QUANTUM * Math.round(wavelength / target / LOOP_SEGMENT_QUANTUM);
+    LOOP_SEGMENT_QUANTUM * pyRound(wavelength / target / LOOP_SEGMENT_QUANTUM);
   const geometric = geometricSegments(spec, wavelength);
   const fromShape = Number.isFinite(geometric)
     ? LOOP_SEGMENT_QUANTUM * Math.ceil(geometric / LOOP_SEGMENT_QUANTUM)

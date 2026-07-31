@@ -1,5 +1,5 @@
 {
-  "git_commit": "4849681",
+  "git_commit": "c81018c",
   "geometry_factor": 1.05,
   "cases": [
     {
@@ -323,6 +323,60 @@
       "z_in_imag": -0.0056084,
       "ar_cone_mean_db": 3.26149103776031,
       "ar_cone_worst_db": 5.992849443546798,
+      "crossed_phasing_line": false,
+      "emits_flipped_deck": false
+    },
+    {
+      "name": "line_none_square_rhcp_2m_derived",
+      "feed": "line",
+      "reflector": "none",
+      "loop_shape": "square",
+      "sense": "rhcp",
+      "freq_mhz": 145.9,
+      "conductor_kind": "round",
+      "segments": null,
+      "base_factor": 1.1355762210310791,
+      "phase_diff_deg": 89.9695501594772,
+      "z_in_real": 43.601,
+      "z_in_imag": -0.0080543,
+      "ar_cone_mean_db": 3.275399548973991,
+      "ar_cone_worst_db": 5.698326586101455,
+      "crossed_phasing_line": false,
+      "emits_flipped_deck": false
+    },
+    {
+      "name": "line_none_circle_rhcp_2m_derived",
+      "feed": "line",
+      "reflector": "none",
+      "loop_shape": "circle",
+      "sense": "rhcp",
+      "freq_mhz": 145.9,
+      "conductor_kind": "round",
+      "segments": null,
+      "base_factor": 1.067442656680235,
+      "phase_diff_deg": 89.97591759544775,
+      "z_in_real": 42.552,
+      "z_in_imag": -0.007212,
+      "ar_cone_mean_db": 3.8554725993348637,
+      "ar_cone_worst_db": 6.613662388677756,
+      "crossed_phasing_line": false,
+      "emits_flipped_deck": false
+    },
+    {
+      "name": "line_none_squircle_rhcp_70cm_derived",
+      "feed": "line",
+      "reflector": "none",
+      "loop_shape": "squircle",
+      "sense": "rhcp",
+      "freq_mhz": 436.0,
+      "conductor_kind": "round",
+      "segments": null,
+      "base_factor": 1.115642488812824,
+      "phase_diff_deg": 89.61258681645239,
+      "z_in_real": 42.726,
+      "z_in_imag": -0.11402,
+      "ar_cone_mean_db": 3.77271328360189,
+      "ar_cone_worst_db": 6.528524071538969,
       "crossed_phasing_line": false,
       "emits_flipped_deck": false
     }
