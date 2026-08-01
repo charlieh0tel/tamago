@@ -27,6 +27,12 @@ LITERATURE_LOOP_Z_OHM = 100.0
 # cannot enter the NEC solve, so past this the modeled pattern figures are flagged
 # as belonging to the model rather than to the antenna that was measured.
 MEASURED_LOOP_Z_DISAGREE_FRACTION = 0.10
+# Columns the cut sheet folds to. The widest row ran 108, which needs 813 px of
+# monospace -- more than the results pane has ever had -- so the sheet used to
+# need a horizontal scrollbar to read. 68 is what the pane holds at its
+# narrowest, measured just above the 1180 px breakpoint where the rail is still
+# two columns wide; below that the rail narrows and the pane has room to spare.
+CUT_SHEET_WIDTH = 68
 
 # Shape-appropriate label for the loop's across dimension (width_mm).
 _WIDTH_TERM = {"circle": "dia", "square": "side", "squircle": "width"}
@@ -297,13 +303,74 @@ def cut_sheet_build(result: DesignResult) -> str:
     return "\n".join(_build_lines(result, build)) + "\n"
 
 
+def _value_column(line: str) -> int:
+    """Column a folded continuation of this line should start in.
+
+    Rows are "label : value", so a continuation lines up under the value and the
+    label column stays a column. Found from the first ": " rather than a fixed
+    width, which also does the right thing for the indented sub-rows and, for a
+    "! " warning, lines up under its text. Falls back to the line's own indent.
+    """
+    sep = line.find(": ")
+    if sep != -1:
+        return sep + 2
+    stripped = line.lstrip(" ")
+    indent = len(line) - len(stripped)
+    return indent + 2 if stripped.startswith("! ") else indent
+
+
+def _fold(lines: list[str], width: int = CUT_SHEET_WIDTH) -> list[str]:
+    """Fold lines past width onto continuations, breaking between words.
+
+    Done to the assembled sheet rather than at each row, so every row is covered
+    without each one having to remember to be. A single word longer than the
+    space left for it still overflows -- there is nowhere to break it.
+    """
+    folded = []
+    for line in lines:
+        if len(line) <= width:
+            folded.append(line)
+            continue
+        indent = " " * _value_column(line)
+        head, rest = line[: len(indent)], line[len(indent) :].split(" ")
+        current = head + rest[0]
+        for word in rest[1:]:
+            if len(current) + 1 + len(word) <= width:
+                current += " " + word
+            else:
+                folded.append(current)
+                current = indent + word
+        folded.append(current)
+        _unwiden(folded, indent)
+    return folded
+
+
+def _unwiden(folded: list[str], indent: str) -> None:
+    """Pull a word down when a fold would leave one alone on the last line.
+
+    "balance" and "0.98" on separate lines reads worse than a slightly shorter
+    line above it does. Only ever moves one word, and only when the line above
+    keeps something of its own.
+    """
+    if len(folded) < 2:
+        return
+    last = folded[-1][len(indent) :]
+    if " " in last:
+        return
+    above = folded[-2].split(" ")
+    if len(above) < 2 or not above[-1]:
+        return
+    folded[-1] = indent + above[-1] + " " + last
+    folded[-2] = " ".join(above[:-1])
+
+
 def format_cut_sheet(result: DesignResult) -> str:
     """Full cut sheet: the build cut list plus the predicted performance."""
     data = result_to_dict(result)
     lines = _build_lines(result, data["build"])
     lines.append("-" * 40)
     lines += _performance_lines(result, data["performance"])
-    return "\n".join(lines) + "\n"
+    return "\n".join(_fold(lines)) + "\n"
 
 
 def _band_line(label: str, band: tuple[float, float] | None, center: float) -> str:

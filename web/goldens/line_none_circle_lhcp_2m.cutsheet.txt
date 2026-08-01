@@ -10,11 +10,15 @@ Reflector            : none
 Both loops           : 2205.1 mm perimeter, 701.9 mm dia
 Loop offset          : 10 mm (loop A below, loop B above)
 Feed gap             : 10 mm at each loop bottom
-NEC mesh             : 16 sides/loop (set), 137.8 mm segments = 0.067 wl = 55 radii
+NEC mesh             : 16 sides/loop (set), 137.8 mm segments =
+                       0.067 wl = 55 radii
 Phasing line         : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-  drive split        : 93 ohm line vs 143 ohm loop (modeled), balance 1.53
-  ! 3.7 dB of axial ratio from that split alone; equal drive wants a ~143 ohm line
-  ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB (set measured_loop_z_ohm)
+  drive split        : 93 ohm line vs 143 ohm loop (modeled),
+                       balance 1.53
+  ! 3.7 dB of axial ratio from that split alone; equal drive wants a
+    ~143 ohm line
+  ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB
+                    (set measured_loop_z_ohm)
 Loop B connection    : cross the two conductors, gives LHCP
 Feed                 : feedline to the junction across loop A
 ----------------------------------------
@@ -29,6 +33,7 @@ Predicted performance:
   loop current phase : -90.1 deg (target +/-90)
   loop balance       : 1.534 |Ib/Ia| (1.0 = equal drive)
   polarization sense : LHCP
-  axial ratio (cone) : 3.92 dB mean, 6.60 dB worst (<= 30 deg from zenith)
+  axial ratio (cone) : 3.92 dB mean, 6.60 dB worst (<= 30 deg
+                       from zenith)
   axial ratio (peak) : 36.89 dB
   coverage gain      : -2.08 dBi (worst case <= 60 deg from zenith)

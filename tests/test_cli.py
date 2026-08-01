@@ -544,3 +544,24 @@ def test_cut_sheet_labels_keep_a_space_before_the_colon():
         if match is None or not match.group("label").strip():
             continue  # section header, warning, or continuation
         assert match.group("pad"), f"no space before the colon: {line!r}"
+
+
+@needs_nec2c
+def test_cut_sheet_fits_its_width():
+    """The sheet is read in a fixed-width pane, so no row may exceed the fold.
+
+    Checked across the feed schemes, since the widest rows come from the harness
+    descriptions (the choke's ferrite part number ran 108 columns).
+    """
+    from awadateki.report import CUT_SHEET_WIDTH, format_cut_sheet
+
+    for feed in ("line", "balun4", "choke"):
+        spec = DesignSpec(
+            freq_mhz=145.9,
+            conductor=round_conductor(5.0),
+            reflector=REFLECTOR_RADIALS,
+            feed=feed,
+            segments=16,
+        )
+        for line in format_cut_sheet(design(spec)).splitlines():
+            assert len(line) <= CUT_SHEET_WIDTH, f"{feed}: {len(line)} cols: {line!r}"

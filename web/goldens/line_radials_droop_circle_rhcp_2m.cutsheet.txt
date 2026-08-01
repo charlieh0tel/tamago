@@ -7,17 +7,22 @@ Conductor            : round, 5 mm dia
 Loop shape           : circle
 Reflector            : radials
   loop center height : 0.25 wl (513.7 mm)
-  bottom clearance   : 0.0795 wl (163.4 mm), reflector to the lower loop
+  bottom clearance   : 0.0795 wl (163.4 mm), reflector to the
+                       lower loop
   radials            : 4 x 554.8 mm, 25 deg droop
 ----------------------------------------
 Both loops           : 2169.6 mm perimeter, 690.6 mm dia
 Loop offset          : 10 mm (loop A below, loop B above)
 Feed gap             : 10 mm at each loop bottom
-NEC mesh             : 16 sides/loop (set), 135.6 mm segments = 0.066 wl = 54 radii
+NEC mesh             : 16 sides/loop (set), 135.6 mm segments =
+                       0.066 wl = 54 radii
 Phasing line         : 431.5 mm (RG-62, 93 ohm, 1/4 wave, VF 0.84)
-  drive split        : 93 ohm line vs 136 ohm loop (modeled), balance 1.46
-  ! 3.3 dB of axial ratio from that split alone; equal drive wants a ~136 ohm line
-  ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB (set measured_loop_z_ohm)
+  drive split        : 93 ohm line vs 136 ohm loop (modeled),
+                       balance 1.46
+  ! 3.3 dB of axial ratio from that split alone; equal drive wants a
+    ~136 ohm line
+  ! loop Z modeled: at the literature's 100 ohm it would be 0.6 dB
+                    (set measured_loop_z_ohm)
 Loop B connection    : straight through, gives RHCP
 Feed                 : feedline to the junction across loop A
 ----------------------------------------
@@ -32,6 +37,7 @@ Predicted performance:
   loop current phase : +89.7 deg (target +/-90)
   loop balance       : 1.461 |Ib/Ia| (1.0 = equal drive)
   polarization sense : RHCP
-  axial ratio (cone) : 3.32 dB mean, 5.91 dB worst (<= 30 deg from zenith)
+  axial ratio (cone) : 3.32 dB mean, 5.91 dB worst (<= 30 deg
+                       from zenith)
   axial ratio (peak) : 15.38 dB
   coverage gain      : -0.33 dBi (worst case <= 60 deg from zenith)

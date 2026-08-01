@@ -27,6 +27,12 @@ const LITERATURE_LOOP_Z_OHM = 100.0;
 // cannot enter the NEC solve, so past this the modeled pattern figures are flagged
 // as belonging to the model rather than to the antenna that was measured.
 const MEASURED_LOOP_Z_DISAGREE_FRACTION = 0.1;
+// Columns the cut sheet folds to. The widest row ran 108, which needs 813 px of
+// monospace -- more than the results pane has ever had -- so the sheet used to
+// need a horizontal scrollbar to read. 68 is what the pane holds at its
+// narrowest, measured just above the 1180 px breakpoint where the rail is still
+// two columns wide; below that the rail narrows and the pane has room to spare.
+const CUT_SHEET_WIDTH = 68;
 
 // Shape-appropriate label for the loop's across dimension (width_mm).
 const WIDTH_TERM: Record<string, string> = {
@@ -359,12 +365,78 @@ export function cutSheetBuild(result: DesignResult): string {
 }
 
 // Full cut sheet: the build cut list plus the predicted performance.
+// Column a folded continuation of this line should start in. Rows are
+// "label : value", so a continuation lines up under the value and the label
+// column stays a column. Found from the first ": " rather than a fixed width,
+// which also does the right thing for the indented sub-rows and, for a "! "
+// warning, lines up under its text. Falls back to the line's own indent.
+function valueColumn(line: string): number {
+  const sep = line.indexOf(": ");
+  if (sep !== -1) {
+    return sep + 2;
+  }
+  const stripped = line.replace(/^ +/, "");
+  const indent = line.length - stripped.length;
+  return stripped.startsWith("! ") ? indent + 2 : indent;
+}
+
+// Pull a word down when a fold would leave one alone on the last line:
+// "balance" and "0.98" on separate lines reads worse than a slightly shorter
+// line above it does. Only ever moves one word, and only when the line above
+// keeps something of its own.
+function unwiden(folded: string[], indent: string): void {
+  if (folded.length < 2) {
+    return;
+  }
+  const last = (folded[folded.length - 1] as string).slice(indent.length);
+  if (last.includes(" ")) {
+    return;
+  }
+  const above = (folded[folded.length - 2] as string).split(" ");
+  const tail = above[above.length - 1];
+  if (above.length < 2 || !tail) {
+    return;
+  }
+  folded[folded.length - 1] = `${indent}${tail} ${last}`;
+  folded[folded.length - 2] = above.slice(0, -1).join(" ");
+}
+
+// Fold lines past the width onto continuations, breaking between words. Done to
+// the assembled sheet rather than at each row, so every row is covered without
+// each one having to remember to be. A single word longer than the space left
+// for it still overflows -- there is nowhere to break it.
+function fold(lines: string[], width: number = CUT_SHEET_WIDTH): string[] {
+  const folded: string[] = [];
+  for (const line of lines) {
+    if (line.length <= width) {
+      folded.push(line);
+      continue;
+    }
+    const indent = " ".repeat(valueColumn(line));
+    // The first line keeps the row's real prefix; only continuations get spaces.
+    const head = line.slice(0, indent.length);
+    const rest = line.slice(indent.length).split(" ");
+    let current = head + rest[0];
+    for (const word of rest.slice(1)) {
+      if (current.length + 1 + word.length <= width) {
+        current += ` ${word}`;
+      } else {
+        folded.push(current);
+        current = indent + word;
+      }
+    }
+    folded.push(current);
+    unwiden(folded, indent);
+  }
+  return folded;
+}
+
 export function formatCutSheet(result: DesignResult): string {
   const data = resultToDict(result);
   const lines = buildLines(result, obj(data, "build"));
   lines.push("-".repeat(40));
   lines.push(...performanceLines(result, obj(data, "performance")));
-  return `${lines.join("\n")}\n`;
+  return `${fold(lines).join("\n")}\n`;
 }
 
 // One bandwidth line, or a not-met note when the band is empty.
