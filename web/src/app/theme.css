@@ -238,13 +238,12 @@ header .spacer {
   }
 }
 
-/* spec rail: a sticky panel that scrolls internally so the Analyze/Optimize
-   footer stays pinned in view no matter how tall the form gets. */
+/* spec rail. Scrolls with the page rather than sticking: pinned, it slid against
+   the results beside it, which reads as the two columns coming apart. It was
+   pinned so the Analyze and Optimize buttons stayed reachable down a long form,
+   and the form now fits the viewport, so there is nothing to stay reachable
+   past. */
 .rail {
-  position: sticky;
-  top: 12px;
-  max-height: calc(100vh - 24px);
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
