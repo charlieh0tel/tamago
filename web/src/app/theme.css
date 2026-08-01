@@ -691,7 +691,12 @@ button:focus-visible,
   display: flex;
   gap: 2px;
   padding: 8px 10px 0;
-  border-bottom: 1px solid var(--line);
+  /* The rule under the strip is painted inside the box instead of being a
+     border, so the selected tab covers it by simply reaching the bottom. It used
+     to be a real border with the tab nudged a pixel down over it, and that
+     pixel of overflow became a scrollbar: overflow-x: auto leaves the other axis
+     auto too, so any vertical overflow at all gets one. */
+  background: linear-gradient(to top, var(--line) 1px, rgba(0, 0, 0, 0) 1px);
   overflow-x: auto;
 }
 .tab {
@@ -710,8 +715,6 @@ button:focus-visible,
   color: var(--ink);
   background: var(--panel);
   border-color: var(--line);
-  position: relative;
-  top: 1px;
 }
 .tab .freshdot {
   display: inline-block;
