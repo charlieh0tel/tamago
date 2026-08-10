@@ -15,6 +15,12 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The bundle stamps git describe output, so the build needs tags.
+          # The drift check pins the stamp through TAMAGO_GIT_HASH and would
+          # pass either way, which is exactly why this is easy to lose.
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/setup-node@v4
         with:
