@@ -14,7 +14,7 @@ import { defineConfig } from "vite";
 // the merge, so a printout would cite a SHA that is not in the repository. A
 // tag does survive. At a release this reads "v0.9.0"; between releases,
 // "v0.9.0-3-gabc1234" -- the last release, the distance from it, and the
-// commit; and a dirty tree says so.
+// commit.
 const pkg = JSON.parse(
   readFileSync(fileURLToPath(new URL("./package.json", import.meta.url)), "utf8"),
 ) as { version: string };
@@ -29,8 +29,11 @@ function gitDescription(): string {
   }
   try {
     // --always keeps this working before the first tag, or in a shallow clone
-    // with no tags fetched, by falling back to the short hash.
-    return execFileSync("git", ["describe", "--tags", "--always", "--dirty"], {
+    // with no tags fetched, by falling back to the short hash. Deliberately
+    // not --dirty: the build writes into ../prebuilts/app inside this
+    // repository, so the tree is dirty by the act of building and the flag
+    // would be set on every release build.
+    return execFileSync("git", ["describe", "--tags", "--always"], {
       stdio: ["ignore", "pipe", "ignore"],
     })
       .toString()
