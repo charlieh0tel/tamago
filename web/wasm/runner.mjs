@@ -17,24 +17,48 @@ const OUTPUT_PATH = "out.txt";
 // Run one nec2c job. `deckText` is the NEC input deck; resolves to the full
 // text of nec2c's output file. Throws if nec2c exits non-zero.
 export async function runNec(deckText) {
+  const stderr = [];
+  // With EXIT_RUNTIME=1, callMain returns the exit status directly and also
+  // reports it through onExit. Module.quit is NOT an override point in current
+  // Emscripten -- supplying one silently does nothing, which is how a failing
+  // run used to be mistaken for a successful one.
   let exitCode = 0;
   const module = await createNec2c({
     noInitialRun: true,
-    // EXIT_RUNTIME=1 routes a normal main() return through exit(); capture the
-    // code instead of letting Emscripten treat a nonzero exit as a throw.
-    quit: (code) => {
+    onExit: (code) => {
       exitCode = code;
     },
     print: () => {},
-    printErr: () => {},
+    printErr: (line) => stderr.push(line),
   });
 
   module.FS.writeFile(INPUT_PATH, deckText);
-  module.callMain(["-i", INPUT_PATH, "-o", OUTPUT_PATH]);
+  const returned = module.callMain(["-i", INPUT_PATH, "-o", OUTPUT_PATH]);
+  if (typeof returned === "number") exitCode = returned;
 
-  if (exitCode !== 0) {
-    throw new Error(`nec2c exited with code ${exitCode}`);
+  // nec2c reports input problems by writing a message into its output file
+  // rather than to stderr, so read the file even on failure. It is absent if
+  // nec2c aborted before opening it.
+  let output = "";
+  try {
+    output = module.FS.readFile(OUTPUT_PATH, { encoding: "utf8" });
+  } catch {
+    output = "";
   }
 
-  return module.FS.readFile(OUTPUT_PATH, { encoding: "utf8" });
+  if (exitCode !== 0) {
+    const detail =
+      stderr.join("\n").trim() ||
+      output
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => /ERROR|ABORT|CANNOT|FAULT/i.test(l))
+        .pop() ||
+      "";
+    throw new Error(
+      `nec2c exited with code ${exitCode}${detail ? `: ${detail}` : ""}`,
+    );
+  }
+
+  return output;
 }
