@@ -425,15 +425,15 @@ export function buildDeckText(
   const { egg, wavelength } = buildEggbeater(spec, factor);
   const parts = harness(egg, spec, wavelength, flip);
   const wires = [...egg.wires, ...parts.ports, ...reflectorWires(spec, wavelength)];
-  return buildDeck(
-    commentLines(spec),
+  return buildDeck({
+    comments: commentLines(spec),
     wires,
-    parts.sources,
-    spec.reflector === REFLECTOR_GROUND,
-    runFreqMhz !== null ? runFreqMhz : spec.freqMhz,
-    grid !== null ? grid : DEFAULT_GRID,
-    parts.lines,
-  );
+    sources: parts.sources,
+    ground: spec.reflector === REFLECTOR_GROUND,
+    freqMhz: runFreqMhz !== null ? runFreqMhz : spec.freqMhz,
+    grid: grid !== null ? grid : DEFAULT_GRID,
+    transmissionLines: parts.lines,
+  });
 }
 
 // Run nec2c once for the given loop perimeter and line connection.
@@ -605,14 +605,14 @@ export async function loopFeedImpedances(
       vImag: -Math.sin(phi),
     },
   ];
-  const deck = buildDeck(
-    commentLines(spec),
+  const deck = buildDeck({
+    comments: commentLines(spec),
     wires,
     sources,
-    spec.reflector === REFLECTOR_GROUND,
-    spec.freqMhz,
-    DEFAULT_GRID,
-  );
+    ground: spec.reflector === REFLECTOR_GROUND,
+    freqMhz: spec.freqMhz,
+    grid: DEFAULT_GRID,
+  });
   const result = parseOutput(await runner(deck));
   return [sourceZ(result, egg.loopA.feedTag), sourceZ(result, egg.loopB.feedTag)];
 }

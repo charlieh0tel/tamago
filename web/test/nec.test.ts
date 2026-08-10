@@ -87,7 +87,14 @@ describe("nec", () => {
       dtheta: 10.0,
       dphi: 15.0,
     };
-    const deck = buildDeck(["test"], egg.wires, sources, true, 145.9, grid);
+    const deck = buildDeck({
+      comments: ["test"],
+      wires: egg.wires,
+      sources,
+      ground: true,
+      freqMhz: 145.9,
+      grid,
+    });
     expect(deck.startsWith("CM test")).toBe(true);
     expect(deck.includes("GN 1")).toBe(true);
     expect(deck.includes("GE -1")).toBe(true);
@@ -107,7 +114,14 @@ describe("nec", () => {
       dtheta: 10.0,
       dphi: 15.0,
     };
-    const deck = buildDeck(["t"], egg.wires, sources, false, 145.9, grid);
+    const deck = buildDeck({
+      comments: ["t"],
+      wires: egg.wires,
+      sources,
+      ground: false,
+      freqMhz: 145.9,
+      grid,
+    });
     expect(deck.includes("GE 0")).toBe(true);
     expect(deck.includes("GN")).toBe(false);
   });
