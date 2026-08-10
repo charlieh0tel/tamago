@@ -20,7 +20,7 @@ import {
 } from "../src/engine/design";
 import type { Complex } from "../src/engine/nec";
 import { type DesignSpec, makeDesignSpec } from "../src/engine/spec";
-import { runNec } from "../wasm/runner.mjs";
+import { runNec } from "nec2c-wasm";
 
 const AR_TARGET_DB = 3.0;
 const VSWR_LIMIT = 2.0;

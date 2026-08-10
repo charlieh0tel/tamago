@@ -7,9 +7,7 @@
 // between them, and throws a CancelledError when the job's cancel flag is set,
 // which unwinds whatever engine solver is in flight.
 
-// The wasm runner (web/wasm/runner.mjs); typed via the ambient *.runner.mjs
-// declaration in the test tree.
-import { runNec } from "../../../wasm/runner.mjs";
+import { runNec } from "nec2c-wasm";
 import {
   type DesignResult,
   type DesignSpec,

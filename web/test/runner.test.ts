@@ -4,7 +4,7 @@
 // NecResult, which the caller could not tell from a real one.
 
 import { describe, expect, it } from "vitest";
-import { runNec } from "../wasm/runner.mjs";
+import { runNec } from "nec2c-wasm";
 
 const GOOD_DECK = [
   "CM parity fixture",

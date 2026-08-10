@@ -326,9 +326,11 @@ committed bundle in `prebuilts/app/`, so rebuild and commit it when changing the
 app -- CI enforces that the bundle matches `web/src`. The UX design is in
 `docs/web-ux.md` and the engine's own notes are in `web/README.md`.
 
-`web/wasm/` builds nec2c to WebAssembly with the Emscripten SDK; the prebuilt
-artifacts are committed to `prebuilts/nec2c/`, so `emcc` is needed only to
-rebuild them. See `web/wasm/README.md`.
+The solver and the NEC deck handling are separate packages, in
+[charlieh0tel/nec2c-js](https://github.com/charlieh0tel/nec2c-js): `nec2c-wasm`
+is nec2c compiled to WebAssembly, and `nec2c-deck` writes NEC decks and parses
+nec2c output. They started here and moved out once they were general enough to
+stand on their own.
 
 The project was originally a Python CLI (`awadateki`), retired at commit
 `bff907e` once the TypeScript engine reached parity with it. The goldens in

@@ -55,9 +55,11 @@ describe("nec", () => {
   it("parse pattern handles missing sense", () => {
     const result = parseOutput(SAMPLE_OUTPUT);
     expect(result.pattern.length).toBe(3);
-    const zenith = result.pattern[0]!;
-    expect(zenith.sense).toBe("LINEAR");
-    expect(zenith.axialRatio).toBeCloseTo(0.98, 9);
+    // nec2c blanks the column at a pattern null. Neither LINEAR nor UNDEFINED
+    // is in NEC_SENSE_TO_HAND, so this does not reach a reported handedness.
+    const blanked = result.pattern[0]!;
+    expect(blanked.sense).toBe("UNDEFINED");
+    expect(blanked.axialRatio).toBeCloseTo(0.98, 9);
     expect(result.pattern[1]?.sense).toBe("RIGHT");
   });
 

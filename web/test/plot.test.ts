@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 import { design } from "../src/engine/design";
 import { chartData, skyData } from "../src/engine/plot";
 import { type DesignSpec, specFromDict } from "../src/engine/spec";
-import { runNec } from "../wasm/runner.mjs";
+import { runNec } from "nec2c-wasm";
 
 const GOLDENS = new URL("../goldens/", import.meta.url);
 const FIXTURES = new URL("./fixtures/", import.meta.url);
