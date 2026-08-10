@@ -37,10 +37,11 @@ and is still the reference the engine is tested against.
   few React Testing Library UI tests (provenance flips, the Analyze flow with a
   mocked runner, the hash round-trip).
 - `goldens/` -- frozen reference output; see `goldens/README.md`.
-- `wasm/` -- the Emscripten build of nec2c and its runner wrapper.
-- `../prebuilts/` -- committed build products. The app builds into
-  `../prebuilts/app/` and the worker loads the wasm runner from
-  `../prebuilts/nec2c/` at run time.
+- `../prebuilts/app/` -- the committed production bundle for GitHub Pages.
+
+NEC deck emission, output parsing and the solver itself are the `nec2c-deck`
+and `nec2c-wasm` packages ([charlieh0tel/nec2c-js](https://github.com/charlieh0tel/nec2c-js)).
+`engine/nec.ts` re-exports the first so the engine's imports stay local.
 
 ## Web app (UI)
 

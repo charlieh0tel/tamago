@@ -55,8 +55,8 @@ export default defineConfig({
     format: "es",
   },
   server: {
-    // The wasm nec2c runner lives in ../prebuilts (outside the web root); allow
-    // the repo root so the worker can fetch nec2c.wasm in dev.
+    // The build writes into ../prebuilts/app, outside the web root; allow the
+    // repo root so dev can serve from there too.
     fs: { allow: [".."] },
   },
   build: {

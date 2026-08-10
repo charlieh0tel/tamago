@@ -10,6 +10,10 @@ reconstructing the case against the TS engine, which would make it a
 self-comparison rather than a golden. Treat the set as fixed regression
 coverage: `test/golden.test.ts` must keep passing against it unchanged.
 
+One correction postdates them: at a pattern null the parser now reports the
+polarization sense as `UNDEFINED` rather than `LINEAR`. No golden value
+changes, since neither maps to a handedness.
+
 `manifest.json` records the commit the set was generated from
 (`git_commit`: `a4f327e`) alongside every case and a few tuned numbers pulled
 from its result (base_factor, phase_diff_deg, z_in, axial-ratio mean/worst).

@@ -6,26 +6,8 @@ on:
   pull_request:
 
 jobs:
-  # The goldens, and so the whole engine test suite, rest on the wasm nec2c
-  # build agreeing with native nec2c. Nothing else exercises the native binary,
-  # so this job is the evidence for that claim.
-  parity:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install nec2c
-        run: sudo apt-get update && sudo apt-get install -y nec2c
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      # No npm install: the harness imports only node builtins and the
-      # committed prebuilt module.
-      - name: Native vs wasm parity
-        run: node web/wasm/smoke.mjs
-
+  # Native-vs-wasm parity moved out with the solver: nec2c-js runs that check
+  # against the artifacts it publishes, so there is nothing to verify here.
   web:
     runs-on: ubuntu-latest
     defaults:

@@ -10,7 +10,7 @@ import { type DesignResult, buildDeckText, design } from "../src/engine/design";
 import { formatCutSheet } from "../src/engine/report";
 import { resultToDict } from "../src/engine/result";
 import { type DesignSpec, specFromDict } from "../src/engine/spec";
-import { runNec } from "../wasm/runner.mjs";
+import { runNec } from "nec2c-wasm";
 
 interface ManifestCase {
   name: string;

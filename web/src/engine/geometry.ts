@@ -7,6 +7,7 @@
 // segment placed at the bottom of the loop (closest to the reflector).
 
 import { formatG } from "./format";
+import type { Wire } from "./nec";
 
 // Speed of light expressed so that wavelengthM = LIGHT_MHZ_M / freqMhz.
 export const LIGHT_MHZ_M = 299.792458;
@@ -35,23 +36,10 @@ export function wavelengthM(freqMhz: number): number {
   return LIGHT_MHZ_M / freqMhz;
 }
 
-// One straight NEC wire (GW card).
-//   tag: NEC tag number.
-//   segments: number of NEC segments along the wire.
-//   x1, y1, z1: first endpoint, meters.
-//   x2, y2, z2: second endpoint, meters.
-//   radiusM: conductor radius, meters.
-export interface Wire {
-  tag: number;
-  segments: number;
-  x1: number;
-  y1: number;
-  z1: number;
-  x2: number;
-  y2: number;
-  z2: number;
-  radiusM: number;
-}
+// Wire is a NEC concept, not an eggbeater one, so it lives with the deck
+// emitter. Re-exported here because most of this module's callers reach for it
+// alongside Loop and Eggbeater.
+export type { Wire };
 
 // A single full-wave loop.
 //   wires: ordered wires forming the closed polygon.
