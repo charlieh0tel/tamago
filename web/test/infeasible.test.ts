@@ -1,4 +1,4 @@
-// Ported from the DesignInfeasible guards in tests/test_cli.py. Both guards are
+// Ported from the DesignInfeasible guards in the retired Python test_cli.py. Both guards are
 // pure geometry / solver bookkeeping, so no nec2c is needed.
 
 import { describe, expect, it } from "vitest";

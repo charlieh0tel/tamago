@@ -8,7 +8,7 @@ import {
   sourceCurrentPhaseDeg,
 } from "../src/engine/nec";
 
-// Copied verbatim from tests/test_nec.py: trimmed nec2c output covering two
+// Copied verbatim from the retired Python test_nec.py: trimmed nec2c output covering two
 // sources and a few pattern directions, including an exact-zenith row that omits
 // the textual polarization sense. The fixed columns must be preserved exactly.
 const SAMPLE_OUTPUT = `
@@ -39,7 +39,7 @@ function countOccurrences(haystack: string, needle: string): number {
   return count;
 }
 
-// Ported from tests/test_nec.py.
+// Ported from the retired Python test_nec.py.
 describe("nec", () => {
   it("parse sources", () => {
     const result = parseOutput(SAMPLE_OUTPUT);

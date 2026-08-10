@@ -4,7 +4,7 @@ import { roundConductor } from "../src/engine/conductor";
 import { type DesignSpec, makeDesignSpec } from "../src/engine/spec";
 import { validateSpec } from "../src/engine/validate";
 
-// Matches the coarse spec used by the non-nec2c guards in tests/test_cli.py.
+// Matches the coarse spec used by the non-nec2c guards in the retired Python test_cli.py.
 function spec(
   overrides: Partial<Omit<DesignSpec, "freqMhz" | "conductor">> = {},
 ): DesignSpec {
@@ -17,7 +17,7 @@ function spec(
   });
 }
 
-// Ported from the non-nec2c validation tests in tests/test_cli.py.
+// Ported from the non-nec2c validation tests in the retired Python test_cli.py.
 describe("validateSpec", () => {
   it("coax fields rejected for wrong feed", () => {
     // phasing_coax belongs to the line feed only.

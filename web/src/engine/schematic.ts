@@ -1,5 +1,5 @@
 // Canonical feed/match schematic, rendered as inline SVG line art. Port of
-// src/awadateki/schematic.py.
+// the retired Python schematic.py.
 //
 // Classic two-conductor schematic drawing (handbook style): open-circle
 // terminals, inductor humps / capacitor plates, coax sections drawn as a

@@ -1,4 +1,4 @@
-// Coax cable catalog. Port of src/awadateki/coax.py.
+// Coax cable catalog. Ported from the retired Python coax.py.
 //
 // Every section built from coax (the phasing line, the matching transformer) is
 // described by a Coax: a characteristic impedance paired with the velocity

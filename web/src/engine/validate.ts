@@ -1,5 +1,5 @@
 // Geometry gatekeeping for a DesignSpec. Ported from the validation guards in
-// src/awadateki/design.py (_eggbeater). The rest of design.py (tuning, harness
+// the retired Python design.py (_eggbeater). The rest of design.py (tuning, harness
 // synthesis, metrics, optimizer) is a later wave.
 
 import { equivalentRadiusM } from "./conductor";

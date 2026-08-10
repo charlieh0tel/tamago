@@ -1,4 +1,4 @@
-// Design constants ported from src/awadateki/design.py.
+// Design constants, ported from the retired Python design.py.
 //
 // This module carries the scalar constants and enumerated names that the ported
 // modules (spec serialization, geometry validation) need. The design core

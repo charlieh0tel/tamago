@@ -1,4 +1,4 @@
-// Ported from tests/test_cli.py: the derived loop mesh. Pure arithmetic on the
+// Ported from the retired Python test_cli.py: the derived loop mesh. Pure arithmetic on the
 // spec, so no nec2c.
 
 import { describe, expect, it } from "vitest";

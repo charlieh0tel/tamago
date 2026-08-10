@@ -1,4 +1,4 @@
-// Ported from tests/test_result.py: result_to_dict build/performance shape,
+// Ported from the retired Python test_result.py: result_to_dict build/performance shape,
 // harness dicts per feed, and results_to_json. These use a hand-built
 // DesignResult, so they need no nec2c.
 

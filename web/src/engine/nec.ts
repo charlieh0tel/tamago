@@ -1,5 +1,5 @@
 // Emit NEC-2 decks and parse nec2c output. Port of the pure parts of
-// src/awadateki/nec.py.
+// the retired Python nec.py.
 //
 // The subprocess execution (run_nec) is intentionally not ported. A NecRunner
 // abstraction is exported instead, for later wiring to a WebAssembly build of

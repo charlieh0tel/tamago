@@ -10,27 +10,27 @@ with good high-angle coverage (popular for working LEO satellites). This tool
 sets the geometry from closed-form formulas and then uses `nec2c` to tune the
 loop currents to 90 degree quadrature, finishing with a physical cut sheet.
 
-A browser-based designer (TypeScript engine, nec2c as WebAssembly) runs at
-<https://charlieh0tel.github.io/tamago/>; see `web/README.md`.
+The designer runs in the browser at <https://charlieh0tel.github.io/tamago/> --
+a TypeScript engine with nec2c compiled to WebAssembly, so nothing is installed
+and nothing leaves the machine. See `web/README.md`.
 
 ## Requirements
 
-- `nec2c` on `PATH` (Debian/Ubuntu: `apt install nec2c`).
-- `uv` for environment management.
+A browser. The solver ships with the page as WebAssembly; there is no server
+and no local toolchain to install. For development, see
+[Development](#development).
 
 ## Usage
 
-A design is a JSON spec, read from a file argument or stdin. Only `freq_mhz`
-and `conductor` are required; every other field defaults. The pipeline is
-**spec -> optimized spec (optional) -> derived artifacts** (cut sheet, NEC deck,
-plots), so every artifact reflects exactly the spec it was handed.
+A design is a JSON spec. Only `freq_mhz` and `conductor` are required; every
+other field defaults. The pipeline is **spec -> optimized spec (optional) ->
+derived artifacts** (cut sheet, NEC deck, plots), so every artifact reflects
+exactly the spec it was handed.
 
-```
-uv run awadateki designs/satellite_pair_circle.json --sweep
-echo '{"freq_mhz":145.9,"conductor":{"kind":"round","diameter_mm":5}}' | uv run awadateki -
-# optimize the reflector, then bake the optimized spec to reuse it later
-uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optimized.json
-```
+The spec rail on the left edits the spec directly; the Files tab imports and
+exports it as JSON. A design also round-trips through the URL
+(`#spec=base64url(JSON)`), so a link carries the whole design -- that is the
+way to save or share one.
 
 ### Spec (JSON)
 
@@ -97,7 +97,7 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   `balun4`/`choke` (the harness feeds fix their own cables); setting them
   elsewhere is an error.
 - `system_z_ohm`: radio-end impedance the match targets (default 50; 75 works).
-- `ar_margin_db`: axial-ratio headroom `--optimize-reflector` seeks below the
+- `ar_margin_db`: axial-ratio headroom **Optimize** seeks below the
   3 dB budget (default 0.5). It biases the spacing/droop placement toward lower
   worst-case cone AR (hence more bandwidth); the radial count is then chosen at
   the knee of the worst-case-AR-versus-count curve -- the fewest radials past
@@ -114,38 +114,38 @@ uv run awadateki my_design.json --optimize-reflector --emit-spec my_design.optim
   lands a square's corners on vertices.
 - `label`: optional name for output; defaults to none.
 - `notes`: optional free-text design intent; carried through optimization.
-- `optimization`: output-only provenance, written by `--optimize-reflector` (the
+- `optimization`: output-only provenance, written by **Optimize** (the
   input spec and the search parameters). You do not author it; it round-trips so
   an optimized spec records where it came from.
 
-A JSON document may hold one spec object or a list of them; a list runs each
-(and overlays them in plots).
+The designer works on one spec at a time. The frozen `designs/` files hold a
+list of two specs (one per band), a form the retired CLI accepted; import the
+bands separately.
 
 ### Actions
 
-- `--optimize-reflector` search reflector radial count, spacing, and droop. A
-  spec -> spec transform: it keeps the fewest radials that still meet the axial
-  ratio and post-match VSWR objectives (for each count, a coordinate descent
-  over spacing and droop finds the lowest-cost placement). The chosen geometry
-  replaces the
-  input's, and an `optimization` block records the input spec and search
-  parameters.
-- `--emit-spec <path>` write the resolved (optionally optimized) spec JSON to a
-  file, or `-` for stdout -- this is how you bake an optimized design.
-- `--emit-result <path>` write the derived cut list and performance as JSON to a
-  file, or `-` for stdout; bandwidths are included when `--sweep` is also set.
-  This is the machine-readable form of the cut sheet (`spec` plus a `build` and
-  `performance` section), rendered from the same numbers as the text output.
-- `--sweep` sweep frequency and report the 2:1 VSWR and 3 dB axial-ratio
-  bandwidths of the matched antenna.
-- `--deck <path>` write the tuned NEC deck (single-design specs only).
-- `--plot <path>` write a self-contained performance-plot page (HTML) for the
-  design(s): VSWR/axial-ratio/gain charts (overlaid across designs), per-design
-  azimuth-elevation gain and axial-ratio sky maps, an interactive 3-D wire
-  model (drag to orbit, scroll to zoom; no external dependencies), and a feed
-  and match schematic (classic line-art style; a crossed phasing line is drawn
-  as an actual conductor swap).
-- `--nec2c <path>` nec2c executable (default `nec2c`).
+- **Analyze** evaluates the literal on-screen geometry without re-tuning, and
+  fills the results tabs.
+- **Optimize** tunes the loop perimeter to quadrature and searches the reflector
+  radial count, spacing, and droop. A spec -> spec transform: it keeps the
+  fewest radials that still meet the axial ratio and post-match VSWR objectives
+  (for each count, a coordinate descent over spacing and droop finds the lowest-
+  cost placement). The chosen geometry replaces the input's, the fields it wrote
+  are tagged `opt` in the spec rail, and an `optimization` block records the
+  input spec and search parameters.
+
+Results appear across the tabs: the **cut sheet** (physical dimensions and match
+hardware), **charts** (frequency-sweep VSWR and axial ratio, with the 2:1 VSWR
+and 3 dB axial-ratio bandwidths of the matched antenna), **sky maps**
+(azimuth-elevation gain and axial ratio), a **3-D wire model** (drag to orbit,
+scroll to zoom), and the **feed and match schematic** (a crossed phasing line is
+drawn as an actual conductor swap).
+
+The **Files** tab downloads the resolved spec JSON, the result JSON (the
+machine-readable cut sheet: `spec` plus `build` and `performance` sections,
+rendered from the same numbers as the text output), and the tuned NEC deck.
+`#report` deep-links a print view stamped with the tool version and git hash, so
+a bench printout is traceable.
 
 ## How it works
 
@@ -193,14 +193,15 @@ transformer (`Z0 = sqrt(system_z * Rin)`) with the suggested coax. The
 reactance is tuned out at the feed rather than by resizing the loops, which
 would move the axial-ratio optimum.
 
-`--optimize-reflector` searches the reflector geometry to drive the feedpoint
+**Optimize** searches the reflector geometry to drive the feedpoint
 resistance toward the transformer's sweet spot (about 112 ohm for 75 ohm coax),
 minimizing post-match VSWR while keeping axial ratio under budget. It keeps the
 fewest radials that still meet the objectives, since the radial count and the
 best spacing/droop are coupled (a sparser screen shifts the optimum), so the
 spacing and droop are re-searched for each candidate count.
 
-`--sweep` holds the tuned physical antenna fixed, sweeps the analysis frequency,
+The frequency sweep behind the charts holds the tuned physical antenna fixed,
+sweeps the analysis frequency,
 and reports two bandwidths: the band where the matched VSWR stays under 2:1
 (impedance bandwidth, with an idealized lossless match) and the band where the
 boresight axial ratio stays under 3 dB (the usable circular-polarization
@@ -214,29 +215,18 @@ states the objective, and reflector count/spacing/droop are left for the
 optimizer). Optimizing it produces `satellite_pair_circle.json`, the optimized spec
 carrying its provenance; the rest derive from it.
 
-```
-# authored input -> optimized spec (provenance and notes carried through)
-uv run awadateki designs/satellite_pair_circle.input.json \
-    --optimize-reflector --emit-spec designs/satellite_pair_circle.json
-
-# cut sheets and bandwidths for both bands
-uv run awadateki designs/satellite_pair_circle.json --sweep
-
-# machine-readable cut list + performance (build, performance, bandwidth)
-uv run awadateki designs/satellite_pair_circle.json --sweep \
-    --emit-result designs/satellite_pair_circle.result.json
-
-# performance-plot page (HTML)
-uv run awadateki designs/satellite_pair_circle.json --plot designs/satellite_pair_circle.html
-
-# tuned NEC decks, one design at a time (--deck is single-design only)
-jq '.[0]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/satellite_pair_circle.2m.nec
-jq '.[1]' designs/satellite_pair_circle.json | uv run awadateki - --deck designs/satellite_pair_circle.70cm.nec
-```
-
 Each pair keeps one basename in `designs/`: `<name>.input.json` (authored),
 `<name>.json` (optimized spec), `<name>.result.json`, `<name>.html`, and for
 the circle pair the per-band `.2m.nec`/`.70cm.nec` decks.
+
+**These artifacts are frozen.** They were generated by the retired Python
+implementation (`awadateki`), which lived in `src/awadateki/` through commit
+`bff907e` and is available in the git history. Nothing regenerates them now.
+They remain because they are the worked reference designs the modeling notes
+below cite; to explore a variant, load one of the `.json` specs into the web
+designer (Files tab) and work from there. Each `designs/*.json` is a *list* of
+two specs, one per band -- the old CLI ran a list in one pass, while the web
+designer takes one spec at a time, so import the bands separately.
 
 The generated plot pages render directly in a browser (GitHub Pages):
 
@@ -253,7 +243,8 @@ The variants: `satellite_pair_squircle` is the same pair with squircle
 ## Building
 
 These notes apply to any eggbeater the tool produces; the per-design dimensions
-are in the cut sheet (the text output or the `build` section of `--emit-result`).
+are in the cut sheet (the Cut sheet tab, or the `build` section of the result
+JSON).
 
 - Each loop is a full-wave loop. The two equal loops mount in perpendicular
   vertical planes on a common vertical axis, offset vertically by
@@ -319,17 +310,29 @@ are in the cut sheet (the text output or the `build` section of `--emit-result`)
 
 ## Development
 
+Everything lives in `web/` (Node 20+):
+
 ```
-uv run ruff check
-uv run ruff format
-uv run pytest
-make -j4        # regenerate the worked examples in designs/ (needs jq)
+cd web
+npm ci
+npm run dev     # Vite dev server
+npm test        # Vitest
+npm run lint    # Biome (lint + format)
+npm run build   # typecheck + build into ../prebuilts/app
 ```
 
-Tests that drive `nec2c` are skipped automatically when it is not installed.
+The app is deployed to <https://charlieh0tel.github.io/tamago/> from the
+committed bundle in `prebuilts/app/`, so rebuild and commit it when changing the
+app -- CI enforces that the bundle matches `web/src`. The UX design is in
+`docs/web-ux.md` and the engine's own notes are in `web/README.md`.
 
-The web front end lives in `web/` and is deployed at
-<https://charlieh0tel.github.io/tamago/>; its UX design is in `docs/web-ux.md`.
+`web/wasm/` builds nec2c to WebAssembly with the Emscripten SDK; the prebuilt
+artifacts are committed to `prebuilts/nec2c/`, so `emcc` is needed only to
+rebuild them. See `web/wasm/README.md`.
+
+The project was originally a Python CLI (`awadateki`), retired at commit
+`bff907e` once the TypeScript engine reached parity with it. The goldens in
+`web/goldens/` are that implementation's output and remain the port's reference.
 
 ## License
 

@@ -1,4 +1,4 @@
-// Ported from tests/test_cli.py: the design-level behavior tests. The nec2c
+// Ported from the retired Python test_cli.py: the design-level behavior tests. The nec2c
 // cases drive the WASM runner; the matching-math and helper cases are pure.
 
 import { describe, expect, it } from "vitest";

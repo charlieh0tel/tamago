@@ -1,5 +1,5 @@
-// Design spec model and JSON serialization. Port of src/awadateki/spec.py plus
-// the DesignSpec/Optimization dataclasses from src/awadateki/design.py.
+// Design spec model and JSON serialization. Ported from the retired Python
+// spec.py plus the DesignSpec/Optimization dataclasses from design.py.
 //
 // The JSON form is the canonical representation. Only freqMhz and conductor are
 // required; every other field falls back to the DesignSpec defaults. A JSON

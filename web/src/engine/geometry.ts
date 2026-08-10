@@ -1,5 +1,5 @@
 // Crossed full-wave loop geometry for an eggbeater antenna.
-// Port of src/awadateki/geometry.py.
+// Ported from the retired Python geometry.py.
 //
 // The antenna is two full-wave loops in perpendicular vertical planes sharing a
 // common vertical (Z) axis: loop A in the XZ plane, loop B in the YZ plane. Each

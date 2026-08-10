@@ -17,7 +17,7 @@ function spec(overrides: Partial<DesignSpec> = {}): DesignSpec {
   return makeDesignSpec(freqMhz ?? 145.9, conductor ?? roundConductor(5.0), rest);
 }
 
-// Ported from tests/test_spec.py.
+// Ported from the retired Python test_spec.py.
 describe("spec", () => {
   it("round trip round conductor", () => {
     const s = spec({ reflector: "radials", radialDroopDeg: 45.0, sense: "lhcp" });

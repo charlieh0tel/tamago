@@ -1,5 +1,5 @@
 // Design orchestration: build geometry, drive nec2c, tune to quadrature.
-// Port of the design core of src/awadateki/design.py.
+// Ported from the design core of the retired Python design.py.
 //
 // Two equal resonant loops are driven with their currents 90 deg apart for
 // circular polarization, by one of three coax feed harnesses (spec.feed): the

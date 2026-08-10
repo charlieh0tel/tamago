@@ -1,5 +1,5 @@
 // Text reports: the physical cut sheet and the frequency-sweep bandwidths.
-// Port of src/awadateki/report.py. The output is byte-for-byte identical to the
+// Ported from the retired Python report.py. The output is byte-for-byte identical to the
 // Python cut sheet (mind the printf-style format specs reproduced below).
 
 import {

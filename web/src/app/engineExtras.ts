@@ -212,7 +212,7 @@ export async function analyzeLiteral(
 }
 
 // 0 = loop A, 1 = loop B, 2 = reflector radial. Matches the viewer palette
-// (ports plot.py _wire_color_index, which is engine-private).
+// (ports the retired Python plot.py's _wire_color_index, engine-private here).
 export function wireColorIndex(tag: number): number {
   if (tag < LOOP_B_TAG_BASE) {
     return 0;

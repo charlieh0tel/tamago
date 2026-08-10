@@ -33,7 +33,7 @@ function loopPerimeter(loop: Loop): number {
   return total;
 }
 
-// Ported from tests/test_geometry.py.
+// Ported from the retired Python test_geometry.py.
 describe("geometry", () => {
   it("wavelength", () => {
     expect(isClose(wavelengthM(299.792458), 1.0)).toBe(true);

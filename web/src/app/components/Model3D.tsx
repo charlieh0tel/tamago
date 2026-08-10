@@ -1,5 +1,5 @@
 // 3-D model tab: an orbit/zoom wire viewer fed by tunedGeometry. React port of
-// src/awadateki/viewer.js -- orthographic, z up; drag orbits, wheel zooms.
+// the retired Python tree's viewer.js -- orthographic, z up; drag orbits, wheel zooms.
 
 import { useEffect, useRef } from "react";
 import type { DesignResult } from "../../engine/index";

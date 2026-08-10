@@ -1,5 +1,5 @@
 // Structured, JSON-serializable view of a tuned design. Port of
-// src/awadateki/result.py.
+// the retired Python result.py.
 //
 // resultToDict is the single source of the derived numbers: the build cut list
 // (loop dimensions and matching hardware) and the predicted performance. The

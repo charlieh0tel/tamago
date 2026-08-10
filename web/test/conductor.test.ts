@@ -9,7 +9,7 @@ import {
   stripConductor,
 } from "../src/engine/conductor";
 
-// Ported from tests/test_conductor.py.
+// Ported from the retired Python test_conductor.py.
 describe("conductor", () => {
   it("round radius is half diameter", () => {
     const c = roundConductor(3.0);

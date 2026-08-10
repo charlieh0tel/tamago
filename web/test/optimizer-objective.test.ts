@@ -1,4 +1,4 @@
-// Ported from tests/test_cli.py: the reflector optimizer scores axial ratio by
+// Ported from the retired Python test_cli.py: the reflector optimizer scores axial ratio by
 // the worst point over the coverage cone (not the mean) and picks the radial
 // count at the diminishing-returns knee. Pure helpers, so no nec2c.
 

@@ -1,5 +1,5 @@
 // Sky-maps tab: polar az-el heatmaps of gain and axial ratio over the upper
-// hemisphere. Ports the rendering of src/awadateki/plot.py (_polar_heatmap,
+// hemisphere. Ports the rendering of the retired Python plot.py (_polar_heatmap,
 // _polar_xy, _sector_path, _lerp_color, _colorbar) to a React SVG component,
 // fed by the engine's skyData (gainMap / arMap keyed "theta,phi").
 

@@ -1,6 +1,7 @@
 // Chart-data collectors: the numbers behind the frequency-sweep line charts
-// and the gain/axial-ratio az-el sky maps. Port of the DATA half of
-// src/awadateki/plot.py (the HTML/SVG renderers are a UI-wave concern; see
+// and the gain/axial-ratio az-el sky maps. Ported from the DATA half of the
+// retired Python plot.py; its standalone HTML/SVG renderers were not carried
+// over, since the UI draws these with its own React SVG components (see
 // docs/web-ux.md). tunedGeometry (the wire model + loop feed points for the
 // 3-D view) lives in design.ts, next to _eggbeater/analyze, since it needs
 // design.ts's private geometry helpers -- see design.ts's tunedGeometry.

@@ -1,5 +1,5 @@
 // Conductor cross-section models and conversion to a NEC equivalent radius.
-// Port of src/awadateki/conductor.py.
+// Ported from the retired Python conductor.py.
 //
 // NEC-2 models every wire as a round conductor specified by its radius. Real
 // hardware is built from round wire or rectangular bar stock, so each
