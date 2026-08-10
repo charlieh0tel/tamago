@@ -1,6 +1,7 @@
 // Ported from the retired Python test_cli.py: the design-level behavior tests. The nec2c
 // cases drive the WASM runner; the matching-math and helper cases are pure.
 
+import { runNec } from "nec2c-wasm";
 import { describe, expect, it } from "vitest";
 import { roundConductor } from "../src/engine/conductor";
 import { BALUN4_Q_COAX } from "../src/engine/constants";
@@ -20,7 +21,6 @@ import {
 } from "../src/engine/design";
 import type { Complex } from "../src/engine/nec";
 import { type DesignSpec, makeDesignSpec } from "../src/engine/spec";
-import { runNec } from "nec2c-wasm";
 
 const AR_TARGET_DB = 3.0;
 const VSWR_LIMIT = 2.0;

@@ -1,7 +1,7 @@
 {
   "name": "tamago-web",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "description": "Web front end for the tamago eggbeater antenna design tool (engine port + UI).",
   "scripts": {
@@ -12,7 +12,7 @@
     "lint": "biome check src test"
   },
   "dependencies": {
-    "nec2c-deck": "^0.1.1",
+    "nec2c-deck": "^0.2.0",
     "nec2c-wasm": "^0.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
