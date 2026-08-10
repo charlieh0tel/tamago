@@ -19,7 +19,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..", "..");
 const deckPath =
   process.argv[2] ?? join(repoRoot, "designs", "satellite_pair_circle.2m.nec");
-const NATIVE = "/usr/bin/nec2c";
+const NATIVE = process.env.NEC2C ?? "/usr/bin/nec2c";
 const REL_TOL = 1e-4;
 const RUNS = 20;
 

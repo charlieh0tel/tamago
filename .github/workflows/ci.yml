@@ -6,36 +6,25 @@ on:
   pull_request:
 
 jobs:
-  test:
+  # The goldens, and so the whole engine test suite, rest on the wasm nec2c
+  # build agreeing with native nec2c. Nothing else exercises the native binary,
+  # so this job is the evidence for that claim.
+  parity:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      # nec2c drives the modeling tests; without it they would skip.
       - name: Install nec2c
         run: sudo apt-get update && sudo apt-get install -y nec2c
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
         with:
-          python-version: ${{ matrix.python-version }}
-          enable-cache: true
+          node-version: "20"
 
-      - name: Sync dependencies
-        run: uv sync --locked --group dev
-
-      - name: Lint
-        run: uv run ruff check
-
-      - name: Format check
-        run: uv run ruff format --check
-
-      - name: Tests
-        run: uv run python -m pytest -q
+      # No npm install: the harness imports only node builtins and the
+      # committed prebuilt module.
+      - name: Native vs wasm parity
+        run: node web/wasm/smoke.mjs
 
   web:
     runs-on: ubuntu-latest
