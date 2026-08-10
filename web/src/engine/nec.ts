@@ -5,7 +5,23 @@
 // abstraction is exported instead, for later wiring to a WebAssembly build of
 // nec2c.
 
-import type { Wire } from "./geometry";
+// One straight NEC wire (GW card).
+//   tag: NEC tag number.
+//   segments: number of NEC segments along the wire.
+//   x1, y1, z1: first endpoint, meters.
+//   x2, y2, z2: second endpoint, meters.
+//   radiusM: conductor radius, meters.
+export interface Wire {
+  tag: number;
+  segments: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+  radiusM: number;
+}
 
 // RP card option code that reproduces the normal-mode power-gain pattern with
 // the polarization/axial-ratio columns nec2c prints by default.
