@@ -26,6 +26,12 @@ and is still the reference the engine is tested against.
   `.github/workflows/ci.yml`) lints, tests, then rebuilds with that recorded
   hash (`TAMAGO_GIT_HASH`) and fails if the committed bundle differs from
   `src/` -- rebuild and commit `prebuilts/app` when changing the app.
+- Rebuild locally with a plain `npm run build`, which stamps the current HEAD.
+  Do **not** set `TAMAGO_GIT_HASH` by hand: CI sets it so it can reproduce a
+  committed bundle, and passing the recorded value locally re-pins the stamp to
+  whatever was already there. The drift check still passes -- it compares the
+  rebuild against itself -- so a stale stamp goes unnoticed, and the printed
+  report then cites a commit the bundle was not built from.
 
 ## Layout
 

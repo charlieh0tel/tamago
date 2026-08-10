@@ -3,8 +3,8 @@
 // a failed solve returned the partial output file and parsed to an empty
 // NecResult, which the caller could not tell from a real one.
 
-import { describe, expect, it } from "vitest";
 import { runNec } from "nec2c-wasm";
+import { describe, expect, it } from "vitest";
 
 const GOOD_DECK = [
   "CM parity fixture",

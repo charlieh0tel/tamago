@@ -9,11 +9,11 @@
 // enough feedpoint reactance to trigger the series element on their own.
 
 import { readFileSync } from "node:fs";
+import { runNec } from "nec2c-wasm";
 import { describe, expect, it } from "vitest";
 import { type DesignResult, design } from "../src/engine/design";
 import { renderFeedSchematic } from "../src/engine/schematic";
 import { type DesignSpec, specFromDict } from "../src/engine/spec";
-import { runNec } from "nec2c-wasm";
 
 const GOLDENS = new URL("../goldens/", import.meta.url);
 const FIXTURES = new URL("./fixtures/", import.meta.url);

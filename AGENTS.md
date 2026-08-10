@@ -44,6 +44,8 @@
 - Run `npm run lint` (Biome) after changes and before commits.
 - Run tests with `npm test` (Vitest).
 - Rebuild (`npm run build`) and commit `prebuilts/app/` when changing the app;
-  CI fails if the committed bundle does not match `web/src`.
+  CI fails if the committed bundle does not match `web/src`. Never set
+  `TAMAGO_GIT_HASH` yourself -- it is CI's way of reproducing a committed
+  bundle, and setting it locally silently freezes the recorded commit.
 - The engine (`web/src/engine/`) is framework-free: no React imports.
 - Do not edit `web/goldens/`; it is frozen reference output.
