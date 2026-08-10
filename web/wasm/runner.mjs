@@ -33,8 +33,20 @@ export async function runNec(deckText) {
   });
 
   module.FS.writeFile(INPUT_PATH, deckText);
+
+  // Under Node, Emscripten's exit path assigns process.exitCode, so a failed
+  // run would leave the host process exiting non-zero even though the failure
+  // is reported here by throwing. Restore whatever the caller had. Harmless in
+  // the browser worker, where there is no process object.
+  const hostProcess = globalThis.process;
+  const priorExitCode = hostProcess?.exitCode;
+
   const returned = module.callMain(["-i", INPUT_PATH, "-o", OUTPUT_PATH]);
   if (typeof returned === "number") exitCode = returned;
+
+  if (hostProcess && hostProcess.exitCode !== priorExitCode) {
+    hostProcess.exitCode = priorExitCode;
+  }
 
   // nec2c reports input problems by writing a message into its output file
   // rather than to stderr, so read the file even on failure. It is absent if

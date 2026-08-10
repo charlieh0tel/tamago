@@ -29,6 +29,14 @@ describe("wasm runner", () => {
     );
   });
 
+  it("leaves the host process exit code alone after a failure", async () => {
+    // Emscripten's exit path assigns process.exitCode; a library must not
+    // decide the exit status of the program embedding it.
+    const before = process.exitCode;
+    await expect(runNec("total garbage not a deck\n")).rejects.toThrow();
+    expect(process.exitCode).toBe(before);
+  });
+
   it("carries nec2c's own diagnostic in the message", async () => {
     // nec2c writes this into its output file, not to stderr.
     await expect(runNec("total garbage not a deck\n")).rejects.toThrow(
