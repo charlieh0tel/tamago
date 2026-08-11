@@ -327,7 +327,7 @@ app -- CI enforces that the bundle matches `web/src`. The UX design is in
 `docs/web-ux.md` and the engine's own notes are in `web/README.md`.
 
 The solver and the NEC deck handling are separate packages, in
-[charlieh0tel/nec2c-js](https://github.com/charlieh0tel/nec2c-js): `nec2c-wasm`
+[charlieh0tel/nec2-js](https://github.com/charlieh0tel/nec2-js): `nec2c-wasm`
 is nec2c compiled to WebAssembly, and `nec2c-deck` writes NEC decks and parses
 nec2c output. They started here and moved out once they were general enough to
 stand on their own.
