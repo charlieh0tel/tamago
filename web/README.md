@@ -46,7 +46,7 @@ and is still the reference the engine is tested against.
 - `../prebuilts/app/` -- the committed production bundle for GitHub Pages.
 
 NEC deck emission, output parsing and the solver itself are the `nec2c-deck`
-and `nec2c-wasm` packages ([charlieh0tel/nec2c-js](https://github.com/charlieh0tel/nec2c-js)).
+and `nec2c-wasm` packages ([charlieh0tel/nec2-js](https://github.com/charlieh0tel/nec2-js)).
 `engine/nec.ts` re-exports the first so the engine's imports stay local.
 
 ## Web app (UI)
