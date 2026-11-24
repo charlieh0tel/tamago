@@ -310,7 +310,7 @@ JSON).
 
 ## Development
 
-Everything lives in `web/` (Node 20+):
+Everything lives in `web/` (Node 22.12+):
 
 ```
 cd web
