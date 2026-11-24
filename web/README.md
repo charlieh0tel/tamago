@@ -12,7 +12,7 @@ and is still the reference the engine is tested against.
 ## Locked stack decisions
 
 - React 18 + TypeScript (strict, `noUncheckedIndexedAccess`).
-- Vite 5 build/dev, `@vitejs/plugin-react`.
+- Vite 8 build/dev, `@vitejs/plugin-react`.
 - npm (committed `package-lock.json`); `node_modules` is gitignored.
 - Vitest for tests; `@testing-library/react` + jsdom installed for the later UI
   wave (engine tests run under the `node` environment).
